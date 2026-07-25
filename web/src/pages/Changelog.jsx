@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useI18n } from "../i18n/index.jsx";
-// Source unique : le CHANGELOG.md du dépôt, importé tel quel.
-import raw from "../../../CHANGELOG.md?raw";
+// Source unique : docs/CHANGELOG.md, importé tel quel.
+import raw from "../../../docs/CHANGELOG.md?raw";
 
 // Parse minimal, calé sur notre format Keep a Changelog :
 //   ## [version] - date   → une release

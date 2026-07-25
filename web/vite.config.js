@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    // Autorise l'import du CHANGELOG.md situé à la racine du dépôt (?raw).
+    // Autorise l'import de docs/CHANGELOG.md (hors racine Vite) via ?raw.
     fs: { allow: [".."] },
   },
   build: {

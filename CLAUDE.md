@@ -40,7 +40,7 @@ Règles :
 1. Coder dans le bon module (voir tableau).
 2. Ajouter les clés i18n **FR + EN**.
 3. Vérifier le build : `cd web && npm run build`.
-4. **Mettre à jour `CHANGELOG.md`** (obligatoire, voir plus bas).
+4. **Mettre à jour `docs/CHANGELOG.md`** (obligatoire, voir plus bas).
 5. Committer (voir conventions).
 6. **Ne pas pousser** sans demande explicite.
 
@@ -60,8 +60,8 @@ Exemples :
 
 ## Changelog (obligatoire)
 
-Source unique : [`CHANGELOG.md`](CHANGELOG.md). La page `/changelog` de l'app
-l'affiche telle quelle (import Vite `?raw`).
+Source unique : [`docs/CHANGELOG.md`](docs/CHANGELOG.md). La page `/changelog`
+de l'app l'affiche telle quelle (import Vite `?raw`).
 
 **Modèle par date** (déploiement continu : chaque push est en prod, donc pas de
 `[Unreleased]`). À chaque changement **visible par l'utilisateur** (feature ou
