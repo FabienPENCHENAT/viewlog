@@ -7,6 +7,7 @@ import Home from "./pages/Home.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Faq from "./pages/Faq.jsx";
 import Legal from "./pages/Legal.jsx";
+import Changelog from "./pages/Changelog.jsx";
 import { LangProvider } from "./i18n/index.jsx";
 import "./index.css";
 
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
       { path: "dashboard/:id", element: <Dashboard /> },
       { path: "faq", element: <Faq /> },
       { path: "mentions-legales", element: <Legal /> },
+      { path: "changelog", element: <Changelog /> },
     ],
   },
 ]);

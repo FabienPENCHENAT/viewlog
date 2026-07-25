@@ -94,6 +94,10 @@ export default {
   "nav.faq": "FAQ",
 
   "footer.legal": "Legal notice",
+  "footer.changelog": "Changelog",
+
+  "changelog.title": "Changelog",
+  "changelog.intro": "New features and improvements to ViewLog, newest first.",
 
   "legal.title": "Legal notice",
   "legal.editor_h": "Publisher",

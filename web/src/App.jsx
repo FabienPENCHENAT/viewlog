@@ -43,6 +43,7 @@ function Footer() {
         <span className="footer-brand">ViewLog · © {year}</span>
         <nav className="footer-links">
           <Link to="/faq">{t("nav.faq")}</Link>
+          <Link to="/changelog">{t("footer.changelog")}</Link>
           <Link to="/mentions-legales">{t("footer.legal")}</Link>
         </nav>
       </div>

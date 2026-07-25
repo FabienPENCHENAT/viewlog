@@ -13,7 +13,7 @@ statique (self-hosting) ; en production, Cloudflare sert directement le build.
 
 ## Stack
 
-- **React 18** + **React Router** (SPA, routes `/`, `/dashboard/:id`, `/faq`, `/mentions-legales`)
+- **React 18** + **React Router** (SPA, routes `/`, `/dashboard/:id`, `/faq`, `/changelog`, `/mentions-legales`)
 - **Vite** (build et dev server)
 - **Recharts** (graphes) · **@tanstack/react-virtual** (virtualisation du journal)
 - Parsing exécuté dans un **Web Worker** (UI jamais bloquée)

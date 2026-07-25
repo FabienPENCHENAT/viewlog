@@ -95,6 +95,11 @@ export default {
   "nav.faq": "FAQ",
 
   "footer.legal": "Mentions légales",
+  "footer.changelog": "Nouveautés",
+
+  "changelog.title": "Journal des modifications",
+  "changelog.intro":
+    "Les nouveautés et améliorations de ViewLog, de la plus récente à la plus ancienne.",
 
   "legal.title": "Mentions légales",
   "legal.editor_h": "Éditeur",
