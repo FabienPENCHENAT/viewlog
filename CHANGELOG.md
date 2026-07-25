@@ -1,14 +1,9 @@
 # Changelog
 
-All notable changes to ViewLog are documented here. Format based on
-[Keep a Changelog](https://keepachangelog.com/); this project follows
-Semantic Versioning.
+All notable changes to ViewLog, newest first. Everything ships continuously,
+so each entry is filed under the day it went live.
 
-## [Unreleased]
-### Added
-- In-app changelog page (`/changelog`), rendered from this file
-
-## [1.0.0] - 2026-07-25
+## 2026-07-25
 ### Added
 - Text log parsing (`.log` / `.txt`): automatic timestamp, level and message detection, with multi-line stack-trace stitching
 - CSV parsing with automatic delimiter and column detection (timestamp / level / message)
@@ -21,3 +16,4 @@ Semantic Versioning.
 - Local-only storage (IndexedDB, last 5 files) with automatic rotation
 - French and English interface
 - Anonymous, aggregate usage counter (no content, no IP) and a legal notice page
+- In-app changelog page (`/changelog`), rendered from this file

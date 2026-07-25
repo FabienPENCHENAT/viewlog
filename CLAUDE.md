@@ -60,12 +60,16 @@ Exemples :
 
 ## Changelog (obligatoire)
 
-Source unique : [`CHANGELOG.md`](CHANGELOG.md) (format *Keep a Changelog*,
-versionnage sémantique). La page `/changelog` de l'app l'affiche telle quelle
-(import Vite `?raw`).
+Source unique : [`CHANGELOG.md`](CHANGELOG.md). La page `/changelog` de l'app
+l'affiche telle quelle (import Vite `?raw`).
 
-À chaque changement **visible par l'utilisateur** (feature ou fix), ajouter
-**une ligne** sous `## [Unreleased]`, dans la bonne catégorie (`Added`,
-`Changed`, `Fixed`, `Removed`). Court, orienté utilisateur ; on n'y liste pas
-les refactors purs. Rédigé en **anglais** (cohérent avec les commits et le rendu
-in-app).
+**Modèle par date** (déploiement continu : chaque push est en prod, donc pas de
+`[Unreleased]`). À chaque changement **visible par l'utilisateur** (feature ou
+fix) :
+
+- Sous la section datée du jour `## AAAA-MM-JJ` (la créer en haut si absente,
+  les plus récentes d'abord), ajouter **une ligne** dans la bonne catégorie
+  (`Added`, `Changed`, `Fixed`, `Removed`).
+- Court, orienté utilisateur ; on n'y liste pas les refactors ou changements
+  purement dev.
+- Rédigé en **anglais** (cohérent avec les commits et le rendu in-app).
