@@ -1,0 +1,9 @@
+services:
+  viewlog:
+    build: .
+    image: viewlog:latest
+    container_name: viewlog
+    ports:
+      - "3001:3001"
+    # Aucun volume : les logs analysés ne vivent que dans le navigateur du client.
+    restart: unless-stopped

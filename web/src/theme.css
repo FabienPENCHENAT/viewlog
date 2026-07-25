@@ -1,0 +1,52 @@
+/* ============================================================
+   Thème : « Slate & Amber » (dark)
+   ------------------------------------------------------------
+   Ce fichier contient TOUS les tokens de couleur de l'app.
+   Pour changer de thème, il suffit de remplacer ce fichier
+   (mêmes noms de variables → aucun autre fichier à toucher).
+   ============================================================ */
+
+:root {
+  /* Indique au navigateur que l'UI est sombre (scrollbars, form controls) */
+  color-scheme: dark;
+
+  /* --- Fond & surfaces --- */
+  --page: #0f1116;          /* fond de page (slate profond) */
+  --surface: #171a21;       /* cartes, barres, panneaux */
+  --surface-hover: #1e222b; /* survol de surface */
+
+  /* --- Texte --- */
+  --ink: #e7e7e4;           /* texte principal */
+  --ink-2: #a8aab2;         /* texte secondaire */
+  --muted: #71747d;         /* texte discret / légendes */
+
+  /* --- Lignes & bordures --- */
+  --grid: #20242d;          /* séparateurs de lignes de tableau, grille charts */
+  --line: #333947;          /* bordures d'inputs, dropzone */
+  --border: rgba(255, 255, 255, 0.08);
+
+  /* --- Accent (ambre) --- */
+  --accent: #f5a623;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  /* Conservé pour compatibilité ; pointe désormais sur l'accent ambre. */
+  --blue: var(--accent);
+
+  /* --- Sémantique : erreurs --- */
+  --error: #f2585d;
+  --error-soft: color-mix(in srgb, var(--error) 15%, transparent);
+  --error-border: color-mix(in srgb, var(--error) 30%, transparent);
+
+  /* --- Sémantique : avertissements --- */
+  --warn: #f5b23f;
+  --warn-ink: #f5c451;      /* texte warn lisible sur fond sombre */
+  --warn-soft: color-mix(in srgb, var(--warn) 15%, transparent);
+  --warn-border: color-mix(in srgb, var(--warn) 30%, transparent);
+
+  /* --- Interaction --- */
+  --row-hover: rgba(255, 255, 255, 0.035);
+  --btn-hover: rgba(255, 255, 255, 0.06);
+
+  /* --- Forme --- */
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+}

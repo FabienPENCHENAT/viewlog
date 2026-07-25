@@ -1,0 +1,18 @@
+# Déploiement Cloudflare Workers du front ViewLog.
+# - Sert le build Vite (./dist) comme site statique, avec fallback SPA.
+# - Un Worker (worker/index.js) expose /api/track (compteur d'analyses anonyme).
+name = "viewlog"
+compatibility_date = "2025-01-01"
+main = "worker/index.js"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+# Le Worker s'exécute avant les assets pour intercepter /api/*.
+run_worker_first = true
+
+# Compteur d'usage anonyme (succès / échecs d'analyse).
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "viewlog_events"
