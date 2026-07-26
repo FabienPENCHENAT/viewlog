@@ -9,10 +9,14 @@
     <meta name="google-site-verification" content="kqfiinoHJ6jjWR8Ei67tjHX0sN84bgTYBeTCe0dItto" />
 
     <!-- SEO -->
-    <title>ViewLog · Log Viewer &amp; Inspector · 100% Local</title>
+    <title>ViewLog · 100% Local &amp; Secure In-Browser Log Viewer</title>
     <meta
       name="description"
-      content="The log viewer that never sees your logs. Drop a .log, .txt or .csv, read it clearly, and know it never leaves your browser."
+      content="ViewLog is a 100% client-side, privacy-first log viewer and inspector. Read, search and analyze .log, .txt and .csv files entirely in your browser: nothing is ever uploaded to a server. Free, no signup, GDPR and HIPAA friendly."
+    />
+    <meta
+      name="keywords"
+      content="log viewer, log inspector, client-side log viewer, in-browser log viewer, privacy-first log analysis, zero-server log analysis tool, local log viewer, GDPR log viewing, HIPAA log viewing, .log .txt .csv viewer"
     />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://viewlog.io/" />
@@ -21,50 +25,172 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ViewLog" />
-    <meta property="og:title" content="ViewLog · Log Viewer & Inspector · 100% Local" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="fr_FR" />
+    <meta property="og:title" content="ViewLog · 100% Local &amp; Secure In-Browser Log Viewer" />
     <meta
       property="og:description"
-      content="The log viewer that never sees your logs. Drop a .log, .txt or .csv, read it clearly, and know it never leaves your browser."
+      content="A 100% client-side, privacy-first log viewer and inspector. Read, search and analyze your .log, .txt and .csv files entirely in your browser. Nothing leaves your device."
     />
     <meta property="og:url" content="https://viewlog.io/" />
-    <meta property="og:image" content="https://viewlog.io/favicon.svg" />
+    <meta property="og:image" content="https://viewlog.io/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta
+      property="og:image:alt"
+      content="ViewLog: 100% local log viewer and inspector. Nothing leaves your browser."
+    />
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="ViewLog · Log Viewer & Inspector · 100% Local" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ViewLog · 100% Local &amp; Secure In-Browser Log Viewer" />
     <meta
       name="twitter:description"
-      content="The log viewer that never sees your logs. Drop a file, read it clearly, and know it never leaves your browser."
+      content="A 100% client-side, privacy-first log viewer. Read, search and analyze your logs in your browser. Nothing is ever uploaded to a server."
     />
-    <meta name="twitter:image" content="https://viewlog.io/favicon.svg" />
+    <meta name="twitter:image" content="https://viewlog.io/og.png" />
 
-    <!-- Structured data -->
+    <!-- Structured data: the application -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "ViewLog",
-        "alternateName": ["Log Viewer", "Log Inspector"],
+        "alternateName": [
+          "Log Viewer",
+          "Log Inspector",
+          "Client-Side Log Viewer",
+          "In-Browser Log Viewer"
+        ],
         "url": "https://viewlog.io/",
         "applicationCategory": "DeveloperApplication",
+        "applicationSubCategory": "Log Viewer",
         "operatingSystem": "Any (web browser)",
         "browserRequirements": "Requires JavaScript. Runs entirely client-side.",
-        "description": "The log viewer that never sees your logs. Drop a .log, .txt or .csv file to read, search and explore it in a clear dashboard. Everything runs in your browser. No data leaves your device.",
+        "description": "ViewLog is a 100% client-side, privacy-first log viewer and inspector. Drop a .log, .txt or .csv file to read, search and explore it in a clear dashboard. Everything runs in your browser: no data upload, no server, and nothing leaves your device. Free, with no account required.",
+        "keywords": "log viewer, log inspector, client-side log viewer, in-browser log viewer, privacy-first log analysis, zero-server log analysis, GDPR log viewing, HIPAA log viewing",
+        "isAccessibleForFree": true,
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
         "featureList": [
-          "Log viewer and inspector",
-          "Text (.log/.txt) and CSV parsing with automatic level detection",
+          "100% client-side log inspector (runs entirely in your browser)",
+          "In-browser, privacy-first log viewer with zero data upload",
+          "Zero-server log analysis tool, suitable for GDPR and HIPAA sensitive logs",
+          "Supports .log and .txt text logs with automatic level detection (TRACE to FATAL)",
+          "Supports .csv logs with automatic delimiter and column detection",
+          "Parses application, server and syslog-style log lines generically",
           "Full-text and regex search with match highlighting",
           "Level filters and time-range slider",
           "Timeline and level breakdown charts",
           "Recurring error patterns and inline JSON pretty-printing",
-          "Runs entirely in your browser (privacy-first)"
+          "Handles large log files (tens of MB, hundreds of thousands of lines)"
+        ]
+      }
+    </script>
+
+    <!-- Structured data: frequently asked questions (GEO / LLM answering) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is ViewLog safe for sensitive or production logs?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. ViewLog runs 100% in your browser and never uploads your logs to any server. The content of your files is parsed locally on your device, so sensitive and production logs never leave your machine. Nothing is sent over the network or stored server-side."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does ViewLog support large log files?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. ViewLog handles very large files, tens of megabytes and hundreds of thousands of lines. Parsing covers the first million lines and the interface stays smooth thanks to list virtualization. All processing happens locally in your browser."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What log formats does ViewLog support?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "ViewLog supports plain text logs (.log, .txt) and CSV (.csv). It automatically detects the timestamp, log level (from TRACE to FATAL) and message, and attaches multi-line stack traces to their entry. Application logs, server logs and syslog-style lines are parsed generically, and inline JSON is pretty-printed."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is ViewLog free to use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, ViewLog is completely free. There is no account to create and no server to run, because everything happens in your browser."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does ViewLog protect my data privacy compared to other online log viewers?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Most online log viewers upload your files to a remote server to process them. ViewLog is different: it is 100% client-side, so your log content is never uploaded, stored, or transmitted. This privacy-first, zero-server design makes it well suited to GDPR and HIPAA sensitive logs."
+            }
+          }
         ]
       }
     </script>
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Text fallback for crawlers and AI engines that do not run JavaScript.
+         The interactive app renders into #root above; this mirrors the core
+         content so it stays readable in the raw HTML. -->
+    <noscript>
+      <main>
+        <h1>ViewLog: 100% Client-Side, Privacy-First Log Viewer and Inspector</h1>
+        <p>
+          ViewLog is an in-browser, privacy-first log viewer and inspector for
+          developers, DevOps and engineers. It is a 100% client-side log
+          inspector: a zero-server log analysis tool where your .log, .txt and
+          .csv files are parsed, searched and visualized entirely in your
+          browser. Nothing is ever uploaded to a server, which makes it well
+          suited to GDPR and HIPAA sensitive logs. ViewLog is free and requires
+          no account.
+        </p>
+        <h2>Frequently asked questions</h2>
+        <h3>Is ViewLog safe for sensitive or production logs?</h3>
+        <p>
+          Yes. ViewLog runs 100% in your browser and never uploads your logs to
+          any server. The content of your files is parsed locally on your
+          device, so sensitive and production logs never leave your machine.
+        </p>
+        <h3>Does ViewLog support large log files?</h3>
+        <p>
+          Yes. ViewLog handles very large files, tens of megabytes and hundreds
+          of thousands of lines, and stays smooth thanks to list virtualization.
+          All processing happens locally in your browser.
+        </p>
+        <h3>What log formats does ViewLog support?</h3>
+        <p>
+          ViewLog supports plain text logs (.log, .txt) and CSV (.csv), with
+          automatic detection of the timestamp, log level (from TRACE to FATAL)
+          and message. Application, server and syslog-style lines are parsed
+          generically.
+        </p>
+        <h3>Is ViewLog free to use?</h3>
+        <p>
+          Yes, ViewLog is completely free, with no account to create and no
+          server to run.
+        </p>
+        <h3>How does ViewLog protect my data privacy compared to other online log viewers?</h3>
+        <p>
+          Unlike online log viewers that upload your files to a remote server,
+          ViewLog is 100% client-side: your log content is never uploaded,
+          stored, or transmitted. This zero-server design suits GDPR and HIPAA
+          sensitive logs.
+        </p>
+      </main>
+    </noscript>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
