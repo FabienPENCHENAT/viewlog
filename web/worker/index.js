@@ -101,7 +101,8 @@ const QUERIES = {
     FROM ${DS} WHERE blob1='page_view' AND timestamp > ${WINDOW}
     GROUP BY page ORDER BY n DESC`,
   countries: `SELECT blob2 AS country, SUM(_sample_interval) AS n
-    FROM ${DS} WHERE timestamp > ${WINDOW}
+    FROM ${DS}
+    WHERE blob1 IN ('page_view','import','open','feature') AND timestamp > ${WINDOW}
     GROUP BY country ORDER BY n DESC LIMIT 20`,
   importVsOpen: `SELECT blob1 AS event, SUM(_sample_interval) AS n
     FROM ${DS} WHERE blob1 IN ('import','open') AND blob3='success' AND timestamp > ${WINDOW}

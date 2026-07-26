@@ -197,7 +197,8 @@ WHERE blob1='feature' AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY feature
 SELECT blob7 AS page, SUM(_sample_interval) AS n FROM viewlog_events
 WHERE blob1='page_view' AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY page ORDER BY n DESC;
 SELECT blob2 AS country, SUM(_sample_interval) AS n FROM viewlog_events
-WHERE timestamp > NOW() - INTERVAL '90' DAY GROUP BY country ORDER BY n DESC LIMIT 20;
+WHERE blob1 IN ('page_view','import','open','feature') AND timestamp > NOW() - INTERVAL '90' DAY
+GROUP BY country ORDER BY n DESC LIMIT 20;
 ```
 
 > Data points conservés ~90 jours. Pour un suivi visuel externe, Grafana peut se
