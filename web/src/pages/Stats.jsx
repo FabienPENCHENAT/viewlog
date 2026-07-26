@@ -37,12 +37,20 @@ const LABELS = {
   export: "Export",
 };
 
+// Ordre canonique des tranches de taille (affichées même à 0).
+const SIZE_ORDER = ["s", "m", "l", "xl"];
+
 const num = (v) => Number(v || 0);
 const fmt = (v) => num(v).toLocaleString("fr-FR");
 const label = (k) => LABELS[k] ?? (k || "inconnu");
 
-function Bars({ title, rows, keyName, format }) {
-  const data = (rows || []).map((r) => ({ k: r[keyName], n: num(r.n) }));
+// `domain` (optionnel) force l'affichage de toutes les catégories, dans l'ordre,
+// même celles absentes des données (comptées à 0).
+function Bars({ title, rows, keyName, format, domain }) {
+  const counts = new Map((rows || []).map((r) => [String(r[keyName]), num(r.n)]));
+  const data = domain
+    ? domain.map((k) => ({ k, n: counts.get(String(k)) || 0 }))
+    : (rows || []).map((r) => ({ k: r[keyName], n: num(r.n) }));
   const max = data.reduce((m, r) => Math.max(m, r.n), 0) || 1;
   const labelFor = format || label;
   return (
@@ -190,9 +198,9 @@ export default function Stats() {
         <Bars title="Succès / échec" rows={data.outcomes} keyName="outcome" />
         <Bars title="Fonctionnalités utilisées" rows={data.features} keyName="feature" />
         <Bars title="Extensions" rows={data.extensions} keyName="ext" />
-        <Bars title="Tranches de taille" rows={data.sizes} keyName="size_bucket" />
+        <Bars title="Tranches de taille" rows={data.sizes} keyName="size_bucket" domain={SIZE_ORDER} />
         <Bars title="Troncature atteinte" rows={data.truncated} keyName="truncated" />
-        <Bars title="Échecs par taille" rows={data.failBySize} keyName="size_bucket" />
+        <Bars title="Échecs par taille" rows={data.failBySize} keyName="size_bucket" domain={SIZE_ORDER} />
         <Bars title="Pages vues" rows={data.pages} keyName="page" />
         <Bars title="Pays" rows={data.countries} keyName="country" />
       </div>
