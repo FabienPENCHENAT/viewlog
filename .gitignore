@@ -4,3 +4,7 @@ data/
 *.local
 .DS_Store
 .claude/settings.local.json
+
+# Social assets (X and LinkedIn profile/banner), kept local
+viewlog-x-avatar.png
+viewlog-x-banner.png
