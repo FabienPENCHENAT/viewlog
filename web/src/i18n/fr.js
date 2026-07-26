@@ -119,6 +119,14 @@ export default {
   "faq.q_privacy": "Où vont mes fichiers de logs ?",
   "faq.a_privacy":
     "Confidentialité par conception : le contenu de vos fichiers de logs est traité entièrement dans votre navigateur et ne quitte jamais votre poste.",
+  "faq.q_sensitive":
+    "ViewLog est-il sûr pour des logs sensibles ou de production ?",
+  "faq.a_sensitive":
+    "Oui. ViewLog s'exécute à 100 % dans votre navigateur et n'envoie jamais vos logs vers un serveur. Le contenu de vos fichiers est analysé localement, sur votre poste : vos logs sensibles ou de production ne quittent donc jamais votre machine. Rien n'est transmis sur le réseau ni stocké côté serveur.",
+  "faq.q_compare":
+    "En quoi ViewLog protège-t-il mieux mes données que les autres visualiseurs de logs en ligne ?",
+  "faq.a_compare":
+    "La plupart des visualiseurs de logs en ligne envoient vos fichiers vers un serveur distant pour les traiter. ViewLog est différent : il est 100 % côté client, donc le contenu de vos logs n'est jamais envoyé, stocké ni transmis. Cette conception privacy-first, sans aucun serveur, le rend adapté aux logs sensibles (RGPD, HIPAA).",
   "faq.q_retention": "Combien de fichiers sont conservés ?",
   "faq.a_retention":
     "Les 5 derniers fichiers ouverts sont gardés localement, dans votre navigateur, et remplacés automatiquement au fil de vos nouveaux imports.",

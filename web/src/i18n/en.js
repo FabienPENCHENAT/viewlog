@@ -117,6 +117,13 @@ export default {
   "faq.q_privacy": "Where do my log files go?",
   "faq.a_privacy":
     "Privacy by design: the content of your log files is processed entirely in your browser and never leaves your device.",
+  "faq.q_sensitive": "Is ViewLog safe for sensitive or production logs?",
+  "faq.a_sensitive":
+    "Yes. ViewLog runs 100% in your browser and never uploads your logs to any server. The content of your files is parsed locally on your device, so sensitive and production logs never leave your machine. Nothing is sent over the network or stored server-side.",
+  "faq.q_compare":
+    "How does ViewLog protect my data privacy compared to other online log viewers?",
+  "faq.a_compare":
+    "Most online log viewers upload your files to a remote server to process them. ViewLog is different: it is 100% client-side, so your log content is never uploaded, stored, or transmitted. This privacy-first, zero-server design makes it well suited to GDPR and HIPAA sensitive logs.",
   "faq.q_retention": "How many files are kept?",
   "faq.a_retention":
     "The 5 most recently opened files are kept locally, in your browser, and automatically rotated as you import new ones.",

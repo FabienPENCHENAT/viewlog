@@ -20,6 +20,8 @@ const GROUPS = [
     title: "faq.group_privacy",
     items: [
       ["faq.q_privacy", "faq.a_privacy"],
+      ["faq.q_sensitive", "faq.a_sensitive"],
+      ["faq.q_compare", "faq.a_compare"],
       ["faq.q_retention", "faq.a_retention"],
       ["faq.q_delete", "faq.a_delete"],
     ],
