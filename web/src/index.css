@@ -1159,6 +1159,48 @@ tbody tr:hover {
   }
 }
 
+/* --- 404 --- */
+.notfound {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 40px 0;
+  text-align: center;
+}
+.nf-code {
+  font-size: clamp(80px, 18vw, 160px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+}
+.nf-log {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 14px 16px;
+  margin: 20px 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.nf-log-msg {
+  color: var(--ink-2);
+  font-size: 13px;
+  word-break: break-all;
+}
+.nf-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+.nf-quip {
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+.nf-home {
+  display: inline-block;
+  text-decoration: none;
+}
+
 /* --- Stats (page privée /stats) --- */
 .stats-page {
   max-width: 1000px;

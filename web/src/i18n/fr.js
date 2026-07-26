@@ -94,6 +94,11 @@ export default {
 
   "nav.faq": "FAQ",
 
+  "nf.title": "Page introuvable",
+  "nf.log": "404 aucune route ne correspond à {path}",
+  "nf.quip": "Cette page n'a laissé aucune trace dans les logs.",
+  "nf.home": "Retour à l'accueil",
+
   "footer.legal": "Mentions légales",
   "footer.changelog": "Nouveautés",
 

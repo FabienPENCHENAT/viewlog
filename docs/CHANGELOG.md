@@ -3,6 +3,10 @@
 All notable changes to ViewLog, newest first. Everything ships continuously,
 so each entry is filed under the day it went live.
 
+## 2026-07-26
+### Added
+- Friendly, log themed 404 page for unknown URLs
+
 ## 2026-07-25
 ### Added
 - Text log parsing (`.log` / `.txt`): automatic timestamp, level and message detection, with multi-line stack-trace stitching

@@ -93,6 +93,11 @@ export default {
 
   "nav.faq": "FAQ",
 
+  "nf.title": "Page not found",
+  "nf.log": "404 no route matched {path}",
+  "nf.quip": "This page left no trace in the logs.",
+  "nf.home": "Back to home",
+
   "footer.legal": "Legal notice",
   "footer.changelog": "Changelog",
 

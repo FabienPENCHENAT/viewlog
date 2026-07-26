@@ -9,6 +9,7 @@ import Faq from "./pages/Faq.jsx";
 import Legal from "./pages/Legal.jsx";
 import Changelog from "./pages/Changelog.jsx";
 import Stats from "./pages/Stats.jsx";
+import NotFound from "./pages/NotFound.jsx";
 import { LangProvider } from "./i18n/index.jsx";
 import "./index.css";
 
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       // Dashboard privé (non lié dans la nav). Chemin volontairement peu devinable ;
       // la vraie protection reste le STATS_TOKEN. Pour le renommer, changer ici.
       { path: "vl-backstage-6f3a", element: <Stats /> },
+      { path: "*", element: <NotFound /> },
     ],
   },
 ]);
