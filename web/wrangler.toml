@@ -12,7 +12,19 @@ not_found_handling = "single-page-application"
 # Le Worker s'exécute avant les assets pour intercepter /api/*.
 run_worker_first = true
 
-# Compteur d'usage anonyme (succès / échecs d'analyse).
+# Événements d'usage anonymes et agrégés (page_view / import / open / feature).
 [[analytics_engine_datasets]]
 binding = "ANALYTICS"
 dataset = "viewlog_events"
+
+# Dashboard privé /api/stats. Secrets à définir (jamais dans ce fichier) :
+#   wrangler secret put CF_ACCOUNT_ID        # ID du compte Cloudflare
+#   wrangler secret put CF_ANALYTICS_TOKEN   # API token avec "Account Analytics: Read"
+#   wrangler secret put STATS_TOKEN          # mot de passe d'accès à la page privée
+
+# Rate limiting de /api/stats : 10 requêtes / 60 s par IP (anti brute-force).
+[[ratelimit]]
+name = "STATS_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }
+

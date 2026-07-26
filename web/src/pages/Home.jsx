@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import DropZone from "../components/DropZone.jsx";
 import { listLogs, uploadLog, deleteLog } from "../lib/api.js";
-import { trackAnalysis } from "../lib/track.js";
+import { trackImport, sizeBucket } from "../lib/track.js";
 import { useI18n } from "../i18n/index.jsx";
 import shieldIcon from "../assets/privacy-shield.svg";
 
@@ -40,16 +40,17 @@ export default function Home() {
     refresh();
   }, []);
 
-  async function handleFile(file, extOverride) {
+  async function handleFile(file, method = "drop") {
     setBusy(true);
     setError(null);
-    const ext = extOverride || fileExt(file?.name);
+    const ext = fileExt(file?.name);
+    const size = sizeBucket(file?.size || 0);
     try {
-      const { id } = await uploadLog(file);
-      trackAnalysis("success", ext);
-      navigate(`/dashboard/${id}`);
+      const { id, truncated } = await uploadLog(file);
+      trackImport("success", { method, ext, size, truncated });
+      navigate(`/dashboard/${id}`, { state: { from: "import" } });
     } catch (e) {
-      trackAnalysis("fail", ext);
+      trackImport("fail", { method, ext, size });
       setError(e.message);
       setBusy(false);
     }
@@ -139,7 +140,11 @@ export default function Home() {
         ) : (
           <ul className="recent-list">
             {recent.map((f) => (
-              <li key={f.id} className="recent-item" onClick={() => navigate(`/dashboard/${f.id}`)}>
+              <li
+                key={f.id}
+                className="recent-item"
+                onClick={() => navigate(`/dashboard/${f.id}`, { state: { from: "recent" } })}
+              >
                 <div className="recent-main">
                   <span className="recent-name">{f.name}</span>
                   <span className="muted recent-meta">

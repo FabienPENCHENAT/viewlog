@@ -63,7 +63,7 @@ export async function uploadLog(file) {
       await dbDelete(old.id);
     }
 
-    return { id: record.id };
+    return { id: record.id, truncated };
   } catch {
     throw new Error("errors.upload");
   }

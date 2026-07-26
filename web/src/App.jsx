@@ -1,5 +1,25 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useI18n } from "./i18n/index.jsx";
+import { trackPageView } from "./lib/track.js";
+
+// Pages de contenu suivies (page_view). Les dashboards sont couverts par les
+// events import/open, pas ici.
+const PAGE_BY_PATH = {
+  "/": "home",
+  "/faq": "faq",
+  "/changelog": "changelog",
+  "/mentions-legales": "legal",
+};
+
+function PageTracker() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const page = PAGE_BY_PATH[pathname];
+    if (page) trackPageView(page);
+  }, [pathname]);
+  return null;
+}
 
 function LangSwitch() {
   const { lang, setLang, t } = useI18n();
@@ -54,6 +74,7 @@ function Footer() {
 export default function App() {
   return (
     <div className="app">
+      <PageTracker />
       <header className="topbar">
         <Link to="/" className="brand">
           <svg className="brand-logo" viewBox="0 0 100 100" aria-hidden="true">

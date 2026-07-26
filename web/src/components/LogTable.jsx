@@ -4,6 +4,7 @@ import { levelColor } from "../levels.js";
 import MessageCell from "./MessageCell.jsx";
 import { formatDuration } from "../lib/duration.js";
 import { groupPatterns, patternKey, templateFromKey } from "../lib/patterns.js";
+import { trackFeature } from "../lib/track.js";
 import { useI18n } from "../i18n/index.jsx";
 
 const MAX_PATTERNS = 100; // motifs affichés au maximum
@@ -27,9 +28,26 @@ export default function LogTable({ entries, byLevel }) {
   const [patternFilter, setPatternFilter] = useState(null); // clé de motif (drill-down)
   const [regexMode, setRegexMode] = useState(false); // recherche : contains vs regex
 
+  // Analytics feature : on ne compte chaque feature qu'UNE fois par fichier
+  // ouvert (mesure l'adoption, pas le volume de clics). Remis à zéro au fichier.
+  const firedRef = useRef(null);
+  if (firedRef.current === null) firedRef.current = new Set();
+  function markFeature(name) {
+    if (!firedRef.current.has(name)) {
+      firedRef.current.add(name);
+      trackFeature(name);
+    }
+  }
+  useEffect(() => {
+    firedRef.current = new Set();
+  }, [entries]);
+
   function switchView(v) {
     setView(v);
-    if (v === "patterns") setPatternFilter(null); // le regroupement porte sur l'ensemble filtré
+    if (v === "patterns") {
+      setPatternFilter(null); // le regroupement porte sur l'ensemble filtré
+      markFeature("view_patterns");
+    }
   }
 
   // Bornes temporelles du fichier (min/max des timestamps).
@@ -54,6 +72,16 @@ export default function LogTable({ entries, byLevel }) {
 
   const step = bounds ? Math.max(1000, Math.floor((bounds.hi - bounds.lo) / 500)) : 1000;
   const timeActive = !!(bounds && range && (range.from > bounds.lo || range.to < bounds.hi));
+
+  // Feature analytics : recherche effectuée et filtre de période utilisé.
+  useEffect(() => {
+    if (query.trim()) markFeature("search");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+  useEffect(() => {
+    if (timeActive) markFeature("time_range");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeActive]);
 
   // Valeurs débouncées utilisées pour le filtrage (l'affichage reste live).
   const dQuery = useDebounced(query, 150);
@@ -106,6 +134,7 @@ export default function LogTable({ entries, byLevel }) {
   );
 
   function toggleLevel(level) {
+    markFeature("filter_level");
     setActive((prev) => {
       const next = new Set(prev);
       next.has(level) ? next.delete(level) : next.add(level);
@@ -186,7 +215,12 @@ export default function LogTable({ entries, byLevel }) {
             className={`regex-toggle ${regexMode ? "regex-toggle--on" : ""}`}
             aria-pressed={regexMode}
             title={t("table.regex")}
-            onClick={() => setRegexMode((v) => !v)}
+            onClick={() =>
+              setRegexMode((v) => {
+                if (!v) markFeature("regex");
+                return !v;
+              })
+            }
           >
             .*
           </button>
@@ -290,6 +324,7 @@ export default function LogTable({ entries, byLevel }) {
                 type="button"
                 className="pat-row"
                 onClick={() => {
+                  markFeature("pattern_click");
                   setPatternFilter(g.key);
                   setView("journal");
                 }}

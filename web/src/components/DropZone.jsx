@@ -11,7 +11,7 @@ export default function DropZone({ onFile, busy }) {
       e.preventDefault();
       setDragging(false);
       const file = e.dataTransfer.files?.[0];
-      if (file) onFile(file);
+      if (file) onFile(file, "drop");
     },
     [onFile]
   );
@@ -36,7 +36,7 @@ export default function DropZone({ onFile, busy }) {
         hidden
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) onFile(file);
+          if (file) onFile(file, "picker");
           e.target.value = "";
         }}
       />
