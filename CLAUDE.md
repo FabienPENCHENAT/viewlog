@@ -9,7 +9,11 @@ garder le projet **simple, modulaire et privacy-first**. Docs détaillées :
 
 - **Rien ne quitte le navigateur.** Le contenu des logs est parsé et stocké en
   local (IndexedDB). Aucun envoi réseau du contenu, du nom de fichier ou de l'IP.
-  Seul `/api/track` émet un signal **anonyme et agrégé** (issue, extension, pays).
+  Seul `/api/track` émet des events **anonymes et agrégés** (page vue, résultat
+  et méthode d'import, extension, tranche de taille, troncature, fonctionnalité
+  utilisée, pays), sans cookie ni identifiant de suivi, et **en respectant le
+  Do Not Track / GPC**. Toute évolution du tracking doit rester dans ce cadre et
+  être reflétée dans la mention légale (`legal.data_body` FR + EN).
 - **Bilingue FR + EN.** Tout texte visible passe par l'i18n : la clé est ajoutée
   dans `web/src/i18n/fr.js` **et** `web/src/i18n/en.js`. Jamais de texte en dur.
 - **Pas de tiret cadratin `—`** dans les textes affichés (préférence produit) ;

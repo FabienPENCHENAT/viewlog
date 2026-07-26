@@ -93,64 +93,115 @@ dataset = "viewlog_events"
 
 ## Analytics d'usage anonyme
 
-À chaque traitement de fichier, le front envoie un `sendBeacon` vers `/api/track`
-avec `{ "outcome": "success" | "fail", "ext": "log" }`. Le Worker écrit un data
-point dans **Workers Analytics Engine** (dataset `viewlog_events`). **Aucun
-contenu de log n'est transmis, ni le nom du fichier, ni l'adresse IP.** On ne
-garde que des données anonymes et agrégées :
+Le front envoie des events via `sendBeacon` vers `/api/track`. Le Worker écrit un
+data point dans **Workers Analytics Engine** (dataset `viewlog_events`). **Aucun
+contenu de log, nom de fichier, taille exacte ou IP n'est transmis.** Le tracking
+est cookieless, sans identifiant de suivi, et **respecte Do Not Track / GPC**
+(voir `web/src/lib/track.js`).
 
-- **issue** du traitement (`success` / `fail`) ;
-- **extension** du fichier seule (ex. `log`, `txt`), pour prioriser les formats à
-  prendre en charge ;
-- **pays** de connexion, déduit par Cloudflare (`request.cf.country`) sans stocker
-  l'IP.
+### Events
 
-Détail :
+- `page_view` : pages de contenu (`home`/`faq`/`changelog`/`legal`), câblé dans `App.jsx`.
+- `import` : nouveau fichier traité, câblé dans `Home.jsx` (résultat, méthode,
+  extension, tranche de taille, troncature).
+- `open` : réouverture d'un log déjà stocké, câblé dans `Dashboard.jsx` (source
+  `recent`/`direct`). Un import ne déclenche pas d'`open` (dédup).
+- `feature` : usage d'une fonctionnalité, câblé dans `LogTable.jsx`, **une fois
+  par fichier ouvert** (mesure l'adoption). Valeurs : `search`, `regex`,
+  `filter_level`, `time_range`, `view_patterns`, `pattern_click`, `export`.
 
-- Front : `web/src/track.js` (fire-and-forget, jamais bloquant), appelé dans
-  `web/src/pages/Home.jsx` ; l'extension est extraite par un regex qui ne capture
-  que le suffixe (jamais le nom complet).
-- Worker : `web/worker/index.js`, endpoint `/api/track` ; l'extension est
-  re-nettoyée côté serveur (alphanumérique, 10 caractères max).
-- Schéma du data point : `blob1 = outcome`, `blob2 = extension`, `blob3 = pays`,
-  `double1 = 1`.
+### Schéma des slots (FIXE, ne jamais recycler)
 
-> En dev local (`wrangler dev`), `request.cf` est absent : le pays vaut alors
-> `unknown`. Il ne remonte réellement qu'en prod.
+| slot | sens | events |
+|---|---|---|
+| `index1` / `blob1` | event | tous |
+| `blob2` | pays (`request.cf.country`) | tous |
+| `blob3` | outcome (`success`/`fail`) | import, open |
+| `blob4` | source (`drop`/`picker`/`paste` ou `recent`/`direct`) | import, open |
+| `blob5` | tranche de taille (`s`/`m`/`l`/`xl`) | import |
+| `blob6` | troncature (`1`/`0`) | import |
+| `blob7` | page (`home`/`faq`/`changelog`/`legal`) | page_view |
+| `blob8` | feature | feature |
+| `blob9` | extension | import |
+| `double1` | `1` | tous |
 
-### Lire les stats
+> En dev local (`wrangler dev`), `request.cf` est absent : le pays vaut `unknown`.
 
-Via l'API SQL d'Analytics Engine (remplacer `<ACCOUNT_ID>` et utiliser un token
-API avec la permission *Account Analytics: Read*) :
+### Dashboard privé `/api/stats` + page privée
+
+Analytics Engine n'a pas de dashboard natif. Le Worker expose `/api/stats`
+(verrouillé par token) qui agrège les 90 derniers jours via l'API SQL, et une page
+React non liée dans la nav l'affiche. Chemin actuel : **`/vl-backstage-6f3a`**
+(défini dans `web/src/main.jsx` ; peu devinable, mais la vraie protection reste le
+token). Secrets à définir :
 
 ```bash
-# Ratio succès / échec
-curl "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/analytics_engine/sql" \
-  -H "Authorization: Bearer <API_TOKEN>" \
-  -d "SELECT blob1 AS outcome, SUM(_sample_interval) AS total
-      FROM viewlog_events
-      WHERE timestamp > NOW() - INTERVAL '30' DAY
-      GROUP BY outcome"
-
-# Extensions déposées
-curl "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/analytics_engine/sql" \
-  -H "Authorization: Bearer <API_TOKEN>" \
-  -d "SELECT blob2 AS extension, SUM(_sample_interval) AS total
-      FROM viewlog_events
-      WHERE timestamp > NOW() - INTERVAL '30' DAY
-      GROUP BY extension ORDER BY total DESC"
-
-# Pays de connexion
-curl "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/analytics_engine/sql" \
-  -H "Authorization: Bearer <API_TOKEN>" \
-  -d "SELECT blob3 AS pays, SUM(_sample_interval) AS total
-      FROM viewlog_events
-      WHERE timestamp > NOW() - INTERVAL '30' DAY
-      GROUP BY pays ORDER BY total DESC"
+cd web
+wrangler secret put CF_ACCOUNT_ID        # ID du compte Cloudflare
+wrangler secret put CF_ANALYTICS_TOKEN   # API token avec "Account Analytics: Read"
+wrangler secret put STATS_TOKEN          # mot de passe de la page privée
 ```
 
-> Le ratio = `success / (success + fail)`. Les data points sont conservés ~90
-> jours. Pour un suivi visuel continu, brancher Grafana sur cette même source.
+Sécurité de `/api/stats` : token lu **uniquement** dans l'en-tête
+`Authorization: Bearer ...` (jamais en query), comparé à **temps constant**, et
+**rate limité** à 10 requêtes / 60 s par IP (binding `STATS_LIMITER`).
+
+Accès : ouvrir la page privée, saisir le `STATS_TOKEN` (mémorisé en local). Sans
+token valide, `/api/stats` renvoie 401 ; en cas d'abus, 429.
+
+### Requêtes SQL (fenêtre glissante 90 j)
+
+Toujours compter avec `SUM(_sample_interval)` (AE échantillonne). Helper :
+
+```bash
+q() { curl -s "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/analytics_engine/sql" \
+        -H "Authorization: Bearer $CF_API_TOKEN" --data "$1"; }
+```
+
+```sql
+-- Taux d'activation (imports + réouvertures) / visites
+SELECT
+  SUM(if(blob1='page_view', _sample_interval, 0)) AS visits,
+  SUM(if(blob1 IN ('import','open') AND blob3='success', _sample_interval, 0)) AS active_uses,
+  SUM(if(blob1 IN ('import','open') AND blob3='success', _sample_interval, 0))
+    / SUM(if(blob1='page_view', _sample_interval, 0)) AS activation_rate
+FROM viewlog_events WHERE timestamp > NOW() - INTERVAL '90' DAY;
+
+-- Visites par jour
+SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS day, SUM(_sample_interval) AS n
+FROM viewlog_events WHERE blob1='page_view' AND timestamp > NOW() - INTERVAL '90' DAY
+GROUP BY day ORDER BY day;
+
+-- Import vs réouverture (proxy de fidélité)
+SELECT blob1 AS event, SUM(_sample_interval) AS n
+FROM viewlog_events WHERE blob1 IN ('import','open') AND blob3='success'
+  AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY event;
+
+-- Méthode d'import / Succès-échec / Extensions / Tailles / Troncature
+SELECT blob4 AS method, SUM(_sample_interval) AS n FROM viewlog_events
+WHERE blob1='import' AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY method ORDER BY n DESC;
+SELECT blob3 AS outcome, SUM(_sample_interval) AS n FROM viewlog_events
+WHERE blob1='import' AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY outcome;
+SELECT blob9 AS ext, SUM(_sample_interval) AS n FROM viewlog_events
+WHERE blob1='import' AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY ext ORDER BY n DESC;
+SELECT blob5 AS size_bucket, SUM(_sample_interval) AS n FROM viewlog_events
+WHERE blob1='import' AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY size_bucket ORDER BY n DESC;
+SELECT blob6 AS truncated, SUM(_sample_interval) AS n FROM viewlog_events
+WHERE blob1='import' AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY truncated;
+
+-- Classement des features (boussole backlog)
+SELECT blob8 AS feature, SUM(_sample_interval) AS n FROM viewlog_events
+WHERE blob1='feature' AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY feature ORDER BY n DESC;
+
+-- Pages vues / Pays
+SELECT blob7 AS page, SUM(_sample_interval) AS n FROM viewlog_events
+WHERE blob1='page_view' AND timestamp > NOW() - INTERVAL '90' DAY GROUP BY page ORDER BY n DESC;
+SELECT blob2 AS country, SUM(_sample_interval) AS n FROM viewlog_events
+WHERE timestamp > NOW() - INTERVAL '90' DAY GROUP BY country ORDER BY n DESC LIMIT 20;
+```
+
+> Data points conservés ~90 jours. Pour un suivi visuel externe, Grafana peut se
+> brancher sur cette même API SQL.
 
 > ⚠️ **Ne pas ajouter de fichier `_redirects`** (ex. `/* /index.html 200`) : sur
 > Workers static assets, cette règle est rejetée au déploiement (« infinite loop

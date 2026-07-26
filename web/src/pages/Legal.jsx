@@ -20,7 +20,11 @@ export default function Legal() {
         {SECTIONS.map(([h, b]) => (
           <section key={h} className="card faq-item">
             <h2 className="faq-q">{t(h)}</h2>
-            <p className="faq-a">{t(b)}</p>
+            {t(b)
+              .split("\n\n")
+              .map((para, i) => (
+                <p key={i} className="faq-a">{para}</p>
+              ))}
           </section>
         ))}
       </div>
