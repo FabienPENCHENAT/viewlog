@@ -57,6 +57,8 @@ export default {
   "table.period_all": "All",
   "table.period_from": "Range start",
   "table.period_to": "Range end",
+  "table.copy": "Copy line",
+  "table.copied": "Line copied",
   "table.view": "View",
   "table.view_journal": "Journal",
   "table.view_patterns": "Patterns",

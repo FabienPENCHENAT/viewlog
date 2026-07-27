@@ -33,6 +33,7 @@ const LABELS = {
   filter_level: "Filtre niveau",
   time_range: "Filtre période",
   timeline_select: "Sélection graphe",
+  copy_line: "Copie de ligne",
   view_patterns: "Vue Motifs",
   pattern_click: "Clic motif",
   export: "Export",

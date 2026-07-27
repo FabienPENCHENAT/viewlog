@@ -58,6 +58,8 @@ export default {
   "table.period_all": "Tout",
   "table.period_from": "Début de période",
   "table.period_to": "Fin de période",
+  "table.copy": "Copier la ligne",
+  "table.copied": "Ligne copiée",
   "table.view": "Vue",
   "table.view_journal": "Journal",
   "table.view_patterns": "Motifs",

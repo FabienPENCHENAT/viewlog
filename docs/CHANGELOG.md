@@ -6,6 +6,7 @@ so each entry is filed under the day it went live.
 ## 2026-07-27
 ### Added
 - Select a period straight on the "Volume over time" chart by dragging across it, double-click to show everything again
+- Copy a log line to the clipboard from the journal, stack trace included, to share it as is
 ### Changed
 - The chart selection and the "Time range" slider now drive the same window, so both always reflect the log lines on screen
 

@@ -162,10 +162,8 @@ export default function Timeline({ timeline, bounds, range, onRangeChange }) {
               x1={zone.from}
               x2={zone.to}
               fill="var(--accent)"
-              fillOpacity={preview ? 0.2 : 0.12}
-              stroke="var(--accent)"
-              strokeOpacity={0.55}
-              strokeDasharray={preview ? "4 3" : undefined}
+              fillOpacity={preview ? 0.18 : 0.12}
+              stroke="none"
             />
           )}
         </AreaChart>

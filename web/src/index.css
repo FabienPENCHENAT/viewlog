@@ -1065,6 +1065,42 @@ tbody tr:hover {
   background: color-mix(in srgb, var(--chip-color) 14%, transparent);
 }
 
+/* Copie de ligne : discret, révélé au survol de la ligne (et au clavier). */
+.col-copy {
+  width: 36px;
+  padding-left: 0;
+  padding-right: 8px;
+}
+
+.row-copy {
+  display: block;
+  padding: 3px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s, background 0.12s;
+}
+
+tbody tr:hover .row-copy,
+.row-copy:focus-visible,
+.row-copy--done {
+  opacity: 1;
+}
+
+.row-copy:hover {
+  color: var(--ink);
+  background: var(--btn-hover);
+}
+
+/* L'accusé « copié » prime sur la couleur de survol. */
+.row-copy--done,
+.row-copy--done:hover {
+  color: var(--accent);
+}
+
 .msg {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 12.5px;

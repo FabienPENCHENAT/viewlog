@@ -5,10 +5,37 @@ import MessageCell from "./MessageCell.jsx";
 import { formatDuration } from "../lib/duration.js";
 import { groupPatterns, patternKey, templateFromKey } from "../lib/patterns.js";
 import { featureOnce } from "../lib/track.js";
+import { copyText } from "../lib/clipboard.js";
 import { fullRange, rangeStep, isPartialRange } from "../lib/time-range.js";
 import { useI18n } from "../i18n/index.jsx";
 
 const MAX_PATTERNS = 100; // motifs affichés au maximum
+
+// Icône du bouton de copie : deux feuillets, puis une coche une fois copié.
+function CopyIcon({ done }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {done ? (
+        <path d="M20 6 9 17l-5-5" />
+      ) : (
+        <>
+          <rect x="9" y="9" width="11" height="11" rx="2" />
+          <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+        </>
+      )}
+    </svg>
+  );
+}
 
 // Petit hook de débounce : évite de refiltrer des centaines de milliers de
 // lignes à chaque frappe / mouvement de curseur.
@@ -46,6 +73,19 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
       setPatternFilter(null); // le regroupement porte sur l'ensemble filtré
       markFeature("view_patterns");
     }
+  }
+
+  // Ligne copiée (n° de ligne) : accusé de réception visuel, effacé après 1,5 s.
+  const [copied, setCopied] = useState(null);
+  const copiedTimer = useRef(null);
+  useEffect(() => () => clearTimeout(copiedTimer.current), []);
+
+  async function copyRow(entry) {
+    if (!(await copyText(entry.raw))) return;
+    markFeature("copy_line");
+    setCopied(entry.i);
+    clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => setCopied(null), 1500);
   }
 
   const step = rangeStep(bounds);
@@ -337,12 +377,13 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
                 <th className="col-ts">{t("table.col_ts")}</th>
                 <th className="col-level">{t("table.col_level")}</th>
                 <th className="col-msg">{t("table.col_msg")}</th>
+                <th className="col-copy" aria-label={t("table.copy")} />
               </tr>
             </thead>
             <tbody>
               {paddingTop > 0 && (
                 <tr className="vpad" style={{ height: paddingTop }}>
-                  <td colSpan={4} />
+                  <td colSpan={5} />
                 </tr>
               )}
               {virtualItems.map((vi) => {
@@ -359,17 +400,28 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
                     <td className="col-msg">
                       <MessageCell message={e.message} highlight={searchRe.highlight} />
                     </td>
+                    <td className="col-copy">
+                      <button
+                        type="button"
+                        className={`row-copy ${copied === e.i ? "row-copy--done" : ""}`}
+                        title={copied === e.i ? t("table.copied") : t("table.copy")}
+                        aria-label={copied === e.i ? t("table.copied") : t("table.copy")}
+                        onClick={() => copyRow(e)}
+                      >
+                        <CopyIcon done={copied === e.i} />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
               {paddingBottom > 0 && (
                 <tr className="vpad" style={{ height: paddingBottom }}>
-                  <td colSpan={4} />
+                  <td colSpan={5} />
                 </tr>
               )}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="muted empty-row">
+                  <td colSpan={5} className="muted empty-row">
                     {t("table.empty")}
                   </td>
                 </tr>
