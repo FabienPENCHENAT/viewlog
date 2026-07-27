@@ -75,6 +75,96 @@ function Bars({ title, rows, keyName, format, domain }) {
   );
 }
 
+const EVENT_LABELS = {
+  page_view: "Page vue",
+  import: "Import",
+  open: "Réouverture",
+  feature: "Feature",
+};
+
+// Date AE ("2026-07-27 12:34:56", UTC) vers un affichage local lisible.
+function fmtDate(ts) {
+  if (!ts) return "";
+  const d = new Date(String(ts).replace(" ", "T") + "Z");
+  return Number.isNaN(d.getTime()) ? String(ts) : d.toLocaleString("fr-FR");
+}
+
+// Détail lisible d'un event selon son type.
+function detailOf(r) {
+  if (r.event === "import") {
+    const parts = [label(r.source), r.ext, label(r.size)].filter(Boolean);
+    if (String(r.truncated) === "1") parts.push("tronqué");
+    return parts.join(" · ");
+  }
+  if (r.event === "open") return label(r.source);
+  if (r.event === "feature") return label(r.feature);
+  if (r.event === "page_view") return label(r.page);
+  return "";
+}
+
+const PER_PAGE = 10;
+
+function EventsTable({ rows }) {
+  const [page, setPage] = useState(0);
+  const list = rows || [];
+  const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+  const current = Math.min(page, pages - 1);
+  const slice = list.slice(current * PER_PAGE, current * PER_PAGE + PER_PAGE);
+
+  return (
+    <section className="card stats-block stats-table-block">
+      <h2 className="card-title">
+        Dernières entrées <span className="muted">({fmt(list.length)})</span>
+      </h2>
+      {list.length === 0 ? (
+        <p className="muted">Aucune donnée.</p>
+      ) : (
+        <>
+          <div className="stats-table-scroll">
+            <table className="stats-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Event</th>
+                  <th>Détail</th>
+                  <th>Pays</th>
+                </tr>
+              </thead>
+              <tbody>
+                {slice.map((r, i) => (
+                  <tr key={current * PER_PAGE + i}>
+                    <td className="st-date">{fmtDate(r.timestamp)}</td>
+                    <td>{EVENT_LABELS[r.event] || r.event}</td>
+                    <td className="muted">{detailOf(r)}</td>
+                    <td>{r.country || ""}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="stats-pager">
+            <button
+              className="stats-logout"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={current === 0}
+            >
+              ← Précédent
+            </button>
+            <span className="muted">Page {current + 1} / {pages}</span>
+            <button
+              className="stats-logout"
+              onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
+              disabled={current >= pages - 1}
+            >
+              Suivant →
+            </button>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
 function Tile({ label: lbl, value, accent }) {
   return (
     <div className="stat-tile">
@@ -96,6 +186,7 @@ export default function Stats() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState("stats"); // "stats" | "entries"
 
   useEffect(() => {
     if (!token) return;
@@ -177,6 +268,29 @@ export default function Stats() {
       </div>
       <button className="stats-logout" onClick={logout}>Se déconnecter</button>
 
+      <div className="view-switch stats-tabs" role="group" aria-label="Vue">
+        <button
+          type="button"
+          className={`view-btn ${tab === "stats" ? "view-btn--on" : ""}`}
+          aria-pressed={tab === "stats"}
+          onClick={() => setTab("stats")}
+        >
+          Statistiques
+        </button>
+        <button
+          type="button"
+          className={`view-btn ${tab === "entries" ? "view-btn--on" : ""}`}
+          aria-pressed={tab === "entries"}
+          onClick={() => setTab("entries")}
+        >
+          Entrées
+        </button>
+      </div>
+
+      {tab === "entries" ? (
+        <EventsTable rows={data.recent} />
+      ) : (
+        <>
       <div className="stats-tiles">
         <Tile label="Visites" value={fmt(visits)} />
         <Tile label="Usages actifs" value={fmt(active)} accent />
@@ -204,6 +318,8 @@ export default function Stats() {
         <Bars title="Pages vues" rows={data.pages} keyName="page" />
         <Bars title="Pays" rows={data.countries} keyName="country" />
       </div>
+        </>
+      )}
     </div>
   );
 }

@@ -128,6 +128,12 @@ const QUERIES = {
   failBySize: `SELECT blob5 AS size_bucket, SUM(_sample_interval) AS n
     FROM ${DS} WHERE blob1='import' AND blob3='fail' AND timestamp > ${WINDOW}
     GROUP BY size_bucket ORDER BY n DESC`,
+  recent: `SELECT timestamp, blob1 AS event, blob2 AS country, blob3 AS outcome,
+      blob4 AS source, blob5 AS size, blob6 AS truncated, blob7 AS page,
+      blob8 AS feature, blob9 AS ext
+    FROM ${DS}
+    WHERE blob1 IN ('page_view','import','open','feature') AND timestamp > ${WINDOW}
+    ORDER BY timestamp DESC LIMIT 1000`,
 };
 
 // Comparaison à temps constant (évite une fuite du token par timing).

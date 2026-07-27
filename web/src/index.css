@@ -1299,3 +1299,44 @@ tbody tr:hover {
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
+
+.stats-tabs {
+  margin-bottom: 18px;
+}
+.stats-table-block {
+  margin-top: 16px;
+}
+.stats-table-scroll {
+  overflow-x: auto;
+}
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.stats-table th,
+.stats-table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--grid);
+  white-space: nowrap;
+}
+.stats-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+.stats-table .st-date {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+.stats-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 14px;
+}
+.stats-pager button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
