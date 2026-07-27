@@ -104,7 +104,7 @@ function detailOf(r) {
   return "";
 }
 
-const PER_PAGE = 10;
+const PER_PAGE = 20;
 
 // Icône du bouton de rafraîchissement (flèche circulaire).
 function RefreshIcon() {
