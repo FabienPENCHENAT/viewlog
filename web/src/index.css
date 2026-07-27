@@ -17,10 +17,34 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* `clip` et non `hidden` : borne les blocs `.wide` à la fenêtre sans casser
+     le `position: sticky` de la barre du haut. */
+  overflow-x: clip;
+}
+
+/* Largeur de page : 1100px dès que la fenêtre le permet, sinon toute la
+   largeur disponible (jamais de scroll horizontal). Un bloc qui a réellement
+   besoin de plus peut porter `.wide` pour aller jusqu'au bord utile. */
+:root {
+  --page-w: 1100px;
+  --page-pad: 24px;
 }
 
 .content {
   flex: 1;
+  width: 100%;
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 32px var(--page-pad) 64px;
+  min-width: 0;
+}
+
+/* Débordement contrôlé : le bloc s'étend jusqu'à la largeur de la fenêtre,
+   sans jamais la dépasser, et reste centré sur la colonne de contenu. */
+.wide {
+  width: calc(100vw - var(--page-pad) * 2);
+  max-width: calc(100vw - var(--page-pad) * 2);
+  margin-inline: calc(50% - 50vw + var(--page-pad));
 }
 
 .site-footer {
@@ -28,9 +52,9 @@ body {
 }
 
 .footer-inner {
-  max-width: 1100px;
+  max-width: var(--page-w);
   margin: 0 auto;
-  padding: 18px 24px;
+  padding: 18px var(--page-pad);
   display: flex;
   align-items: center;
   gap: 16px;
@@ -58,7 +82,7 @@ body {
   height: 56px;
   display: flex;
   align-items: center;
-  padding: 0 24px;
+  padding: 0 var(--page-pad);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -140,13 +164,6 @@ body {
 .lang-btn--on {
   color: var(--page);
   background: var(--accent);
-}
-
-.content {
-  min-width: 900px;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 32px 24px 64px;
 }
 
 /* --- Home --- */
@@ -1159,6 +1176,23 @@ tbody tr:hover {
   }
 }
 
+/* Petits écrans : on rogne les marges pour laisser au contenu toute la place. */
+@media (max-width: 640px) {
+  :root {
+    --page-pad: 16px;
+  }
+  .content {
+    padding-top: 24px;
+    padding-bottom: 48px;
+  }
+}
+
+@media (max-width: 460px) {
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- 404 --- */
 .notfound {
   max-width: 560px;
@@ -1203,7 +1237,7 @@ tbody tr:hover {
 
 /* --- Stats (page privée /stats) --- */
 .stats-page {
-  max-width: 1000px;
+  max-width: var(--page-w);
   margin: 0 auto;
 }
 
