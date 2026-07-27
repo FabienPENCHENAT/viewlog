@@ -3,6 +3,12 @@
 All notable changes to ViewLog, newest first. Everything ships continuously,
 so each entry is filed under the day it went live.
 
+## 2026-07-27
+### Added
+- Select a period straight on the "Volume over time" chart by dragging across it, double-click to show everything again
+### Changed
+- The chart selection and the "Time range" slider now drive the same window, so both always reflect the log lines on screen
+
 ## 2026-07-26
 ### Added
 - Friendly, log themed 404 page for unknown URLs

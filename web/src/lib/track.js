@@ -74,3 +74,15 @@ export function trackOpen(source, outcome) {
 export function trackFeature(feature) {
   send({ event: "feature", feature });
 }
+
+// Adoption d'une fonctionnalité : chaque nom n'est compté qu'UNE fois par
+// marqueur (on mesure l'usage, pas le volume de clics). On en recrée un à
+// chaque fichier ouvert.
+export function featureOnce() {
+  const fired = new Set();
+  return (feature) => {
+    if (fired.has(feature)) return;
+    fired.add(feature);
+    trackFeature(feature);
+  };
+}

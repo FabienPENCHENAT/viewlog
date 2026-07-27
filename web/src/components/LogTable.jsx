@@ -4,7 +4,8 @@ import { levelColor } from "../levels.js";
 import MessageCell from "./MessageCell.jsx";
 import { formatDuration } from "../lib/duration.js";
 import { groupPatterns, patternKey, templateFromKey } from "../lib/patterns.js";
-import { trackFeature } from "../lib/track.js";
+import { featureOnce } from "../lib/track.js";
+import { fullRange, rangeStep, isPartialRange } from "../lib/time-range.js";
 import { useI18n } from "../i18n/index.jsx";
 
 const MAX_PATTERNS = 100; // motifs affichés au maximum
@@ -20,7 +21,9 @@ function useDebounced(value, delay) {
   return debounced;
 }
 
-export default function LogTable({ entries, byLevel }) {
+// La période ({ bounds, range, onRangeChange }) est portée par le Dashboard :
+// le graphe de volume et ce tableau agissent sur la même fenêtre.
+export default function LogTable({ entries, byLevel, bounds, range, onRangeChange }) {
   const { t, locale } = useI18n();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(() => new Set());
@@ -31,15 +34,10 @@ export default function LogTable({ entries, byLevel }) {
   // Analytics feature : on ne compte chaque feature qu'UNE fois par fichier
   // ouvert (mesure l'adoption, pas le volume de clics). Remis à zéro au fichier.
   const firedRef = useRef(null);
-  if (firedRef.current === null) firedRef.current = new Set();
-  function markFeature(name) {
-    if (!firedRef.current.has(name)) {
-      firedRef.current.add(name);
-      trackFeature(name);
-    }
-  }
+  if (firedRef.current === null) firedRef.current = featureOnce();
+  const markFeature = (name) => firedRef.current(name);
   useEffect(() => {
-    firedRef.current = new Set();
+    firedRef.current = featureOnce();
   }, [entries]);
 
   function switchView(v) {
@@ -50,38 +48,15 @@ export default function LogTable({ entries, byLevel }) {
     }
   }
 
-  // Bornes temporelles du fichier (min/max des timestamps).
-  const bounds = useMemo(() => {
-    let lo = Infinity;
-    let hi = -Infinity;
-    for (const e of entries) {
-      if (!e.ts) continue;
-      const ms = new Date(e.ts).getTime();
-      if (ms < lo) lo = ms;
-      if (ms > hi) hi = ms;
-    }
-    return hi > lo ? { lo, hi } : null;
-  }, [entries]);
+  const step = rangeStep(bounds);
+  const timeActive = isPartialRange(bounds, range);
 
-  // Fenêtre temporelle sélectionnée ({ from, to } en ms) ; réinitialisée à
-  // la période complète dès qu'on change de fichier.
-  const [range, setRange] = useState(null);
-  useEffect(() => {
-    setRange(bounds ? { from: bounds.lo, to: bounds.hi } : null);
-  }, [bounds]);
-
-  const step = bounds ? Math.max(1000, Math.floor((bounds.hi - bounds.lo) / 500)) : 1000;
-  const timeActive = !!(bounds && range && (range.from > bounds.lo || range.to < bounds.hi));
-
-  // Feature analytics : recherche effectuée et filtre de période utilisé.
+  // Feature analytics : recherche effectuée (la période est suivie côté
+  // Dashboard, qui reçoit aussi les sélections faites dans le graphe).
   useEffect(() => {
     if (query.trim()) markFeature("search");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
-  useEffect(() => {
-    if (timeActive) markFeature("time_range");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeActive]);
 
   // Valeurs débouncées utilisées pour le filtrage (l'affichage reste live).
   const dQuery = useDebounced(query, 150);
@@ -256,7 +231,7 @@ export default function LogTable({ entries, byLevel }) {
             {timeActive && (
               <button
                 className="period-reset"
-                onClick={() => setRange({ from: bounds.lo, to: bounds.hi })}
+                onClick={() => onRangeChange(fullRange(bounds))}
               >
                 {t("table.period_all")}
               </button>
@@ -276,7 +251,10 @@ export default function LogTable({ entries, byLevel }) {
               value={range.from}
               aria-label={t("table.period_from")}
               onChange={(e) =>
-                setRange((r) => ({ ...r, from: Math.min(Number(e.target.value), r.to - step) }))
+                onRangeChange({
+                  ...range,
+                  from: Math.min(Number(e.target.value), range.to - step),
+                })
               }
             />
             <input
@@ -287,7 +265,10 @@ export default function LogTable({ entries, byLevel }) {
               value={range.to}
               aria-label={t("table.period_to")}
               onChange={(e) =>
-                setRange((r) => ({ ...r, to: Math.max(Number(e.target.value), r.from + step) }))
+                onRangeChange({
+                  ...range,
+                  to: Math.max(Number(e.target.value), range.from + step),
+                })
               }
             />
           </div>

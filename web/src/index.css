@@ -528,6 +528,19 @@ body {
   margin: 0 0 14px;
 }
 
+/* Graphe de volume : la zone de tracé sert de sélecteur de période. */
+.timeline-chart--pick {
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.chart-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  text-align: center;
+}
+
 /* --- FAQ --- */
 .faq {
   max-width: 760px;

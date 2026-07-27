@@ -75,6 +75,8 @@ export default {
   "chart.no_ts": "Aucun timestamp détecté dans ce fichier.",
   "chart.total": "Total",
   "chart.errors": "Erreurs",
+  "chart.select_hint":
+    "Glissez sur le graphe pour sélectionner une période, double-cliquez pour tout réafficher.",
 
   "unit.b": "o",
   "unit.kb": "Ko",

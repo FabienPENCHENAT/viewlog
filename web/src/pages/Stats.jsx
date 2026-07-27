@@ -32,6 +32,7 @@ const LABELS = {
   regex: "Regex",
   filter_level: "Filtre niveau",
   time_range: "Filtre période",
+  timeline_select: "Sélection graphe",
   view_patterns: "Vue Motifs",
   pattern_click: "Clic motif",
   export: "Export",

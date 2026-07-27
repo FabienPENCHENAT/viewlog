@@ -40,7 +40,9 @@ par analyse des valeurs — donc **même sans en-tête**.
 ## Tableau de bord
 
 - **Stats clés** : nombre de lignes, erreurs, warnings, durée couverte.
-- **Volume dans le temps** : histogramme (48 tranches) du total et des erreurs.
+- **Volume dans le temps** : courbes (48 tranches) du total et des erreurs.
+  **Sélection à la souris** : on glisse sur un pic pour borner la période, un
+  double-clic revient à la période complète.
 - **Répartition par niveau** : proportion de chaque niveau.
 
 ## Journal
@@ -55,6 +57,8 @@ horodatage, niveau, message.
   Dans les deux cas, les correspondances sont **surlignées** dans les messages.
 - **Filtres par niveau** : chaque niveau se (dés)active d'un clic.
 - **Filtre par période** : curseur temporel pour borner la fenêtre affichée.
+  Il est **synchronisé dans les deux sens** avec la sélection du graphe de
+  volume : les deux pilotent la même fenêtre, et donc les lignes affichées.
 
 ## Vue « Motifs »
 

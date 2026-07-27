@@ -74,6 +74,7 @@ export default {
   "chart.no_ts": "No timestamps detected in this file.",
   "chart.total": "Total",
   "chart.errors": "Errors",
+  "chart.select_hint": "Drag across the chart to select a period, double-click to show everything.",
 
   "unit.b": "B",
   "unit.kb": "KB",
