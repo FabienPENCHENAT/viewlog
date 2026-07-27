@@ -15,7 +15,7 @@
 //   blob5 = tranche de taille (s | m | l | xl)          [import]
 //   blob6 = troncature (1 | 0)                           [import]
 //   blob7 = page (home | faq | changelog | legal)        [page_view]
-//   blob8 = feature (search | regex | filter_level | time_range | view_patterns | pattern_click | export)  [feature]
+//   blob8 = feature (voir l'allowlist FEATURES)          [feature]
 //   blob9 = extension (log | txt | csv | json | ...)     [import]
 //   double1 = 1
 
@@ -24,11 +24,15 @@ const OUTCOMES = new Set(["success", "fail"]);
 const SOURCES = new Set(["drop", "picker", "paste", "recent", "direct"]);
 const SIZES = new Set(["s", "m", "l", "xl"]);
 const PAGES = new Set(["home", "faq", "changelog", "legal"]);
+// Toute feature ajoutée au front doit être déclarée ici, sinon elle est
+// enregistrée sans nom (et remontée en "inconnu" dans le dashboard privé).
 const FEATURES = new Set([
   "search",
   "regex",
   "filter_level",
   "time_range",
+  "timeline_select",
+  "copy_line",
   "view_patterns",
   "pattern_click",
   "export",

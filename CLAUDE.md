@@ -14,6 +14,9 @@ garder le projet **simple, modulaire et privacy-first**. Docs détaillées :
   utilisée, pays), sans cookie ni identifiant de suivi, et **en respectant le
   Do Not Track / GPC**. Toute évolution du tracking doit rester dans ce cadre et
   être reflétée dans la mention légale (`legal.data_body` FR + EN).
+  Toute nouvelle valeur trackée (feature, page, méthode) doit être ajoutée à
+  l'allowlist correspondante de `web/worker/index.js` **et** au libellé de la
+  page `/stats` : hors allowlist, l'event est enregistré sans sa valeur.
 - **Bilingue FR + EN.** Tout texte visible passe par l'i18n : la clé est ajoutée
   dans `web/src/i18n/fr.js` **et** `web/src/i18n/en.js`. Jamais de texte en dur.
 - **Pas de tiret cadratin `—`** dans les textes affichés (préférence produit) ;
