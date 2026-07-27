@@ -106,7 +106,27 @@ function detailOf(r) {
 
 const PER_PAGE = 10;
 
-function EventsTable({ rows }) {
+// Icône du bouton de rafraîchissement (flèche circulaire).
+function RefreshIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 3v6h-6" />
+    </svg>
+  );
+}
+
+function EventsTable({ rows, onRefresh, busy }) {
   const [page, setPage] = useState(0);
   const list = rows || [];
   const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
@@ -115,8 +135,20 @@ function EventsTable({ rows }) {
 
   return (
     <section className="card stats-block stats-table-block">
-      <h2 className="card-title">
-        Dernières entrées <span className="muted">({fmt(list.length)})</span>
+      <h2 className="card-title stats-table-head">
+        <span>
+          Dernières entrées <span className="muted">({fmt(list.length)})</span>
+        </span>
+        <button
+          type="button"
+          className={`stats-refresh ${busy ? "stats-refresh--busy" : ""}`}
+          onClick={onRefresh}
+          disabled={busy}
+          title="Rafraîchir"
+          aria-label="Rafraîchir"
+        >
+          <RefreshIcon />
+        </button>
       </h2>
       {list.length === 0 ? (
         <p className="muted">Aucune donnée.</p>
@@ -188,11 +220,14 @@ export default function Stats() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [reloading, setReloading] = useState(false);
   const [tab, setTab] = useState("stats"); // "stats" | "entries"
 
-  useEffect(() => {
+  // silent : rafraîchissement manuel, on garde les données à l'écran (et en
+  // cas d'échec on ne renvoie pas l'admin sur l'écran de token).
+  function load({ silent } = {}) {
     if (!token) return;
-    setLoading(true);
+    silent ? setReloading(true) : setLoading(true);
     setError(null);
     fetch("/api/stats", { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => {
@@ -203,9 +238,17 @@ export default function Stats() {
       .then(setData)
       .catch((e) => {
         setError(e.message);
-        setData(null);
+        if (!silent) setData(null);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setReloading(false);
+      });
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   function saveToken(e) {
@@ -289,8 +332,14 @@ export default function Stats() {
         </button>
       </div>
 
+      {error && <div className="error-banner">{error}</div>}
+
       {tab === "entries" ? (
-        <EventsTable rows={data.recent} />
+        <EventsTable
+          rows={data.recent}
+          onRefresh={() => load({ silent: true })}
+          busy={reloading}
+        />
       ) : (
         <>
       <div className="stats-tiles">

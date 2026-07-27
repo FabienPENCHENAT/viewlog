@@ -1389,6 +1389,49 @@ tbody tr:hover .row-copy,
 .stats-table-block {
   margin-top: 16px;
 }
+
+.stats-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stats-refresh {
+  display: flex;
+  padding: 4px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+
+.stats-refresh:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--btn-hover);
+}
+
+.stats-refresh:disabled {
+  cursor: progress;
+}
+
+.stats-refresh--busy svg {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-refresh--busy svg {
+    animation: none;
+  }
+}
 .stats-table-scroll {
   overflow-x: auto;
 }
