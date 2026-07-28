@@ -38,7 +38,7 @@ parser/            Parsing (voir plus bas)
 
 i18n/              fr.js · en.js (dictionnaires plats) + index.jsx (provider/hook)
 lib/               api.js · db.js · track.js · duration.js · patterns.js · parse-async.js
-                   offline.js (état réseau) · pwa.js (service worker)
+                   offline.js (état réseau) · net.js (fetch gardé) · pwa.js (service worker)
 components/        DropZone · StatCards · LevelChart · Timeline · LogTable · MessageCell
                    OfflineSwitch
 pages/             Home · Dashboard · Faq · Legal
@@ -101,6 +101,16 @@ sans réseau, et un `manifest.webmanifest` la rend installable.
 `networkAllowed()` combine l'état du navigateur (`navigator.onLine`) et le mode
 hors ligne **choisi** par l'utilisateur (persisté dans `localStorage`, exposé par
 `components/OfflineSwitch.jsx`).
+
+La promesse affichée (« aucune requête ne sort de votre navigateur ») n'est
+tenable que si rien ne contourne ce garde-fou : **toute requête sortante passe
+par `netFetch()` de `lib/net.js`**, qui échoue immédiatement hors ligne au lieu
+d'émettre. Seule exception assumée, `lib/track.js` consulte `networkAllowed()`
+directement, parce qu'il utilise `sendBeacon` et doit rester silencieux.
+
+Ce que ViewLog ne maîtrise pas : au chargement d'une page, le navigateur peut
+vérifier de lui-même s'il existe un nouveau `sw.js`. La mention légale et la FAQ
+le disent explicitement plutôt que de promettre un silence réseau absolu.
 
 ## Compteur d'usage
 

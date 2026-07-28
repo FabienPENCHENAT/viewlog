@@ -90,7 +90,7 @@ localement.
 
 Après une première visite avec du réseau, les fichiers de l'application sont mis
 en cache par le navigateur : ViewLog reste utilisable **sans aucune connexion**
-(avion, poste isolé, salle serveur). L'app peut aussi être **installée** depuis
+(avion, poste isolé). L'app peut aussi être **installée** depuis
 le navigateur et lancée comme une application.
 
 Un interrupteur **« Hors ligne »** dans la barre du haut permet de couper le
@@ -101,6 +101,11 @@ simplement l'état, sans rien exiger de l'utilisateur.
 Les mises à jour s'appliquent dès qu'il y a du réseau, sans intervention. Les
 mesures d'usage anonymes ne partent que lorsque le réseau est disponible et
 autorisé ; hors ligne, elles sont abandonnées, jamais mises en file d'attente.
+
+Durée de vie du cache : illimitée en pratique sur Chrome, Edge et Firefox (tant
+qu'il reste de l'espace disque), mais **7 jours sans visite sur Safari**
+(macOS et iOS) sauf si l'app est installée. Vider les données du site remet à
+zéro. Ces cas sont expliqués à l'utilisateur dans la FAQ.
 
 ## Confidentialité
 

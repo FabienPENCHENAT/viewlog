@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { netFetch, OFFLINE_ERROR } from "../lib/net.js";
 
 // Dashboard interne (privé, verrouillé par token). Volontairement HORS i18n :
 // c'est un écran d'admin, pas le produit. Le token est stocké localement et
@@ -229,7 +230,7 @@ export default function Stats() {
     if (!token) return;
     silent ? setReloading(true) : setLoading(true);
     setError(null);
-    fetch("/api/stats", { headers: { Authorization: `Bearer ${token}` } })
+    netFetch("/api/stats", { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => {
         if (r.status === 401) throw new Error("Token invalide.");
         if (!r.ok) throw new Error(`Erreur ${r.status}.`);
@@ -237,7 +238,13 @@ export default function Stats() {
       })
       .then(setData)
       .catch((e) => {
-        setError(e.message);
+        // Mode hors ligne : la requête n'a pas été émise, on le dit clairement
+        // plutôt que d'afficher une erreur réseau trompeuse.
+        setError(
+          e.message === OFFLINE_ERROR
+            ? "Mode hors ligne actif : aucune requête n'a été envoyée. Désactivez-le dans la barre du haut pour charger les stats."
+            : e.message
+        );
         if (!silent) setData(null);
       })
       .finally(() => {

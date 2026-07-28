@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     // Mode hors ligne : le build est mis en cache par un service worker, donc
-    // l'app reste utilisable sans réseau (avion, poste isolé, salle serveur).
+    // l'app reste utilisable sans réseau (avion, poste isolé).
     // Rien de neuf côté données : le parsing était déjà 100 % local.
     VitePWA({
       // Le nouveau build prend la main tout seul au prochain chargement

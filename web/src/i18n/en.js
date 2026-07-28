@@ -3,9 +3,10 @@ export default {
   "lang.switch": "Switch language",
 
   "offline.label": "Offline",
-  "offline.hint_off": "Switch to offline mode: ViewLog will stop making any network request.",
+  "offline.hint_off":
+    "Switch to offline mode: ViewLog will send nothing at all, not even the anonymous usage measurements.",
   "offline.hint_on":
-    "Offline mode is on: no request leaves your browser. Click to re-enable the network.",
+    "Offline mode is on: ViewLog sends nothing. Click to re-enable the network.",
   "offline.hint_auto": "No connection detected. ViewLog keeps working normally, locally.",
 
   "home.title_pre": "Your log files, ",
@@ -122,7 +123,7 @@ export default {
     "Cloudflare, Inc., 101 Townsend Street, San Francisco, CA 94107, USA (cloudflare.com).",
   "legal.data_h": "Personal data and cookies",
   "legal.data_body":
-    "ViewLog collects no personal data, uses no cookies, and sets no identifier that could track you from one visit to the next. Your log files are parsed and formatted entirely in your browser; neither their content nor their name is ever sent to or stored on a server. Your language preference and your offline-mode preference are stored locally in your browser, and the application files are cached by your browser so that it stays usable without a connection.\n\nTo monitor the service's reliability and understand which features are useful, we record only anonymous, aggregate measurements: the pages viewed, whether a file is processed successfully or not, the import method (drag and drop, file picker or paste), the file extension, an approximate size range (never the exact size), whether the processing limit was reached, the features used (search, filters, patterns, and so on), and the visitor's country. No log content, no file name and no IP address are stored, and these measurements cannot identify you or reconstruct your individual activity. If your browser signals a \"Do Not Track\" or \"Global Privacy Control\" preference, none of these measurements are sent. The same applies when offline mode is on: ViewLog then makes no network request at all.",
+    "ViewLog collects no personal data, uses no cookies, and sets no identifier that could track you from one visit to the next. Your log files are parsed and formatted entirely in your browser; neither their content nor their name is ever sent to or stored on a server. Your language preference and your offline-mode preference are stored locally in your browser, and the application files are cached by your browser so that it stays usable without a connection.\n\nTo monitor the service's reliability and understand which features are useful, we record only anonymous, aggregate measurements: the pages viewed, whether a file is processed successfully or not, the import method (drag and drop, file picker or paste), the file extension, an approximate size range (never the exact size), whether the processing limit was reached, the features used (search, filters, patterns, and so on), and the visitor's country. No log content, no file name and no IP address are stored, and these measurements cannot identify you or reconstruct your individual activity. If your browser signals a \"Do Not Track\" or \"Global Privacy Control\" preference, none of these measurements are sent. The same applies when offline mode is on: ViewLog then sends nothing at all. Your browser alone may still check, when the page loads, whether a new version of the application is available.",
 
   "faq.title": "Frequently asked questions",
   "faq.group_usage": "Usage",
@@ -138,6 +139,9 @@ export default {
     "How does ViewLog protect my data privacy compared to other online log viewers?",
   "faq.a_compare":
     "Most online log viewers upload your files to a remote server to process them. ViewLog is different: it is 100% client-side, so your log content is never uploaded, stored, or transmitted. This privacy-first, zero-server design makes it well suited to GDPR and HIPAA sensitive logs.",
+  "faq.q_offline_switch": "What is the \"Offline\" switch for?",
+  "faq.a_offline_switch":
+    "It cuts the network on demand, even when you are connected. Beyond loading the application itself, ViewLog sends exactly one thing: anonymous, aggregate usage measurements, whose only purpose is to know which features are useful and to improve the tool. The switch removes them entirely, and nothing is queued to be sent later: the measurements for that session are dropped. Your choice is remembered in your browser until you turn it off.\n\nOne thing stays outside ViewLog's control: on a full page load, your browser may check by itself whether a new version of the application is available. It does not happen while you navigate inside the app, and preventing it would mean giving up offline support.\n\nWith no connection, the switch simply reports the state: there is nothing to turn on, ViewLog already runs locally.",
   "faq.q_retention": "How many files are kept?",
   "faq.a_retention":
     "The 5 most recently opened files are kept locally, in your browser, and automatically rotated as you import new ones.",
@@ -162,6 +166,15 @@ export default {
   "faq.q_search": "How do I search the logs?",
   "faq.a_search":
     "The search bar filters the log in real time. By default it matches plain text; toggle the \".*\" button to switch to a regular expression (regex). In both modes, matches are highlighted directly in the messages.",
+  "faq.q_offline": "Can I use ViewLog without an internet connection?",
+  "faq.a_offline":
+    "Yes. After a first visit with a connection, your browser keeps the application files: ViewLog then opens and works with no network at all, on a plane or on an isolated machine. Import, search, filters, patterns and recent files all behave normally, because the processing was already fully local.\n\nYou can also install ViewLog as an app from your browser, to open it without typing an address. Two caveats: the very first visit must happen online, and private browsing keeps nothing once the window is closed.",
+  "faq.q_offline_life": "How long does ViewLog stay available offline?",
+  "faq.a_offline_life":
+    "There is no fixed duration: it depends on your browser and on the free space on your disk.\n\nOn Chrome, Edge and Firefox, the application files stay as long as there is room. They are only removed when the disk fills up, starting with the least visited sites. In practice that means weeks or months.\n\nOn Safari (macOS and iOS), the rule is stricter: if you do not open ViewLog for 7 days, the browser clears the site data, recent files included. Installing ViewLog on the home screen or in the Dock lifts that limit.\n\nIn every browser, clearing site data or browsing history resets the counter: an online visit will be needed to arm offline mode again. Before a flight or an intervention with no network, the safest habit is simply to open ViewLog once before leaving.",
+  "faq.q_offline_stale": "What happens if I stay offline for a long time?",
+  "faq.a_offline_stale":
+    "You keep working on the version saved during your last online visit. Fixes and new features released in the meantime will not appear, and nothing on screen tells you so.\n\nAs soon as the connection is back, ViewLog fetches the new version in the background and applies it without asking, usually on the next load. You lose nothing in the process: your recent files and your analyses live in your browser, independently of the application version.",
   "faq.q_free": "Is ViewLog free?",
   "faq.a_free":
     "Yes, ViewLog is completely free. Since everything runs in your browser, there's no account to create and no server to run.",

@@ -640,6 +640,11 @@ body {
   line-height: 1.6;
 }
 
+/* Réponses et mentions légales en plusieurs paragraphes. */
+.faq-a + .faq-a {
+  margin-top: 10px;
+}
+
 /* --- Changelog --- */
 .changelog-intro {
   color: var(--ink-2);

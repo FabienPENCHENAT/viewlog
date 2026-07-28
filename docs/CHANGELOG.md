@@ -5,8 +5,7 @@ so each entry is filed under the day it went live.
 
 ## 2026-07-28
 ### Added
-- Offline mode: once ViewLog has been opened once with a connection, it keeps working with no network at all (plane, isolated machine, server room), and can be installed as an app
-- An "Offline" switch in the header cuts every outgoing request on demand, even when you are connected
+- Offline mode: once ViewLog has been opened with a connection, it keeps working with no network at all (plane, isolated machine), can be installed as an app, and an "Offline" switch stops the only thing ViewLog ever sends, the anonymous usage measurements, on demand even when you are connected. The FAQ details what stays available, for how long, and what the switch does
 ### Fixed
 - Multi-line messages (SQL dumps, tables, JSON payloads, stack traces) stay in a single log entry, even when a date appears inside their content
 

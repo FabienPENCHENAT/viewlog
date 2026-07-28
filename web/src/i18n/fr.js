@@ -4,9 +4,9 @@ export default {
 
   "offline.label": "Hors ligne",
   "offline.hint_off":
-    "Passer en mode hors ligne : ViewLog n'émettra plus aucune requête réseau.",
+    "Passer en mode hors ligne : ViewLog n'enverra plus rien, pas même les mesures d'usage anonymes.",
   "offline.hint_on":
-    "Mode hors ligne actif : aucune requête ne sort de votre navigateur. Cliquez pour réactiver le réseau.",
+    "Mode hors ligne actif : ViewLog n'envoie plus rien. Cliquez pour réactiver le réseau.",
   "offline.hint_auto":
     "Aucune connexion détectée. ViewLog continue de fonctionner normalement, en local.",
 
@@ -127,7 +127,7 @@ export default {
     "Cloudflare, Inc., 101 Townsend Street, San Francisco, CA 94107, États-Unis (cloudflare.com).",
   "legal.data_h": "Données personnelles et cookies",
   "legal.data_body":
-    "ViewLog ne collecte aucune donnée personnelle, n'utilise aucun cookie et ne dépose aucun identifiant permettant de vous suivre d'une visite à l'autre. Vos fichiers de logs sont interprétés et mis en forme entièrement dans votre navigateur ; ni leur contenu, ni leur nom ne sont jamais transmis ou stockés sur un serveur. Votre choix de langue et votre choix de mode hors ligne sont mémorisés localement dans votre navigateur, et les fichiers de l'application sont mis en cache par votre navigateur pour qu'elle reste utilisable sans connexion.\n\nAfin de suivre la fiabilité du service et de comprendre quelles fonctionnalités sont utiles, nous enregistrons uniquement des mesures anonymes et agrégées : les pages consultées, le fait qu'un traitement de fichier réussisse ou échoue, la méthode d'import (glisser-déposer, sélection ou collage), l'extension du fichier, une tranche de taille approximative (jamais la taille exacte), le fait que la limite de traitement soit atteinte, les fonctionnalités activées (recherche, filtres, motifs, etc.) et le pays de connexion. Aucun contenu de vos logs, aucun nom de fichier et aucune adresse IP ne sont enregistrés, et ces mesures ne permettent pas de vous identifier ni de reconstituer votre activité individuelle. Si votre navigateur signale une préférence « Do Not Track » ou « Global Privacy Control », aucune de ces mesures n'est envoyée. Il en va de même lorsque le mode hors ligne est actif : ViewLog n'émet alors plus aucune requête.",
+    "ViewLog ne collecte aucune donnée personnelle, n'utilise aucun cookie et ne dépose aucun identifiant permettant de vous suivre d'une visite à l'autre. Vos fichiers de logs sont interprétés et mis en forme entièrement dans votre navigateur ; ni leur contenu, ni leur nom ne sont jamais transmis ou stockés sur un serveur. Votre choix de langue et votre choix de mode hors ligne sont mémorisés localement dans votre navigateur, et les fichiers de l'application sont mis en cache par votre navigateur pour qu'elle reste utilisable sans connexion.\n\nAfin de suivre la fiabilité du service et de comprendre quelles fonctionnalités sont utiles, nous enregistrons uniquement des mesures anonymes et agrégées : les pages consultées, le fait qu'un traitement de fichier réussisse ou échoue, la méthode d'import (glisser-déposer, sélection ou collage), l'extension du fichier, une tranche de taille approximative (jamais la taille exacte), le fait que la limite de traitement soit atteinte, les fonctionnalités activées (recherche, filtres, motifs, etc.) et le pays de connexion. Aucun contenu de vos logs, aucun nom de fichier et aucune adresse IP ne sont enregistrés, et ces mesures ne permettent pas de vous identifier ni de reconstituer votre activité individuelle. Si votre navigateur signale une préférence « Do Not Track » ou « Global Privacy Control », aucune de ces mesures n'est envoyée. Il en va de même lorsque le mode hors ligne est actif : ViewLog n'émet alors aucune requête. Seul votre navigateur peut encore vérifier de lui-même, au chargement de la page, s'il existe une nouvelle version de l'application.",
 
   "faq.title": "Questions fréquentes",
   "faq.group_usage": "Utilisation",
@@ -144,6 +144,9 @@ export default {
     "En quoi ViewLog protège-t-il mieux mes données que les autres visualiseurs de logs en ligne ?",
   "faq.a_compare":
     "La plupart des visualiseurs de logs en ligne envoient vos fichiers vers un serveur distant pour les traiter. ViewLog est différent : il est 100 % côté client, donc le contenu de vos logs n'est jamais envoyé, stocké ni transmis. Cette conception privacy-first, sans aucun serveur, le rend adapté aux logs sensibles (RGPD, HIPAA).",
+  "faq.q_offline_switch": "À quoi sert l'interrupteur « Hors ligne » ?",
+  "faq.a_offline_switch":
+    "Il coupe le réseau à la demande, même quand vous êtes connecté. En dehors du chargement de l'application elle-même, ViewLog n'envoie qu'une seule chose : des mesures d'usage anonymes et agrégées, qui servent uniquement à savoir quelles fonctionnalités sont utiles et à améliorer l'outil. L'interrupteur les supprime entièrement, et rien n'est mis en attente pour être envoyé plus tard : les mesures de la session sont abandonnées. Votre choix est mémorisé dans votre navigateur jusqu'à ce que vous le désactiviez.\n\nUne seule chose reste hors du contrôle de ViewLog : au chargement complet de la page, votre navigateur peut vérifier de lui-même s'il existe une nouvelle version de l'application. Cela n'arrive pas pendant que vous naviguez dans l'app, et l'empêcher supposerait de renoncer au fonctionnement hors ligne.\n\nSans connexion, l'interrupteur se contente de signaler l'état : il n'y a rien à activer, ViewLog fonctionne déjà en local.",
   "faq.q_retention": "Combien de fichiers sont conservés ?",
   "faq.a_retention":
     "Les 5 derniers fichiers ouverts sont gardés localement, dans votre navigateur, et remplacés automatiquement au fil de vos nouveaux imports.",
@@ -168,6 +171,15 @@ export default {
   "faq.q_search": "Comment rechercher dans les logs ?",
   "faq.a_search":
     "La barre de recherche filtre le journal en temps réel. Par défaut, elle cherche un texte simple ; activez le bouton « .* » pour passer en expression régulière (regex). Dans les deux cas, les correspondances sont surlignées directement dans les messages.",
+  "faq.q_offline": "Puis-je utiliser ViewLog sans connexion internet ?",
+  "faq.a_offline":
+    "Oui. Après une première visite avec connexion, votre navigateur conserve les fichiers de l'application : ViewLog s'ouvre et fonctionne ensuite sans réseau, en avion comme sur un poste isolé. Import, recherche, filtres, motifs et fichiers récents fonctionnent normalement, puisque tout le traitement était déjà local.\n\nVous pouvez aussi installer ViewLog comme une application depuis votre navigateur, pour l'ouvrir sans saisir d'adresse. Deux réserves : la toute première visite doit se faire en ligne, et la navigation privée ne conserve rien après la fermeture de la fenêtre.",
+  "faq.q_offline_life": "Combien de temps ViewLog reste-t-il disponible hors ligne ?",
+  "faq.a_offline_life":
+    "Il n'y a pas de durée fixe : cela dépend de votre navigateur et de la place disponible sur votre disque.\n\nSur Chrome, Edge et Firefox, les fichiers de l'application restent en place tant qu'il y a de l'espace. Ils ne sont supprimés qu'en cas de saturation du disque, en commençant par les sites les moins visités. En pratique, cela se compte en semaines ou en mois.\n\nSur Safari (macOS et iOS), la règle est plus stricte : si vous n'ouvrez pas ViewLog pendant 7 jours, le navigateur efface les données du site, fichiers récents compris. Installer ViewLog sur l'écran d'accueil ou dans le Dock lève cette limite.\n\nDans tous les cas, vider les données du site ou l'historique de navigation remet le compteur à zéro : une visite en ligne sera nécessaire pour réarmer le mode hors ligne. Avant un vol ou une intervention sans réseau, le réflexe le plus sûr reste d'ouvrir ViewLog une fois juste avant de partir.",
+  "faq.q_offline_stale": "Que se passe-t-il si je reste hors ligne longtemps ?",
+  "faq.a_offline_stale":
+    "Vous continuez à travailler sur la version enregistrée lors de votre dernière visite en ligne. Les corrections et nouveautés publiées entre-temps n'apparaissent donc pas, et rien ne vous le signale à l'écran.\n\nDès que la connexion revient, ViewLog récupère la nouvelle version en arrière-plan et l'applique sans rien vous demander, en général au chargement suivant. Vous ne perdez rien au passage : vos fichiers récents et vos analyses vivent dans votre navigateur, indépendamment de la version de l'application.",
   "faq.q_free": "ViewLog est-il gratuit ?",
   "faq.a_free":
     "Oui, ViewLog est entièrement gratuit. Comme tout se passe dans votre navigateur, il n'y a ni compte à créer, ni serveur à faire tourner.",
