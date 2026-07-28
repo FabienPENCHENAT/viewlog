@@ -2,6 +2,14 @@
 export default {
   "lang.switch": "Changer de langue",
 
+  "offline.label": "Hors ligne",
+  "offline.hint_off":
+    "Passer en mode hors ligne : ViewLog n'émettra plus aucune requête réseau.",
+  "offline.hint_on":
+    "Mode hors ligne actif : aucune requête ne sort de votre navigateur. Cliquez pour réactiver le réseau.",
+  "offline.hint_auto":
+    "Aucune connexion détectée. ViewLog continue de fonctionner normalement, en local.",
+
   "home.title_pre": "Vos fichiers de logs, ",
   "home.title_accent": "enfin agréables à lire.",
   "home.lead_pre":
@@ -119,7 +127,7 @@ export default {
     "Cloudflare, Inc., 101 Townsend Street, San Francisco, CA 94107, États-Unis (cloudflare.com).",
   "legal.data_h": "Données personnelles et cookies",
   "legal.data_body":
-    "ViewLog ne collecte aucune donnée personnelle, n'utilise aucun cookie et ne dépose aucun identifiant permettant de vous suivre d'une visite à l'autre. Vos fichiers de logs sont interprétés et mis en forme entièrement dans votre navigateur ; ni leur contenu, ni leur nom ne sont jamais transmis ou stockés sur un serveur. Votre choix de langue est mémorisé localement dans votre navigateur.\n\nAfin de suivre la fiabilité du service et de comprendre quelles fonctionnalités sont utiles, nous enregistrons uniquement des mesures anonymes et agrégées : les pages consultées, le fait qu'un traitement de fichier réussisse ou échoue, la méthode d'import (glisser-déposer, sélection ou collage), l'extension du fichier, une tranche de taille approximative (jamais la taille exacte), le fait que la limite de traitement soit atteinte, les fonctionnalités activées (recherche, filtres, motifs, etc.) et le pays de connexion. Aucun contenu de vos logs, aucun nom de fichier et aucune adresse IP ne sont enregistrés, et ces mesures ne permettent pas de vous identifier ni de reconstituer votre activité individuelle. Si votre navigateur signale une préférence « Do Not Track » ou « Global Privacy Control », aucune de ces mesures n'est envoyée.",
+    "ViewLog ne collecte aucune donnée personnelle, n'utilise aucun cookie et ne dépose aucun identifiant permettant de vous suivre d'une visite à l'autre. Vos fichiers de logs sont interprétés et mis en forme entièrement dans votre navigateur ; ni leur contenu, ni leur nom ne sont jamais transmis ou stockés sur un serveur. Votre choix de langue et votre choix de mode hors ligne sont mémorisés localement dans votre navigateur, et les fichiers de l'application sont mis en cache par votre navigateur pour qu'elle reste utilisable sans connexion.\n\nAfin de suivre la fiabilité du service et de comprendre quelles fonctionnalités sont utiles, nous enregistrons uniquement des mesures anonymes et agrégées : les pages consultées, le fait qu'un traitement de fichier réussisse ou échoue, la méthode d'import (glisser-déposer, sélection ou collage), l'extension du fichier, une tranche de taille approximative (jamais la taille exacte), le fait que la limite de traitement soit atteinte, les fonctionnalités activées (recherche, filtres, motifs, etc.) et le pays de connexion. Aucun contenu de vos logs, aucun nom de fichier et aucune adresse IP ne sont enregistrés, et ces mesures ne permettent pas de vous identifier ni de reconstituer votre activité individuelle. Si votre navigateur signale une préférence « Do Not Track » ou « Global Privacy Control », aucune de ces mesures n'est envoyée. Il en va de même lorsque le mode hors ligne est actif : ViewLog n'émet alors plus aucune requête.",
 
   "faq.title": "Questions fréquentes",
   "faq.group_usage": "Utilisation",

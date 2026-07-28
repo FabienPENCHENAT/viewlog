@@ -86,6 +86,22 @@ reste fluide grâce à la virtualisation.
 Interface **français / anglais**, bascule manuelle, préférence mémorisée
 localement.
 
+## Mode hors ligne
+
+Après une première visite avec du réseau, les fichiers de l'application sont mis
+en cache par le navigateur : ViewLog reste utilisable **sans aucune connexion**
+(avion, poste isolé, salle serveur). L'app peut aussi être **installée** depuis
+le navigateur et lancée comme une application.
+
+Un interrupteur **« Hors ligne »** dans la barre du haut permet de couper le
+réseau à la demande, même connecté : plus aucune requête ne sort du navigateur.
+Le choix est mémorisé localement. Sans connexion, l'interrupteur signale
+simplement l'état, sans rien exiger de l'utilisateur.
+
+Les mises à jour s'appliquent dès qu'il y a du réseau, sans intervention. Les
+mesures d'usage anonymes ne partent que lorsque le réseau est disponible et
+autorisé ; hors ligne, elles sont abandonnées, jamais mises en file d'attente.
+
 ## Confidentialité
 
 Le contenu des logs ne quitte jamais le navigateur (voir

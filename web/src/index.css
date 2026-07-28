@@ -133,8 +133,51 @@ body {
   background: var(--surface-hover);
 }
 
-.lang-switch {
+.offline-btn {
   margin-left: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 6px 10px;
+  color: var(--ink-2);
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.offline-btn:hover {
+  color: var(--ink);
+  background: var(--surface-hover);
+}
+
+/* Hors ligne choisi par l'utilisateur : plus rien ne sort du navigateur. */
+.offline-btn--on {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Hors ligne subi : simple constat, ton plus neutre. */
+.offline-btn--auto {
+  color: var(--warn-ink);
+  background: var(--warn-soft);
+  border-color: var(--warn-border);
+}
+
+@media (max-width: 560px) {
+  .offline-btn-label {
+    display: none;
+  }
+}
+
+.lang-switch {
+  margin-left: 8px;
   display: inline-flex;
   gap: 2px;
   padding: 2px;

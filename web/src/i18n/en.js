@@ -2,6 +2,12 @@
 export default {
   "lang.switch": "Switch language",
 
+  "offline.label": "Offline",
+  "offline.hint_off": "Switch to offline mode: ViewLog will stop making any network request.",
+  "offline.hint_on":
+    "Offline mode is on: no request leaves your browser. Click to re-enable the network.",
+  "offline.hint_auto": "No connection detected. ViewLog keeps working normally, locally.",
+
   "home.title_pre": "Your log files, ",
   "home.title_accent": "finally pleasant to read.",
   "home.lead_pre":
@@ -116,7 +122,7 @@ export default {
     "Cloudflare, Inc., 101 Townsend Street, San Francisco, CA 94107, USA (cloudflare.com).",
   "legal.data_h": "Personal data and cookies",
   "legal.data_body":
-    "ViewLog collects no personal data, uses no cookies, and sets no identifier that could track you from one visit to the next. Your log files are parsed and formatted entirely in your browser; neither their content nor their name is ever sent to or stored on a server. Your language preference is stored locally in your browser.\n\nTo monitor the service's reliability and understand which features are useful, we record only anonymous, aggregate measurements: the pages viewed, whether a file is processed successfully or not, the import method (drag and drop, file picker or paste), the file extension, an approximate size range (never the exact size), whether the processing limit was reached, the features used (search, filters, patterns, and so on), and the visitor's country. No log content, no file name and no IP address are stored, and these measurements cannot identify you or reconstruct your individual activity. If your browser signals a \"Do Not Track\" or \"Global Privacy Control\" preference, none of these measurements are sent.",
+    "ViewLog collects no personal data, uses no cookies, and sets no identifier that could track you from one visit to the next. Your log files are parsed and formatted entirely in your browser; neither their content nor their name is ever sent to or stored on a server. Your language preference and your offline-mode preference are stored locally in your browser, and the application files are cached by your browser so that it stays usable without a connection.\n\nTo monitor the service's reliability and understand which features are useful, we record only anonymous, aggregate measurements: the pages viewed, whether a file is processed successfully or not, the import method (drag and drop, file picker or paste), the file extension, an approximate size range (never the exact size), whether the processing limit was reached, the features used (search, filters, patterns, and so on), and the visitor's country. No log content, no file name and no IP address are stored, and these measurements cannot identify you or reconstruct your individual activity. If your browser signals a \"Do Not Track\" or \"Global Privacy Control\" preference, none of these measurements are sent. The same applies when offline mode is on: ViewLog then makes no network request at all.",
 
   "faq.title": "Frequently asked questions",
   "faq.group_usage": "Usage",

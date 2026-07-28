@@ -38,7 +38,9 @@ parser/            Parsing (voir plus bas)
 
 i18n/              fr.js · en.js (dictionnaires plats) + index.jsx (provider/hook)
 lib/               api.js · db.js · track.js · duration.js · patterns.js · parse-async.js
+                   offline.js (état réseau) · pwa.js (service worker)
 components/        DropZone · StatCards · LevelChart · Timeline · LogTable · MessageCell
+                   OfflineSwitch
 pages/             Home · Dashboard · Faq · Legal
 assets/            privacy-shield.svg
 ```
@@ -78,7 +80,32 @@ Dashboard ─► StatCards · Timeline · LevelChart · LogTable
 IndexedDB plutôt que `localStorage` car un log peut peser plusieurs Mo. Rotation
 automatique : seuls les **5 enregistrements les plus récents** sont conservés.
 
+## Mode hors ligne
+
+Le build est mis en cache par un **service worker** généré au build par
+`vite-plugin-pwa` (mode `generateSW`, voir `vite.config.js`) : l'app se charge
+sans réseau, et un `manifest.webmanifest` la rend installable.
+
+- **Precache** : JS, CSS, HTML, icônes. `og.png` est exclu (aperçus sociaux
+  uniquement). Les navigations retombent sur `index.html`, sauf `/api/*` qui
+  reste du réseau pur.
+- **Aucun `runtimeCaching`** : ce qui n'est pas préchargé part au réseau, et rien
+  n'est mis en file d'attente pour un rejeu ultérieur (pas de Background Sync sur
+  `/api/track` : ce serait stocker des events en attendant la connexion).
+- **Mises à jour** (`registerType: "autoUpdate"`) : le nouveau build prend la
+  main tout seul. `lib/pwa.js` redemande une vérification au retour du réseau,
+  et évite de recharger la page sous les doigts de l'utilisateur passé les
+  premières secondes de la visite.
+
+`lib/offline.js` est la source unique de vérité avant toute requête sortante :
+`networkAllowed()` combine l'état du navigateur (`navigator.onLine`) et le mode
+hors ligne **choisi** par l'utilisateur (persisté dans `localStorage`, exposé par
+`components/OfflineSwitch.jsx`).
+
 ## Compteur d'usage
+
+Rien n'est envoyé si le navigateur signale « Do Not Track » / « Global Privacy
+Control », ni lorsque `networkAllowed()` est faux (hors ligne subi ou choisi).
 
 `lib/track.js` envoie un `sendBeacon` anonyme vers `/api/track` à chaque
 traitement (jamais bloquant). L'endpoint est servi par le Worker Cloudflare en

@@ -11,6 +11,7 @@ import Changelog from "./pages/Changelog.jsx";
 import Stats from "./pages/Stats.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import { LangProvider } from "./i18n/index.jsx";
+import { setupPWA } from "./lib/pwa.js";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -30,6 +31,9 @@ const router = createBrowserRouter([
     ],
   },
 ]);
+
+// Met le build en cache pour que l'app reste utilisable sans réseau.
+setupPWA();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

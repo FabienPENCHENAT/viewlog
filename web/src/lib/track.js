@@ -1,7 +1,9 @@
 // Envoie des events d'usage ANONYMES et AGRÉGÉS au backend (/api/track).
 // Jamais le contenu, le nom du fichier, la taille exacte ni l'IP.
-// Deux garde-fous : le tracking ne casse JAMAIS l'app, et il respecte le
-// signal "Do Not Track" / "Global Privacy Control" du navigateur.
+// Trois garde-fous : le tracking ne casse JAMAIS l'app, il respecte le signal
+// "Do Not Track" / "Global Privacy Control" du navigateur, et il se tait
+// complètement hors ligne (voir lib/offline.js).
+import { networkAllowed } from "./offline.js";
 
 const ENDPOINT = "/api/track";
 
@@ -23,6 +25,9 @@ function trackingDisabled() {
 
 function send(payload) {
   if (trackingDisabled()) return;
+  // Hors ligne (pas de connexion, ou mode hors ligne choisi par l'utilisateur) :
+  // l'event est abandonné, jamais mis en file d'attente pour un rejeu.
+  if (!networkAllowed()) return;
   try {
     const body = JSON.stringify(payload);
     if (typeof navigator !== "undefined" && navigator.sendBeacon) {
