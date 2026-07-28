@@ -3,6 +3,10 @@
 All notable changes to ViewLog, newest first. Everything ships continuously,
 so each entry is filed under the day it went live.
 
+## 2026-07-28
+### Fixed
+- Multi-line messages (SQL dumps, tables, JSON payloads, stack traces) stay in a single log entry, even when a date appears inside their content
+
 ## 2026-07-27
 ### Added
 - Select a period straight on the "Volume over time" chart by dragging across it, double-click to show everything again

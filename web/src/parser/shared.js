@@ -72,7 +72,9 @@ export function detectTimestamp(line) {
     if (m) {
       const d = matcher.parse(m);
       if (d && !Number.isNaN(d.getTime())) {
-        return { date: d, raw: m[0] };
+        // `index` sert à distinguer un horodatage d'en-tête (en tête de ligne)
+        // d'un horodatage noyé dans le contenu (payload JSON, dump SQL...).
+        return { date: d, raw: m[0], index: m.index };
       }
     }
   }
