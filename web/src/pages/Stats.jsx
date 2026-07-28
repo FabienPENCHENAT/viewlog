@@ -38,6 +38,7 @@ const LABELS = {
   view_patterns: "Vue Motifs",
   pattern_click: "Clic motif",
   export: "Export",
+  offline_on: "Passage hors ligne",
 };
 
 // Ordre canonique des tranches de taille (affichées même à 0).

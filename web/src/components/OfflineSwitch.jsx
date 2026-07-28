@@ -12,6 +12,16 @@ import {
   setForcedOffline,
   subscribeOffline,
 } from "../lib/offline.js";
+import { trackFeature } from "../lib/track.js";
+
+// Adoption de la fonctionnalité : on ne compte que l'activation, et l'event est
+// envoyé AVANT de couper, sinon le garde-fou de track.js l'abandonne. La
+// désactivation n'est pas comptée : ce qu'on veut savoir, c'est si des gens
+// coupent le réseau, pas combien de fois ils basculent.
+function toggle(forced) {
+  if (!forced) trackFeature("offline_on");
+  setForcedOffline(!forced);
+}
 
 function PlaneIcon() {
   return (
@@ -37,7 +47,7 @@ export default function OfflineSwitch() {
       aria-pressed={forced}
       title={hint}
       aria-label={hint}
-      onClick={() => setForcedOffline(!forced)}
+      onClick={() => toggle(forced)}
     >
       <PlaneIcon />
       <span className="offline-btn-label">{t("offline.label")}</span>
