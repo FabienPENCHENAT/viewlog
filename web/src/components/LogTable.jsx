@@ -37,6 +37,26 @@ function CopyIcon({ done }) {
   );
 }
 
+// Icône du saut vers le contexte : une cible, « emmène-moi à cette ligne dans
+// le journal complet ».
+function ContextIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+    </svg>
+  );
+}
+
 // Petit hook de débounce : évite de refiltrer des centaines de milliers de
 // lignes à chaque frappe / mouvement de curseur.
 function useDebounced(value, delay) {
@@ -67,6 +87,14 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
     firedRef.current = featureOnce();
   }, [entries]);
 
+  // Nouveau fichier : on repart d'une ardoise propre (repère et retour en
+  // arrière ne veulent plus rien dire).
+  useEffect(() => {
+    setSaved(null);
+    setFlash(null);
+    setMarked(null);
+  }, [entries]);
+
   function switchView(v) {
     setView(v);
     if (v === "patterns") {
@@ -90,6 +118,55 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
 
   const step = rangeStep(bounds);
   const timeActive = isPartialRange(bounds, range);
+
+  // --- Saut vers le contexte -------------------------------------------------
+  // Depuis une liste filtrée (recherche, regex, niveaux, période, motif), on
+  // veut voir une ligne à sa place dans le journal complet, avec ses voisines.
+  // Il faut relâcher TOUS les filtres : si l'un d'eux exclut encore la ligne,
+  // elle n'est pas rendue et le défilement échouerait sans rien dire.
+  const [saved, setSaved] = useState(null); // filtres d'avant le saut (retour)
+  // { at, flash, mark } : la cible, et les deux signaux, indépendants.
+  //  - flash : pulsation d'arrivée, utile dans les deux sens de navigation ;
+  //  - mark  : repère persistant, réservé au journal complet où la ligne se
+  //            perd au milieu des autres. Inutile dans une liste filtrée.
+  const [pendingJump, setPendingJump] = useState(null);
+  const [flash, setFlash] = useState(null); // pulsation brève à l'arrivée
+  // Repère persistant : le flash attire l'œil, mais il s'éteint. Sans marque
+  // durable, la ligne visée devient introuvable dès qu'on a défilé un peu.
+  const [marked, setMarked] = useState(null);
+
+  const anyFilter =
+    active.size > 0 || !!query.trim() || timeActive || patternFilter != null;
+
+  function goToContext(entry) {
+    markFeature("jump_context");
+    setSaved({ query, regexMode, active, range, patternFilter, view, at: entry.i });
+    setQuery("");
+    setRegexMode(false);
+    setActive(new Set());
+    setPatternFilter(null);
+    setView("journal");
+    if (bounds) onRangeChange(fullRange(bounds));
+    setPendingJump({ at: entry.i, flash: true, mark: true });
+  }
+
+  function backToResults() {
+    if (!saved) return;
+    setQuery(saved.query);
+    setRegexMode(saved.regexMode);
+    setActive(saved.active);
+    setPatternFilter(saved.patternFilter);
+    setView(saved.view);
+    if (saved.range) onRangeChange(saved.range);
+    // On se replace sur la ligne d'où l'on venait : elle pulse pour situer
+    // l'arrivée, mais ne garde pas de repère, inutile dans une liste filtrée.
+    setFlash(null);
+    setMarked(null);
+    setPendingJump(
+      saved.view === "journal" ? { at: saved.at, flash: true, mark: false } : null
+    );
+    setSaved(null);
+  }
 
   // Feature analytics : recherche effectuée (la période est suivie côté
   // Dashboard, qui reçoit aussi les sélections faites dans le graphe).
@@ -198,6 +275,28 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
   const paddingBottom = virtualItems.length
     ? rowVirtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
     : 0;
+
+  // Le défilement n'a lieu qu'une fois la ligne réellement présente dans la
+  // liste : recherche et période sont débouncées, donc `filtered` se met à jour
+  // en deux temps. Tant qu'elle est absente, on garde la cible en attente.
+  useEffect(() => {
+    if (!pendingJump) return;
+    const idx = filtered.findIndex((e) => e.i === pendingJump.at);
+    if (idx === -1) return;
+    rowVirtualizer.scrollToIndex(idx, { align: "center" });
+    if (pendingJump.flash) setFlash(pendingJump.at);
+    if (pendingJump.mark) setMarked(pendingJump.at);
+    setPendingJump(null);
+  }, [pendingJump, filtered, rowVirtualizer]);
+
+  // Le surlignage s'éteint tout seul : c'est un repère, pas une sélection.
+  const flashTimer = useRef(null);
+  useEffect(() => {
+    if (flash == null) return;
+    clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setFlash(null), 2500);
+    return () => clearTimeout(flashTimer.current);
+  }, [flash]);
 
   const pct = (ms) => ((ms - bounds.lo) / (bounds.hi - bounds.lo)) * 100;
 
@@ -329,6 +428,25 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
         </div>
       )}
 
+      {saved && (
+        <div className="pattern-banner context-banner">
+          <span className="muted">
+            {t("context.banner", { line: (saved.at + 1).toLocaleString(locale) })}
+          </span>
+          {/* Le flash s'éteint : il faut un moyen explicite de revenir dessus. */}
+          <button
+            type="button"
+            className="context-recenter"
+            onClick={() => setPendingJump({ at: saved.at, flash: true, mark: true })}
+          >
+            {t("context.recenter")}
+          </button>
+          <button type="button" className="context-back" onClick={backToResults}>
+            {t("context.back")}
+          </button>
+        </div>
+      )}
+
       <div className="logtable-count muted">
         {t("table.entries", { count: filtered.length.toLocaleString(locale) })}
         {view === "patterns" &&
@@ -377,20 +495,42 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
                 <th className="col-ts">{t("table.col_ts")}</th>
                 <th className="col-level">{t("table.col_level")}</th>
                 <th className="col-msg">{t("table.col_msg")}</th>
+                {anyFilter && <th className="col-context" aria-label={t("context.jump")} />}
                 <th className="col-copy" aria-label={t("table.copy")} />
               </tr>
             </thead>
             <tbody>
               {paddingTop > 0 && (
                 <tr className="vpad" style={{ height: paddingTop }}>
-                  <td colSpan={5} />
+                  <td colSpan={anyFilter ? 6 : 5} />
                 </tr>
               )}
               {virtualItems.map((vi) => {
                 const e = filtered[vi.index];
                 return (
-                  <tr key={e.i} data-index={vi.index} ref={rowVirtualizer.measureElement}>
-                    <td className="col-line muted">{e.i + 1}</td>
+                  <tr
+                    key={e.i}
+                    data-index={vi.index}
+                    ref={rowVirtualizer.measureElement}
+                    className={
+                      `${flash === e.i ? "row-flash " : ""}${marked === e.i ? "row-marked" : ""}`.trim() ||
+                      undefined
+                    }
+                  >
+                    <td className="col-line muted">
+                      {anyFilter ? (
+                        <button
+                          type="button"
+                          className="line-jump"
+                          title={t("context.jump")}
+                          onClick={() => goToContext(e)}
+                        >
+                          {e.i + 1}
+                        </button>
+                      ) : (
+                        e.i + 1
+                      )}
+                    </td>
                     <td className="col-ts">{fmtTs(e.ts)}</td>
                     <td className="col-level">
                       <span className="level-tag" style={{ "--chip-color": levelColor(e.level) }}>
@@ -400,6 +540,19 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
                     <td className="col-msg">
                       <MessageCell message={e.message} highlight={searchRe.highlight} />
                     </td>
+                    {anyFilter && (
+                      <td className="col-context">
+                        <button
+                          type="button"
+                          className="row-copy row-context"
+                          title={t("context.jump")}
+                          aria-label={t("context.jump")}
+                          onClick={() => goToContext(e)}
+                        >
+                          <ContextIcon />
+                        </button>
+                      </td>
+                    )}
                     <td className="col-copy">
                       <button
                         type="button"
@@ -416,12 +569,12 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
               })}
               {paddingBottom > 0 && (
                 <tr className="vpad" style={{ height: paddingBottom }}>
-                  <td colSpan={5} />
+                  <td colSpan={anyFilter ? 6 : 5} />
                 </tr>
               )}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="muted empty-row">
+                  <td colSpan={anyFilter ? 6 : 5} className="muted empty-row">
                     {t("table.empty")}
                   </td>
                 </tr>

@@ -75,6 +75,11 @@ export default {
   "patterns.filtered": "Pattern:",
   "patterns.clear": "Clear pattern filter",
 
+  "context.jump": "See this line in the full journal",
+  "context.banner": "Full journal around line {line}, filters released.",
+  "context.recenter": "Show the line again",
+  "context.back": "Back to results",
+
   "msg.collapse": "Collapse ▲",
   "msg.expand": "Show all ({count} lines) ▼",
 

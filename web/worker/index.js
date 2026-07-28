@@ -35,6 +35,7 @@ const FEATURES = new Set([
   "copy_line",
   "view_patterns",
   "pattern_click",
+  "jump_context",
   "export",
   // Activation du mode hors ligne. Envoyé juste avant la coupure, donc c'est le
   // dernier event de la session : ensuite le front ne parle plus.

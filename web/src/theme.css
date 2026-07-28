@@ -45,6 +45,9 @@
   /* --- Interaction --- */
   --row-hover: rgba(255, 255, 255, 0.035);
   --btn-hover: rgba(255, 255, 255, 0.06);
+  /* Ligne repérée par un saut vers le contexte : doit rester lisible longtemps,
+     donc bien plus discret que la pulsation d'arrivée. */
+  --marked-bg: color-mix(in srgb, var(--accent) 7%, transparent);
 
   /* --- Forme --- */
   --radius: 12px;

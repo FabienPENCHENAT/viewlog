@@ -59,6 +59,26 @@ horodatage, niveau, message.
 - **Filtre par période** : curseur temporel pour borner la fenêtre affichée.
   Il est **synchronisé dans les deux sens** avec la sélection du graphe de
   volume : les deux pilotent la même fenêtre, et donc les lignes affichées.
+- **Saut vers le contexte** : dès qu'un filtre est actif, chaque ligne propose
+  d'être vue à sa place dans le journal complet (clic sur le numéro de ligne ou
+  sur l'icône de cible). Tous les filtres sont relâchés d'un bloc et le journal
+  se positionne sur la ligne. Elle pulse à l'arrivée, puis **garde un liseré
+  discret** : le flash attire l'œil mais s'éteint, le repère permet de la
+  retrouver après avoir défilé. Le bandeau propose de la revoir ou de revenir
+  aux résultats, en restaurant l'état complet des filtres, vue Motifs comprise.
+
+  Les deux signaux sont indépendants, la pulsation situe l'arrivée dans les deux
+  sens, le repère ne sert que dans le journal complet :
+
+  | Action | Défilement | Pulsation | Repère |
+  |---|---|---|---|
+  | Aller au contexte | oui | oui | oui, persistant |
+  | Revoir la ligne | oui | oui | conservé |
+  | Retour aux résultats | oui | oui | non |
+
+  Relâcher **tous** les filtres n'est pas un raccourci : si l'un d'eux excluait
+  encore la ligne visée, elle ne serait pas rendue et le défilement échouerait
+  en silence, précisément dans les cas où l'on en a le plus besoin.
 
 ## Vue « Motifs »
 

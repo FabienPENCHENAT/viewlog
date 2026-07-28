@@ -77,6 +77,11 @@ export default {
   "patterns.filtered": "Motif :",
   "patterns.clear": "Retirer le filtre de motif",
 
+  "context.jump": "Voir cette ligne dans le journal complet",
+  "context.banner": "Journal complet autour de la ligne {line}, filtres relâchés.",
+  "context.recenter": "Revoir la ligne",
+  "context.back": "Retour aux résultats",
+
   "msg.collapse": "Réduire ▲",
   "msg.expand": "Afficher tout ({count} lignes) ▼",
 
