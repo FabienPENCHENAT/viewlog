@@ -1174,16 +1174,24 @@ tbody tr:hover {
   background: color-mix(in srgb, var(--chip-color) 14%, transparent);
 }
 
-/* Copie de ligne : discret, révélé au survol de la ligne (et au clavier). */
-.col-copy {
+/* Actions de la ligne : une seule colonne, les boutons empilés l'un au-dessus
+   de l'autre. Padding vertical réduit pour que la pile ne fasse pas grossir la
+   hauteur de ligne plus que nécessaire. */
+.col-actions {
   width: 34px;
-  padding-left: 0;
-  padding-right: 0;
+  padding: 3px 8px 3px 0;
+}
+
+.row-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
 }
 
 .row-copy {
   display: block;
-  padding: 3px;
+  padding: 2px 3px;
   color: var(--muted);
   background: transparent;
   border: 0;
@@ -1210,14 +1218,7 @@ tbody tr:hover .row-copy,
   color: var(--accent);
 }
 
-/* --- Saut vers le contexte (ligne filtrée → journal complet) ---
-   Dernière colonne, après la copie : les deux actions de ligne restent
-   groupées à droite, dans l'ordre où on les découvre. */
-.col-context {
-  width: 32px;
-  padding-left: 0;
-  padding-right: 8px;
-}
+/* --- Saut vers le contexte (ligne filtrée → journal complet) --- */
 
 /* Le numéro de ligne est la seconde façon de déclencher le saut : c'est déjà
    la position dans le fichier, autant la rendre cliquable. */

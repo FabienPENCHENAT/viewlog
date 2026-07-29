@@ -37,8 +37,8 @@ function CopyIcon({ done }) {
   );
 }
 
-// Icône du saut vers le contexte : une cible, « emmène-moi à cette ligne dans
-// le journal complet ».
+// Icône du saut vers le contexte : une flèche qui désigne une ligne au milieu
+// des autres, « montre-moi cette ligne à sa place dans le journal ».
 function ContextIcon() {
   return (
     <svg
@@ -49,10 +49,11 @@ function ContextIcon() {
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
     >
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+      <path d="M11 5h10M11 12h10M11 19h10" />
+      <path d="M3 8l4 4-4 4" />
     </svg>
   );
 }
@@ -556,14 +557,13 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
                 <th className="col-ts">{t("table.col_ts")}</th>
                 <th className="col-level">{t("table.col_level")}</th>
                 <th className="col-msg">{t("table.col_msg")}</th>
-                <th className="col-copy" aria-label={t("table.copy")} />
-                {anyFilter && <th className="col-context" aria-label={t("context.jump")} />}
+                <th className="col-actions" aria-label={t("table.actions")} />
               </tr>
             </thead>
             <tbody>
               {paddingTop > 0 && (
                 <tr className="vpad" style={{ height: paddingTop }}>
-                  <td colSpan={anyFilter ? 6 : 5} />
+                  <td colSpan={5} />
                 </tr>
               )}
               {virtualItems.map((vi) => {
@@ -601,41 +601,43 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
                     <td className="col-msg">
                       <MessageCell message={e.message} highlight={searchRe.highlight} />
                     </td>
-                    <td className="col-copy">
-                      <button
-                        type="button"
-                        className={`row-copy ${copied === e.i ? "row-copy--done" : ""}`}
-                        title={copied === e.i ? t("table.copied") : t("table.copy")}
-                        aria-label={copied === e.i ? t("table.copied") : t("table.copy")}
-                        onClick={() => copyRow(e)}
-                      >
-                        <CopyIcon done={copied === e.i} />
-                      </button>
-                    </td>
-                    {anyFilter && (
-                      <td className="col-context">
+                    {/* Actions de la ligne, empilées : copier, puis retrouver la
+                        ligne dans le journal complet. */}
+                    <td className="col-actions">
+                      <div className="row-actions">
                         <button
                           type="button"
-                          className="row-copy row-context"
-                          title={t("context.jump")}
-                          aria-label={t("context.jump")}
-                          onClick={() => goToContext(e)}
+                          className={`row-copy ${copied === e.i ? "row-copy--done" : ""}`}
+                          title={copied === e.i ? t("table.copied") : t("table.copy")}
+                          aria-label={copied === e.i ? t("table.copied") : t("table.copy")}
+                          onClick={() => copyRow(e)}
                         >
-                          <ContextIcon />
+                          <CopyIcon done={copied === e.i} />
                         </button>
-                      </td>
-                    )}
+                        {anyFilter && (
+                          <button
+                            type="button"
+                            className="row-copy row-context"
+                            title={t("context.jump")}
+                            aria-label={t("context.jump")}
+                            onClick={() => goToContext(e)}
+                          >
+                            <ContextIcon />
+                          </button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
               {paddingBottom > 0 && (
                 <tr className="vpad" style={{ height: paddingBottom }}>
-                  <td colSpan={anyFilter ? 6 : 5} />
+                  <td colSpan={5} />
                 </tr>
               )}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={anyFilter ? 6 : 5} className="muted empty-row">
+                  <td colSpan={5} className="muted empty-row">
                     {t("table.empty")}
                   </td>
                 </tr>

@@ -70,6 +70,7 @@ export default {
   "table.period_all": "Tout",
   "table.period_from": "Début de période",
   "table.period_to": "Fin de période",
+  "table.actions": "Actions sur la ligne",
   "table.copy": "Copier la ligne",
   "table.copied": "Ligne copiée",
   "table.view": "Vue",

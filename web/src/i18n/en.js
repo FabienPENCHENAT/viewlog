@@ -68,6 +68,7 @@ export default {
   "table.period_all": "All",
   "table.period_from": "Range start",
   "table.period_to": "Range end",
+  "table.actions": "Line actions",
   "table.copy": "Copy line",
   "table.copied": "Line copied",
   "table.view": "View",
