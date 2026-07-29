@@ -83,6 +83,7 @@ export default {
   "context.banner": "Full journal around line {line}, filters released.",
   "context.recenter": "Show the line again",
   "context.back": "Back to results",
+  "context.dismiss": "Stay in the full journal and close this banner",
 
   "msg.collapse": "Collapse ▲",
   "msg.expand": "Show all ({count} lines) ▼",

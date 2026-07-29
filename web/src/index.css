@@ -1176,9 +1176,9 @@ tbody tr:hover {
 
 /* Copie de ligne : discret, révélé au survol de la ligne (et au clavier). */
 .col-copy {
-  width: 36px;
+  width: 34px;
   padding-left: 0;
-  padding-right: 8px;
+  padding-right: 0;
 }
 
 .row-copy {
@@ -1210,11 +1210,13 @@ tbody tr:hover .row-copy,
   color: var(--accent);
 }
 
-/* --- Saut vers le contexte (ligne filtrée → journal complet) --- */
+/* --- Saut vers le contexte (ligne filtrée → journal complet) ---
+   Dernière colonne, après la copie : les deux actions de ligne restent
+   groupées à droite, dans l'ordre où on les découvre. */
 .col-context {
-  width: 30px;
+  width: 32px;
   padding-left: 0;
-  padding-right: 0;
+  padding-right: 8px;
 }
 
 /* Le numéro de ligne est la seconde façon de déclencher le saut : c'est déjà
@@ -1282,6 +1284,14 @@ tbody tr:hover .row-copy,
   font-size: 13px;
   font-weight: 600;
   color: var(--accent);
+}
+
+/* Séparée des deux actions par un filet : elle ne navigue pas, elle referme. */
+.context-banner .context-dismiss {
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: 0;
 }
 
 .msg {

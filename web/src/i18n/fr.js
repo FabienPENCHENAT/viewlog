@@ -85,6 +85,7 @@ export default {
   "context.banner": "Journal complet autour de la ligne {line}, filtres relâchés.",
   "context.recenter": "Revoir la ligne",
   "context.back": "Retour aux résultats",
+  "context.dismiss": "Rester dans le journal complet et fermer ce bandeau",
 
   "msg.collapse": "Réduire ▲",
   "msg.expand": "Afficher tout ({count} lignes) ▼",

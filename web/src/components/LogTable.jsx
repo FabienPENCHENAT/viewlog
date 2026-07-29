@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { levelColor } from "../levels.js";
 import MessageCell from "./MessageCell.jsx";
@@ -306,6 +306,14 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
   const settleFrame = useRef(0);
   useEffect(() => () => cancelAnimationFrame(settleFrame.current), []);
 
+  // Changer de vue remet la liste en haut : les deux vues n'ont pas du tout la
+  // même longueur, et un journal parcouru jusqu'en bas laissait la liste de
+  // motifs, bien plus courte, collée à son propre bas. Placé en effet de mise en
+  // page pour passer AVANT le recentrage d'un éventuel saut en attente.
+  useLayoutEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [view]);
+
   function centerOn(idx) {
     cancelAnimationFrame(settleFrame.current);
     let tries = 0;
@@ -486,6 +494,17 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
           <button type="button" className="context-back" onClick={backToResults}>
             {t("context.back")}
           </button>
+          {/* Sortir du contexte en gardant le journal complet sous les yeux :
+              revenir aux résultats n'est pas toujours ce qu'on veut. */}
+          <button
+            type="button"
+            className="context-dismiss"
+            title={t("context.dismiss")}
+            aria-label={t("context.dismiss")}
+            onClick={clearJump}
+          >
+            ✕
+          </button>
         </div>
       )}
 
@@ -537,8 +556,8 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
                 <th className="col-ts">{t("table.col_ts")}</th>
                 <th className="col-level">{t("table.col_level")}</th>
                 <th className="col-msg">{t("table.col_msg")}</th>
-                {anyFilter && <th className="col-context" aria-label={t("context.jump")} />}
                 <th className="col-copy" aria-label={t("table.copy")} />
+                {anyFilter && <th className="col-context" aria-label={t("context.jump")} />}
               </tr>
             </thead>
             <tbody>
@@ -582,6 +601,17 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
                     <td className="col-msg">
                       <MessageCell message={e.message} highlight={searchRe.highlight} />
                     </td>
+                    <td className="col-copy">
+                      <button
+                        type="button"
+                        className={`row-copy ${copied === e.i ? "row-copy--done" : ""}`}
+                        title={copied === e.i ? t("table.copied") : t("table.copy")}
+                        aria-label={copied === e.i ? t("table.copied") : t("table.copy")}
+                        onClick={() => copyRow(e)}
+                      >
+                        <CopyIcon done={copied === e.i} />
+                      </button>
+                    </td>
                     {anyFilter && (
                       <td className="col-context">
                         <button
@@ -595,17 +625,6 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
                         </button>
                       </td>
                     )}
-                    <td className="col-copy">
-                      <button
-                        type="button"
-                        className={`row-copy ${copied === e.i ? "row-copy--done" : ""}`}
-                        title={copied === e.i ? t("table.copied") : t("table.copy")}
-                        aria-label={copied === e.i ? t("table.copied") : t("table.copy")}
-                        onClick={() => copyRow(e)}
-                      >
-                        <CopyIcon done={copied === e.i} />
-                      </button>
-                    </td>
                   </tr>
                 );
               })}
