@@ -96,6 +96,10 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
   }, [entries]);
 
   function switchView(v) {
+    // Changer de vue à la main, c'est quitter le contexte de son plein gré : le
+    // bandeau de retour parle d'une ligne du journal et ne veut plus rien dire
+    // ailleurs (« Revoir la ligne » n'aurait nulle part où défiler).
+    clearJump();
     setView(v);
     if (v === "patterns") {
       setPatternFilter(null); // le regroupement porte sur l'ensemble filtré
@@ -137,6 +141,14 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
 
   const anyFilter =
     active.size > 0 || !!query.trim() || timeActive || patternFilter != null;
+
+  // Abandon du saut : plus de bandeau, plus de repère, plus de cible en attente.
+  function clearJump() {
+    setSaved(null);
+    setFlash(null);
+    setMarked(null);
+    setPendingJump(null);
+  }
 
   function goToContext(entry) {
     markFeature("jump_context");
@@ -276,18 +288,48 @@ export default function LogTable({ entries, byLevel, bounds, range, onRangeChang
     ? rowVirtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
     : 0;
 
-  // Le défilement n'a lieu qu'une fois la ligne réellement présente dans la
-  // liste : recherche et période sont débouncées, donc `filtered` se met à jour
-  // en deux temps. Tant qu'elle est absente, on garde la cible en attente.
+  // Recherche et période sont débouncées : après avoir relâché les filtres,
+  // `filtered` se met à jour en plusieurs temps. Défiler dès que la ligne
+  // apparaît viserait une liste intermédiaire, puis la liste finale, plus
+  // longue, décalerait la cible loin de l'écran. On attend donc que les valeurs
+  // débouncées aient rattrapé les valeurs vivantes.
+  const rangeSettled =
+    dRange === range ||
+    (!!dRange && !!range && dRange.from === range.from && dRange.to === range.to);
+  const filtersSettled = dQuery === query && rangeSettled;
+
+  // Les lignes sont mesurées à la volée (messages multi-lignes, stack traces) :
+  // un premier défilement ne connaît que des hauteurs estimées, et les mesures
+  // réelles déplacent ensuite le contenu. On recentre donc à chaque frame
+  // jusqu'à ce que la position se stabilise, sinon la ligne visée atterrit hors
+  // écran et il faut cliquer « Revoir la ligne ».
+  const settleFrame = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(settleFrame.current), []);
+
+  function centerOn(idx) {
+    cancelAnimationFrame(settleFrame.current);
+    let tries = 0;
+    let previous = -1;
+    const step = () => {
+      rowVirtualizer.scrollToIndex(idx, { align: "center" });
+      const top = scrollRef.current?.scrollTop ?? 0;
+      if (Math.abs(top - previous) < 1 || ++tries >= 24) return; // stabilisé
+      previous = top;
+      settleFrame.current = requestAnimationFrame(step);
+    };
+    step();
+  }
+
   useEffect(() => {
-    if (!pendingJump) return;
+    if (!pendingJump || view !== "journal" || !filtersSettled) return;
     const idx = filtered.findIndex((e) => e.i === pendingJump.at);
     if (idx === -1) return;
-    rowVirtualizer.scrollToIndex(idx, { align: "center" });
+    centerOn(idx);
     if (pendingJump.flash) setFlash(pendingJump.at);
     if (pendingJump.mark) setMarked(pendingJump.at);
     setPendingJump(null);
-  }, [pendingJump, filtered, rowVirtualizer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingJump, filtered, filtersSettled, view]);
 
   // Le surlignage s'éteint tout seul : c'est un repère, pas une sélection.
   const flashTimer = useRef(null);

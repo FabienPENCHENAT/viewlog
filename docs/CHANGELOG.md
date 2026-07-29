@@ -6,6 +6,9 @@ so each entry is filed under the day it went live.
 ## 2026-07-29
 ### Added
 - Turning on offline mode now shows a short notice explaining what it changes: no more anonymous usage measurements are sent, and the site's new features will not reach you while you stay offline
+### Fixed
+- Jumping to a line in the full journal now lands on it every time. It could previously stop short of the line, forcing a click on "Show the line again"
+- The full journal banner no longer stays on screen after switching to the Patterns view
 
 ## 2026-07-28
 ### Added
