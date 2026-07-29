@@ -8,6 +8,10 @@ export default {
   "offline.hint_on":
     "Offline mode is on: ViewLog sends nothing. Click to re-enable the network.",
   "offline.hint_auto": "No connection detected. ViewLog keeps working normally, locally.",
+  "offline.notice_title": "Offline mode is on",
+  "offline.notice_body":
+    "ViewLog now sends nothing at all: no anonymous usage measurement, and you will not get the site's new features while you stay offline.",
+  "offline.notice_close": "Close",
 
   "home.title_pre": "Your log files, ",
   "home.title_accent": "finally pleasant to read.",

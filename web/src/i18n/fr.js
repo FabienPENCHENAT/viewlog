@@ -9,6 +9,10 @@ export default {
     "Mode hors ligne actif : ViewLog n'envoie plus rien. Cliquez pour réactiver le réseau.",
   "offline.hint_auto":
     "Aucune connexion détectée. ViewLog continue de fonctionner normalement, en local.",
+  "offline.notice_title": "Mode hors ligne actif",
+  "offline.notice_body":
+    "ViewLog n'envoie plus rien : aucune mesure d'usage anonyme, et vous ne recevrez pas les nouveautés du site tant que vous restez hors ligne.",
+  "offline.notice_close": "Fermer",
 
   "home.title_pre": "Vos fichiers de logs, ",
   "home.title_accent": "enfin agréables à lire.",

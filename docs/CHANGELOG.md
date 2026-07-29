@@ -3,6 +3,10 @@
 All notable changes to ViewLog, newest first. Everything ships continuously,
 so each entry is filed under the day it went live.
 
+## 2026-07-29
+### Added
+- Turning on offline mode now shows a short notice explaining what it changes: no more anonymous usage measurements are sent, and the site's new features will not reach you while you stay offline
+
 ## 2026-07-28
 ### Added
 - Jump from a filtered line to its place in the full journal: click the line number or the target icon, every filter is released and the journal scrolls to the line. It pulses on arrival, then keeps a discreet marker so you can still find it after scrolling, and a banner lets you show it again or go back to your results
