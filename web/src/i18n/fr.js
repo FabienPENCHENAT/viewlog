@@ -61,6 +61,9 @@ export default {
   "tabs.add": "Importer un log",
   "tabs.add_hint": "Importer un log. Il entre ici, à gauche.",
   "tabs.close": "Fermer {label}",
+  "tabs.confirm_aria": "Supprimer ce log ? C'est définitif.",
+  "tabs.confirm_go": "Supprimer",
+  "tabs.confirm_no": "Annuler",
   "tabs.rename_aria": "Renommer l'onglet, {max} caractères maximum",
   "tabs.tip_lines": "{lines} lignes",
   "tabs.tip_doomed":

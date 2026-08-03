@@ -85,18 +85,6 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
   const [patternFilter, setPatternFilter] = useState(() => restored.current.patternFilter ?? null); // clé de motif (drill-down)
   const [regexMode, setRegexMode] = useState(() => restored.current.regexMode || false); // recherche : contains vs regex
 
-  // Un seul effet de sauvegarde : revenir sur l'onglet doit rendre le journal
-  // tel qu'on l'a quitté, sinon changer d'onglet passe pour une perte de travail.
-  useEffect(() => {
-    setTabState(tabId, {
-      query,
-      levels: [...active],
-      view,
-      patternFilter,
-      regexMode,
-    });
-  }, [tabId, query, active, view, patternFilter, regexMode]);
-
   // Analytics feature : on ne compte chaque feature qu'UNE fois par fichier
   // ouvert (mesure l'adoption, pas le volume de clics). Remis à zéro au fichier.
   const firedRef = useRef(null);
@@ -106,13 +94,10 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
     firedRef.current = featureOnce();
   }, [entries]);
 
-  // Nouveau fichier : on repart d'une ardoise propre (repère et retour en
-  // arrière ne veulent plus rien dire).
-  useEffect(() => {
-    setSaved(null);
-    setFlash(null);
-    setMarked(null);
-  }, [entries]);
+  // Pas de remise à zéro sur changement de fichier : le composant est remonté à
+  // chaque onglet (clé sur l'id côté Dashboard), donc le montage EST la remise à
+  // zéro. Un effet ici s'exécuterait aussi au montage et effacerait le bandeau de
+  // retour et le repère qu'on vient justement de restaurer.
 
   function switchView(v) {
     // Changer de vue à la main, c'est quitter le contexte de son plein gré : le
@@ -147,16 +132,42 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
   // veut voir une ligne à sa place dans le journal complet, avec ses voisines.
   // Il faut relâcher TOUS les filtres : si l'un d'eux exclut encore la ligne,
   // elle n'est pas rendue et le défilement échouerait sans rien dire.
-  const [saved, setSaved] = useState(null); // filtres d'avant le saut (retour)
+  // Repris de l'onglet : quitter un fichier au milieu d'un saut vers le contexte
+  // et y revenir doit rendre le bandeau de retour ET le repère.
+  const [saved, setSaved] = useState(() => restored.current.saved ?? null); // filtres d'avant le saut (retour)
   // { at, flash, mark } : la cible, et les deux signaux, indépendants.
   //  - flash : pulsation d'arrivée, utile dans les deux sens de navigation ;
   //  - mark  : repère persistant, réservé au journal complet où la ligne se
   //            perd au milieu des autres. Inutile dans une liste filtrée.
-  const [pendingJump, setPendingJump] = useState(null);
+  //
+  // Au retour sur l'onglet, on redemande un défilement vers la ligne repérée :
+  // le repère seul ne servirait à rien si la ligne était hors écran.
+  const [pendingJump, setPendingJump] = useState(() =>
+    restored.current.marked != null
+      ? { at: restored.current.marked, flash: true, mark: true }
+      : null
+  );
   const [flash, setFlash] = useState(null); // pulsation brève à l'arrivée
   // Repère persistant : le flash attire l'œil, mais il s'éteint. Sans marque
   // durable, la ligne visée devient introuvable dès qu'on a défilé un peu.
-  const [marked, setMarked] = useState(null);
+  const [marked, setMarked] = useState(() => restored.current.marked ?? null);
+
+  // Un seul effet de sauvegarde, déclaré après tout l'état qu'il observe :
+  // revenir sur l'onglet doit rendre le journal tel qu'on l'a quitté, sinon
+  // changer d'onglet passe pour une perte de travail. Le saut vers le contexte en
+  // fait partie : sans `saved` ni `marked`, on retrouverait la bonne ligne mais
+  // plus le bandeau qui ramène aux résultats, donc plus aucun retour possible.
+  useEffect(() => {
+    setTabState(tabId, {
+      query,
+      levels: [...active],
+      view,
+      patternFilter,
+      regexMode,
+      saved,
+      marked,
+    });
+  }, [tabId, query, active, view, patternFilter, regexMode, saved, marked]);
 
   const anyFilter =
     active.size > 0 || !!query.trim() || timeActive || patternFilter != null;

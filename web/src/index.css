@@ -747,6 +747,56 @@ body {
   color: var(--error);
 }
 
+/* Confirmation de suppression : l'onglet se teinte de rouge le temps de la
+   question, pour qu'on voie SUR QUOI on répond. */
+.tab[data-confirming] {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--error) 34%, transparent);
+  cursor: default;
+}
+
+.tab-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tab-confirm-go,
+.tab-confirm-no {
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.tab-confirm-go {
+  color: var(--error);
+  background: color-mix(in srgb, var(--error) 16%, transparent);
+}
+
+.tab-confirm-go:hover {
+  background: var(--error);
+  color: var(--page);
+}
+
+.tab-confirm-no {
+  color: var(--ink-2);
+}
+
+.tab-confirm-no:hover {
+  background: var(--btn-hover);
+  color: var(--ink);
+}
+
+.tab-confirm-go:focus-visible,
+.tab-confirm-no:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .tab-rename {
   width: 96px;
   padding: 2px 6px;

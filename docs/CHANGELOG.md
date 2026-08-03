@@ -10,8 +10,11 @@ so each entry is filed under the day it went live.
 - Drag a tab to reorder it. New imports enter on the left and the rightmost tab, shown faded, is the one replaced next, so dragging a log left keeps it
 - Import a log straight from the tab bar with the "+" button, without going through the home page
 ### Changed
+- Closing a tab now asks before deleting the log, since deleting it cannot be undone
 - Tabs are labelled with the time you imported the log, in your language's own convention, rather than the file name: log file names are unpredictable and would make every tab a different width
 - Dates in English now follow the US convention (08/03, 3:16 PM)
+### Fixed
+- Leaving a log in the middle of a jump to the full journal and coming back now finds the banner and the marker again, so you can still return to your filtered results
 
 ## 2026-07-29
 ### Added
