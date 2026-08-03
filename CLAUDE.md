@@ -50,6 +50,35 @@ Règles :
 4. **Mettre à jour `docs/CHANGELOG.md`** (obligatoire, voir plus bas).
 5. Committer (voir conventions).
 6. **Ne pas pousser** sans demande explicite.
+7. **Rendre la main pour les tests** (voir ci-dessous).
+
+### Pas de tests fonctionnels, pas de E2E
+
+**Les tests fonctionnels sont faits à la main par le mainteneur.** Ne pas écrire, ne
+pas lancer, ne pas outiller de tests d'intégration ou E2E : pas de Playwright, pas de
+Puppeteer, pas de pilotage de navigateur headless, pas de script de « drive ».
+
+*Pourquoi :* l'UI de ViewLog se vérifie en trente secondes à l'écran, alors qu'écrire
+puis déboguer un pilote coûte beaucoup de temps, de tokens et d'énergie pour la même
+information. Le mainteneur va plus vite à la main.
+
+La livraison est prête à tester dès que **ces quatre conditions** sont réunies :
+
+- le plan annoncé a été suivi ;
+- la feature est développée **en entier** ;
+- `cd web && npm run build` passe ;
+- rien ne contredit visiblement le besoin exprimé.
+
+Alors on rend la main, en disant **quoi regarder** (les cas limites, ce qui n'a pas été
+vérifié). Si une partie est restée bloquée ou hors périmètre, le dire explicitement
+plutôt que de laisser le mainteneur le découvrir.
+
+Restent utiles et bienvenues, les vérifications **hors navigateur** : le build, et un
+script Node ponctuel sur une fonction pure (par exemple le format des étiquettes
+d'onglets de `lib/tab-label.js`).
+
+> Une infra de tests E2E est prévue comme une feature à part entière, plus tard. D'ici
+> là, cette règle tient.
 
 ## Commits — Conventional Commits
 
