@@ -3,6 +3,17 @@
 All notable changes to ViewLog, newest first. Everything ships continuously,
 so each entry is filed under the day it went live.
 
+## 2026-08-03
+### Added
+- Switch between your open logs from a tab bar at the top of the dashboard, without going back to the file list. Each tab is labelled with the time you imported the log, in your language's own convention
+- Every tab keeps its own search, level filters and time range: leave a log in the middle of an investigation, come back to it, and you find it exactly as you left it
+- Rename a tab by double-clicking it, to label your logs the way you think of them
+- Drag a tab to reorder it. New imports enter on the left, and the rightmost tab, shown faded, is the one replaced next: dragging a log left is how you keep it
+- Import a log straight from the tab bar with the "+" button, without going through the home page
+- Closing a tab asks for confirmation before deleting the log, showing that log's own colour so you can tell which one you are answering about. Deleting cannot be undone
+### Changed
+- Dates in English now follow the US convention (08/03, 3:16 PM)
+
 ## 2026-07-29
 ### Added
 - Turning on offline mode now shows a short notice explaining what it changes: no more anonymous usage measurements are sent, and the site's new features will not reach you while you stay offline

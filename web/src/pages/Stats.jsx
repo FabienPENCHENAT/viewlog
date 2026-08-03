@@ -40,6 +40,11 @@ const LABELS = {
   jump_context: "Saut vers le contexte",
   export: "Export",
   offline_on: "Passage hors ligne",
+  tab_add: "Import depuis les onglets",
+  tab: "Onglet",
+  tab_switch: "Changement d'onglet",
+  tab_rename: "Renommage d'onglet",
+  tab_reorder: "Réordonnancement d'onglets",
 };
 
 // Ordre canonique des tranches de taille (affichées même à 0).

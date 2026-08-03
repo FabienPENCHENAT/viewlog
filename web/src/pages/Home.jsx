@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import DropZone from "../components/DropZone.jsx";
-import { listLogs, uploadLog, deleteLog } from "../lib/api.js";
-import { trackImport, sizeBucket } from "../lib/track.js";
+import { listLogs, deleteLog } from "../lib/api.js";
+import { importLog } from "../lib/import-log.js";
 import { useI18n } from "../i18n/index.jsx";
 import shieldIcon from "../assets/privacy-shield.svg";
 
@@ -11,12 +11,6 @@ function formatSize(bytes, t) {
   if (bytes < 1024) return `${bytes} ${t("unit.b")}`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} ${t("unit.kb")}`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} ${t("unit.mb")}`;
-}
-
-// Extension seule (jamais le nom complet) pour les stats d'usage anonymes.
-function fileExt(name) {
-  const m = /\.([a-z0-9]{1,10})$/i.exec(name || "");
-  return m ? m[1].toLowerCase() : "none";
 }
 
 export default function Home() {
@@ -43,14 +37,10 @@ export default function Home() {
   async function handleFile(file, method = "drop") {
     setBusy(true);
     setError(null);
-    const ext = fileExt(file?.name);
-    const size = sizeBucket(file?.size || 0);
     try {
-      const { id, truncated } = await uploadLog(file);
-      trackImport("success", { method, ext, size, truncated });
+      const { id } = await importLog(file, method);
       navigate(`/dashboard/${id}`, { state: { from: "import" } });
     } catch (e) {
-      trackImport("fail", { method, ext, size });
       setError(e.message);
       setBusy(false);
     }
