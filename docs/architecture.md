@@ -39,9 +39,12 @@ parser/            Parsing (voir plus bas)
 i18n/              fr.js · en.js (dictionnaires plats) + index.jsx (provider/hook)
 lib/               api.js · db.js · track.js · duration.js · patterns.js · parse-async.js
                    offline.js (état réseau) · net.js (fetch gardé) · pwa.js (service worker)
+                   import-log.js (import partagé Home / barre d'onglets)
+                   log-cache.js (LRU des logs analysés) · tab-label.js (étiquettes)
+                   tab-state.js (filtres par onglet) · time-range.js · clipboard.js
 components/        DropZone · StatCards · LevelChart · Timeline · LogTable · MessageCell
-                   OfflineSwitch
-pages/             Home · Dashboard · Faq · Legal
+                   OfflineSwitch · TabBar
+pages/             Home · Dashboard · Faq · Legal · Changelog · Stats · NotFound
 assets/            privacy-shield.svg
 ```
 
@@ -66,7 +69,12 @@ Dashboard ─► StatCards · Timeline · LevelChart · LogTable
 ```
 
 - **`lib/api.js`** est la façade locale : `uploadLog` (parse + stocke), `listLogs`,
-  `getLog` (re-parse le contenu stocké), `deleteLog`. Aucune requête réseau.
+  `getLog` (re-parse le contenu stocké), `renameLog`, `reorderLogs`, `deleteLog`.
+  Aucune requête réseau.
+- **`lib/log-cache.js`** mémorise les 3 derniers logs analysés. Sans lui, chaque
+  changement d'onglet relancerait un parsing complet et la barre d'onglets perdrait
+  exactement ce qu'elle apporte. Borné à 3 car les entrées analysées d'un gros
+  fichier pèsent lourd.
 - **`lib/parse-async.js`** lance le Web Worker et renvoie une promesse. Sur un
   simple upload, seules les métadonnées reviennent (on évite de recopier des
   centaines de milliers d'entrées entre threads).
@@ -77,8 +85,26 @@ Dashboard ─► StatCards · Timeline · LevelChart · LogTable
 ## Stockage local
 
 `lib/db.js` encapsule **IndexedDB** (base `viewlog`, store `logs`, clé `id`).
-IndexedDB plutôt que `localStorage` car un log peut peser plusieurs Mo. Rotation
-automatique : seuls les **5 enregistrements les plus récents** sont conservés.
+IndexedDB plutôt que `localStorage` car un log peut peser plusieurs Mo.
+
+Un enregistrement porte `id`, `name` (nom brut du fichier), `label` (renommage
+choisi, ou `null`), `order`, `hue`, `size`, `importedAt`, `meta` et `content`.
+
+**`order` est la clé de la rotation, pas `importedAt`.** L'ordre des onglets
+appartenant à l'utilisateur, il est persisté et ne peut plus être déduit de la date
+d'import : un nouvel import entre à `order = 0` et ce qui dépasse la cinquième place
+est supprimé. Glisser un onglet vers la gauche le protège donc de la rotation.
+`ordered()` renumérote les enregistrements antérieurs à l'introduction de ces champs.
+
+**`hue` est attribuée à l'import** parmi les teintes qu'aucun fichier ouvert n'utilise.
+Ni la position (elle changerait à chaque réordonnancement, détruisant l'identité
+qu'elle sert à créer) ni un hachage de l'identifiant (cinq teintes pour cinq fichiers
+collisionnent vite, et deux onglets de la même couleur ne distinguent rien).
+
+L'état de filtrage par onglet vit dans **`lib/tab-state.js`**, volontairement **en
+mémoire** : un rechargement de page est une remise à zéro assumée, donc rien à
+nettoyer ni à faire vieillir côté IndexedDB. Voir le ticket backlog *06, sessions
+locales* pour le rendre persistant.
 
 ## Mode hors ligne
 

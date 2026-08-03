@@ -11,10 +11,45 @@ Trois façons d'ouvrir des logs, toutes traitées **localement** et à l'identiq
 - **Cliquer** pour parcourir (`.log`, `.txt`, `.csv`).
 - **Coller** du texte directement (« Ou collez vos logs directement »), sans fichier.
 
-Les **5 derniers fichiers ouverts** sont conservés dans le navigateur et
-proposés au retour ; ils tournent automatiquement (le plus ancien est remplacé).
-Chaque fichier peut être supprimé individuellement, et vider les données du site
-efface tout.
+**5 fichiers** sont conservés dans le navigateur et proposés au retour. Chaque
+fichier peut être supprimé individuellement, et vider les données du site efface
+tout. Quel fichier est remplacé au prochain import ne dépend plus de sa date mais
+de sa position dans la barre d'onglets, voir ci-dessous.
+
+## Navigation entre les logs ouverts
+
+Une **barre d'onglets** en haut du dashboard met les 5 logs stockés à un clic, sans
+repasser par l'accueil ni ré-importer un fichier déjà présent.
+
+- **L'étiquette d'un onglet ne vient jamais du nom du fichier.** Cinq logs peuvent
+  venir de cinq produits nommés différemment (un `application.log`, un UUID de 72
+  caractères, un blob hexadécimal, un chemin de pod) : aucune règle ne rend ces noms
+  comparables, et des cellules de largeurs inégales empêchent la barre de glisser.
+  L'onglet porte donc **l'heure d'import**, dans un format choisi pour la barre
+  entière, le plus court qui distingue les cinq : `15:16` si tous les imports sont du
+  même jour, `03/08 15:16` sinon, les secondes seulement si deux imports tombent dans
+  la même minute. Le format suit la langue (`08/03 03:16 PM` en anglais).
+- **Renommage au double-clic**, 14 caractères, pour étiqueter ses logs comme on y
+  pense (`avant`, `après`, `prod`). C'est l'échappatoire à tout ce qu'aucune
+  heuristique ne peut deviner sur un nom de fichier.
+- **Une pastille de couleur par fichier**, attribuée à l'import parmi les teintes
+  libres : deux onglets ouverts n'ont jamais la même, et un onglet déplacé garde la
+  sienne.
+- **Chaque onglet garde son contexte** : recherche, mode regex, filtres de niveau,
+  période, vue Motifs et saut vers le contexte. Quitter un log au milieu d'une
+  investigation et y revenir le rend tel qu'on l'a laissé, bandeau de retour compris.
+  Valable pour la durée de la session ; un rechargement de page repart à zéro.
+- **Réordonnancement au glisser-déposer** (ou `Alt` + flèches). Ce n'est pas
+  cosmétique : les nouveaux imports entrent **à gauche** et c'est le **dernier
+  onglet**, estompé quand les 5 places sont prises, qui sera remplacé. Glisser un log
+  vers la gauche, c'est donc le protéger de la rotation.
+- **Le `+` à gauche** importe un fichier sans repasser par l'accueil, au point même
+  où le nouvel onglet apparaîtra.
+- **Fermer un onglet demande confirmation**, en affichant la pastille du log
+  concerné : la suppression est définitive.
+
+Le nom brut du fichier reste affiché sous la barre et dans l'infobulle de l'onglet ;
+il n'a simplement plus le droit de dicter la géométrie.
 
 ## Formats pris en charge
 
