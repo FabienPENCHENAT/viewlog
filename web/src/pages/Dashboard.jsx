@@ -162,9 +162,11 @@ export default function Dashboard() {
 
   const head = (
     <div className="dash-head">
-      <div className="dash-head-row">
-        <Link to="/" className="back-link">{t("dash.back_files")}</Link>
-        {tabs.length > 0 && (
+      {/* La barre occupe sa propre ligne, sur toute la largeur : partagée avec le
+          lien de retour, il lui manquait la place de cinq étiquettes anglaises
+          avec les secondes, et elle débordait à droite du contenu. */}
+      {tabs.length > 0 && (
+        <div className="tabbar-scroll">
           <TabBar
             tabs={tabs}
             activeId={id}
@@ -175,15 +177,18 @@ export default function Dashboard() {
             onReorder={reorder}
             onAdd={() => fileInput.current?.click()}
           />
-        )}
+        </div>
+      )}
+      <div className="dash-head-row">
+        <Link to="/" className="back-link">{t("dash.back_files")}</Link>
+        {/* Le nom brut vient des onglets tant que le parsing n'est pas fini :
+            sinon le titre clignoterait sur « Log » à chaque changement d'onglet. */}
+        <h1 className="dash-title">
+          {data?.meta.name ||
+            tabs.find((tab) => tab.id === id)?.name ||
+            t("dash.default_name")}
+        </h1>
       </div>
-      {/* Le nom brut vient des onglets tant que le parsing n'est pas fini :
-          sinon le titre clignoterait sur « Log » à chaque changement d'onglet. */}
-      <h1 className="dash-title">
-        {data?.meta.name ||
-          tabs.find((tab) => tab.id === id)?.name ||
-          t("dash.default_name")}
-      </h1>
       <input
         ref={fileInput}
         type="file"

@@ -564,7 +564,7 @@ body {
 
 .dash-head-row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 16px;
   min-width: 0;
 }
@@ -598,6 +598,20 @@ body {
 }
 
 /* --- Barre des logs ouverts --- */
+
+/* Soupape : cinq étiquettes anglaises avec les secondes ("08/03 04:25:25 PM")
+   dépassent la largeur du contenu. La barre défile alors à l'intérieur de sa
+   piste plutôt que de déborder à droite des cartes. */
+.tabbar-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  /* Le pill dépasse de quelques pixels vers le bas via son ombre : sans ça,
+     l'overflow le rognerait. */
+  padding-bottom: 3px;
+}
+
 .tabbar {
   position: relative;
   display: flex;
@@ -608,7 +622,6 @@ body {
   border: 1px solid var(--border);
   border-radius: 999px;
   width: max-content;
-  max-width: 100%;
   touch-action: none;
 }
 

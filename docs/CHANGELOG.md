@@ -5,16 +5,14 @@ so each entry is filed under the day it went live.
 
 ## 2026-08-03
 ### Added
-- Switch between your open logs from a tab bar at the top of the dashboard, without going back to the file list. Each log keeps its own search, level filters and time range, so coming back to a tab finds it exactly as you left it
-- Rename a tab by double-clicking it, to label your logs the way you think of them: "before", "after", "prod"
-- Drag a tab to reorder it. New imports enter on the left and the rightmost tab, shown faded, is the one replaced next, so dragging a log left keeps it
+- Switch between your open logs from a tab bar at the top of the dashboard, without going back to the file list. Each tab is labelled with the time you imported the log, in your language's own convention
+- Every tab keeps its own search, level filters and time range: leave a log in the middle of an investigation, come back to it, and you find it exactly as you left it
+- Rename a tab by double-clicking it, to label your logs the way you think of them
+- Drag a tab to reorder it. New imports enter on the left, and the rightmost tab, shown faded, is the one replaced next: dragging a log left is how you keep it
 - Import a log straight from the tab bar with the "+" button, without going through the home page
+- Closing a tab asks for confirmation before deleting the log, showing that log's own colour so you can tell which one you are answering about. Deleting cannot be undone
 ### Changed
-- Closing a tab now asks before deleting the log, since deleting it cannot be undone
-- Tabs are labelled with the time you imported the log, in your language's own convention, rather than the file name: log file names are unpredictable and would make every tab a different width
 - Dates in English now follow the US convention (08/03, 3:16 PM)
-### Fixed
-- Leaving a log in the middle of a jump to the full journal and coming back now finds the banner and the marker again, so you can still return to your filtered results
 
 ## 2026-07-29
 ### Added
