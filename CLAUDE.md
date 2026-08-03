@@ -48,9 +48,19 @@ Règles :
 2. Ajouter les clés i18n **FR + EN**.
 3. Vérifier le build : `cd web && npm run build`.
 4. **Mettre à jour `docs/CHANGELOG.md`** (obligatoire, voir plus bas).
-5. Committer (voir conventions).
+5. Committer **sur `main`** (voir conventions et ci-dessous).
 6. **Ne pas pousser** sans demande explicite.
 7. **Rendre la main pour les tests** (voir ci-dessous).
+
+### On travaille directement sur `main`
+
+**Pas de branche de feature, pas de PR** sauf demande explicite. Un seul mainteneur, du
+déploiement continu : une branche n'apporte rien et ajoute une étape de merge à chaque
+fois. On committe sur `main`, et on pousse quand on le demande.
+
+⚠️ Pousser sur `main` **déploie en production** (voir
+[docs/deployment.md](docs/deployment.md)) : d'où le point 6, on ne pousse jamais de sa
+propre initiative.
 
 ### Pas de tests fonctionnels, pas de E2E
 
