@@ -7,6 +7,7 @@ import { groupPatterns, patternKey, templateFromKey } from "../lib/patterns.js";
 import { featureOnce } from "../lib/track.js";
 import { copyText } from "../lib/clipboard.js";
 import { fullRange, rangeStep, isPartialRange } from "../lib/time-range.js";
+import { getTabState, setTabState } from "../lib/tab-state.js";
 import { useI18n } from "../i18n/index.jsx";
 
 const MAX_PATTERNS = 100; // motifs affichés au maximum
@@ -71,13 +72,30 @@ function useDebounced(value, delay) {
 
 // La période ({ bounds, range, onRangeChange }) est portée par le Dashboard :
 // le graphe de volume et ce tableau agissent sur la même fenêtre.
-export default function LogTable({ entries, byLevel, bounds, range, onRangeChange }) {
+export default function LogTable({ tabId, entries, byLevel, bounds, range, onRangeChange }) {
   const { t, locale } = useI18n();
-  const [query, setQuery] = useState("");
-  const [active, setActive] = useState(() => new Set());
-  const [view, setView] = useState("journal"); // "journal" | "patterns"
-  const [patternFilter, setPatternFilter] = useState(null); // clé de motif (drill-down)
-  const [regexMode, setRegexMode] = useState(false); // recherche : contains vs regex
+
+  // Filtres repris là où on les avait laissés sur cet onglet. Le composant est
+  // remonté à chaque changement d'onglet (clé sur l'id côté Dashboard), donc les
+  // initialiseurs paresseux suffisent : pas besoin de remonter cet état.
+  const restored = useRef(getTabState(tabId) || {});
+  const [query, setQuery] = useState(() => restored.current.query || "");
+  const [active, setActive] = useState(() => new Set(restored.current.levels || []));
+  const [view, setView] = useState(() => restored.current.view || "journal"); // "journal" | "patterns"
+  const [patternFilter, setPatternFilter] = useState(() => restored.current.patternFilter ?? null); // clé de motif (drill-down)
+  const [regexMode, setRegexMode] = useState(() => restored.current.regexMode || false); // recherche : contains vs regex
+
+  // Un seul effet de sauvegarde : revenir sur l'onglet doit rendre le journal
+  // tel qu'on l'a quitté, sinon changer d'onglet passe pour une perte de travail.
+  useEffect(() => {
+    setTabState(tabId, {
+      query,
+      levels: [...active],
+      view,
+      patternFilter,
+      regexMode,
+    });
+  }, [tabId, query, active, view, patternFilter, regexMode]);
 
   // Analytics feature : on ne compte chaque feature qu'UNE fois par fichier
   // ouvert (mesure l'adoption, pas le volume de clics). Remis à zéro au fichier.

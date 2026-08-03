@@ -55,6 +55,15 @@ export default {
   "dash.journal": "Log",
   "dash.default_name": "Log",
 
+  "tabs.aria_bar": "Open logs",
+  "tabs.add": "Import a log",
+  "tabs.add_hint": "Import a log. It enters here, on the left.",
+  "tabs.close": "Close {label}",
+  "tabs.rename_aria": "Rename tab, {max} characters max",
+  "tabs.tip_lines": "{lines} lines",
+  "tabs.tip_doomed": "Will be replaced on the next import. Drag it left to keep it.",
+  "tabs.tip_rename": "Double-click to rename.",
+
   "table.search": "Search logs…",
   "table.regex": "Regular expression search (regex)",
   "table.entries": "{count} entries",
@@ -111,6 +120,8 @@ export default {
   "errors.upload": "Upload failed",
   "errors.not_found": "File not found",
   "errors.delete": "Couldn't delete",
+  "errors.rename": "Couldn't rename",
+  "errors.reorder": "Couldn't reorder",
 
   "nav.faq": "FAQ",
 

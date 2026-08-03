@@ -21,7 +21,9 @@
 
 const EVENTS = new Set(["page_view", "import", "open", "feature"]);
 const OUTCOMES = new Set(["success", "fail"]);
-const SOURCES = new Set(["drop", "picker", "paste", "recent", "direct"]);
+// "tab_add" = import depuis le « + » de la barre d'onglets ; "tab" = passage
+// d'un onglet à l'autre sans repasser par l'accueil.
+const SOURCES = new Set(["drop", "picker", "paste", "tab_add", "recent", "direct", "tab"]);
 const SIZES = new Set(["s", "m", "l", "xl"]);
 const PAGES = new Set(["home", "faq", "changelog", "legal"]);
 // Toute feature ajoutée au front doit être déclarée ici, sinon elle est
@@ -37,6 +39,10 @@ const FEATURES = new Set([
   "pattern_click",
   "jump_context",
   "export",
+  // Barre d'onglets : changement d'onglet, renommage, réordonnancement.
+  "tab_switch",
+  "tab_rename",
+  "tab_reorder",
   // Activation du mode hors ligne. Envoyé juste avant la coupure, donc c'est le
   // dernier event de la session : ensuite le front ne parle plus.
   "offline_on",

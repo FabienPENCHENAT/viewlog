@@ -31,6 +31,17 @@
   /* Conservé pour compatibilité ; pointe désormais sur l'accent ambre. */
   --blue: var(--accent);
 
+  /* --- Onglets : une teinte par log ---
+     Rotation de teinte à luminosité et chroma CONSTANTS, ancrée sur l'ambre de
+     l'accent : aucune teinte ne paraît plus importante qu'une autre, et aucune
+     n'empiète sur le rouge d'erreur ni sur l'ambre d'accent. La teinte est
+     dérivée de l'identifiant du fichier, jamais de sa position. */
+  --tab-hue-0: oklch(0.76 0.13 72);
+  --tab-hue-1: oklch(0.76 0.13 152);
+  --tab-hue-2: oklch(0.76 0.13 216);
+  --tab-hue-3: oklch(0.76 0.13 292);
+  --tab-hue-4: oklch(0.76 0.13 344);
+
   /* --- Sémantique : erreurs --- */
   --error: #f2585d;
   --error-soft: color-mix(in srgb, var(--error) 15%, transparent);

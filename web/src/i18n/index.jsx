@@ -9,7 +9,10 @@ import en from "./en.js";
 
 const STORAGE_KEY = "viewlog:lang";
 
-const LOCALES = { fr: "fr-FR", en: "en-GB" };
+// Convention US pour l'anglais : mois/jour et 12 h (« 08/03 3:16 PM »), là où le
+// français donne « 03/08 15:16 ». Une seule convention par langue dans toute
+// l'app, sinon la même date s'afficherait de deux façons selon l'écran.
+const LOCALES = { fr: "fr-FR", en: "en-US" };
 
 const DICT = { fr, en };
 
@@ -48,7 +51,7 @@ export function LangProvider({ children }) {
     return {
       lang,
       setLang: setLangState,
-      locale: LOCALES[lang] || "en-GB",
+      locale: LOCALES[lang] || LOCALES.en,
       t: (key, vars) => interpolate(table[key] ?? key, vars),
     };
   }, [lang]);
