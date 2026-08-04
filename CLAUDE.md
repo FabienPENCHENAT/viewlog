@@ -122,3 +122,29 @@ fix) :
 - Court, orienté utilisateur ; on n'y liste pas les refactors ou changements
   purement dev.
 - Rédigé en **anglais** (cohérent avec les commits et le rendu in-app).
+
+### Une ligne = ce qu'on peut faire, rien de plus
+
+**On annonce la fonctionnalité, pas le raisonnement.** Le *pourquoi*, les cas
+limites, les compromis et les détails d'implémentation vont dans le corps du commit
+et dans les docs, jamais ici : le lecteur du changelog veut savoir ce qu'il peut
+faire de nouveau.
+
+Concrètement, une entrée tient en **une phrase**, deux au maximum, et ne contient :
+
+- ni justification (« parce que », « sinon », « ce qui est le cas de… ») ;
+- ni cas limite ni comportement de repli ;
+- ni nom de fichier, de fonction ou de token.
+
+```
+✅  Drop a folder, or pick one, to import the logs it contains. Only the files
+    directly inside are taken, not those in sub-folders.
+
+❌  … not those in sub-folders, which is what you get from a freshly extracted
+    archive, and one unreadable file no longer cancels the others
+```
+
+**Une feature jamais partie en prod n'a pas d'historique.** Tout ce qu'elle apporte
+va dans `Added`, y compris ce qui ressemble à un changement ou à un correctif : il
+n'existe aucun comportement antérieur à modifier du point de vue du lecteur. Une
+correction sur une branche non poussée ne se raconte pas.
