@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
+import CountryBubbles from "../components/CountryBubbles.jsx";
+import { DayChart, RankedBars } from "../components/StatsCharts.jsx";
 import { netFetch, OFFLINE_ERROR } from "../lib/net.js";
 
 // Dashboard interne (privé, verrouillé par token). Volontairement HORS i18n :
@@ -136,7 +139,7 @@ function RefreshIcon() {
   );
 }
 
-function EventsTable({ rows, onRefresh, busy }) {
+function EventsTable({ rows }) {
   const [page, setPage] = useState(0);
   const list = rows || [];
   const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
@@ -145,20 +148,8 @@ function EventsTable({ rows, onRefresh, busy }) {
 
   return (
     <section className="card stats-block stats-table-block">
-      <h2 className="card-title stats-table-head">
-        <span>
-          Dernières entrées <span className="muted">({fmt(list.length)})</span>
-        </span>
-        <button
-          type="button"
-          className={`stats-refresh ${busy ? "stats-refresh--busy" : ""}`}
-          onClick={onRefresh}
-          disabled={busy}
-          title="Rafraîchir"
-          aria-label="Rafraîchir"
-        >
-          <RefreshIcon />
-        </button>
+      <h2 className="card-title">
+        Dernières entrées <span className="muted">({fmt(list.length)})</span>
       </h2>
       {list.length === 0 ? (
         <p className="muted">Aucune donnée.</p>
@@ -327,35 +318,46 @@ export default function Stats() {
         <Link to="/" className="back-link">← Retour</Link>
         <h1 className="dash-title">Statistiques · 90 derniers jours</h1>
       </div>
-      <button className="stats-logout" onClick={logout}>Se déconnecter</button>
+      {/* Une seule barre d'outils : le rafraîchissement sert les deux vues, il
+          n'a pas à être dupliqué dans chacune. */}
+      <div className="stats-bar">
+        <button className="stats-logout" onClick={logout}>Se déconnecter</button>
 
-      <div className="view-switch stats-tabs" role="group" aria-label="Vue">
+        <div className="view-switch stats-tabs" role="group" aria-label="Vue">
+          <button
+            type="button"
+            className={`view-btn ${tab === "stats" ? "view-btn--on" : ""}`}
+            aria-pressed={tab === "stats"}
+            onClick={() => setTab("stats")}
+          >
+            Statistiques
+          </button>
+          <button
+            type="button"
+            className={`view-btn ${tab === "entries" ? "view-btn--on" : ""}`}
+            aria-pressed={tab === "entries"}
+            onClick={() => setTab("entries")}
+          >
+            Entrées
+          </button>
+        </div>
+
         <button
           type="button"
-          className={`view-btn ${tab === "stats" ? "view-btn--on" : ""}`}
-          aria-pressed={tab === "stats"}
-          onClick={() => setTab("stats")}
+          className={`stats-refresh ${reloading ? "stats-refresh--busy" : ""}`}
+          onClick={() => load({ silent: true })}
+          disabled={reloading}
+          title="Rafraîchir"
+          aria-label="Rafraîchir"
         >
-          Statistiques
-        </button>
-        <button
-          type="button"
-          className={`view-btn ${tab === "entries" ? "view-btn--on" : ""}`}
-          aria-pressed={tab === "entries"}
-          onClick={() => setTab("entries")}
-        >
-          Entrées
+          <RefreshIcon />
         </button>
       </div>
 
       {error && <div className="error-banner">{error}</div>}
 
       {tab === "entries" ? (
-        <EventsTable
-          rows={data.recent}
-          onRefresh={() => load({ silent: true })}
-          busy={reloading}
-        />
+        <EventsTable rows={data.recent} />
       ) : (
         <>
       <div className="stats-tiles">
@@ -367,23 +369,27 @@ export default function Stats() {
         <Tile label="Events feature" value={fmt(s.feature_events)} />
       </div>
 
+      <DayChart title="Visites par jour" rows={data.visitsByDay} dim={reloading} />
+
+      <RankedBars
+        title="Fonctionnalités utilisées"
+        rows={data.features}
+        keyName="feature"
+        wide
+        dim={reloading}
+      />
+
+      <CountryBubbles title="Pays" rows={data.countries} dim={reloading} />
+
       <div className="stats-grid">
-        <Bars
-          title="Visites par jour"
-          rows={data.visitsByDay}
-          keyName="day"
-          format={(d) => String(d).slice(0, 10)}
-        />
         <Bars title="Import vs réouverture" rows={data.importVsOpen} keyName="event" />
         <Bars title="Méthode d'import" rows={data.methods} keyName="method" />
         <Bars title="Succès / échec" rows={data.outcomes} keyName="outcome" />
-        <Bars title="Fonctionnalités utilisées" rows={data.features} keyName="feature" />
         <Bars title="Extensions" rows={data.extensions} keyName="ext" />
         <Bars title="Tranches de taille" rows={data.sizes} keyName="size_bucket" domain={SIZE_ORDER} />
         <Bars title="Troncature atteinte" rows={data.truncated} keyName="truncated" />
         <Bars title="Échecs par taille" rows={data.failBySize} keyName="size_bucket" domain={SIZE_ORDER} />
         <Bars title="Pages vues" rows={data.pages} keyName="page" />
-        <Bars title="Pays" rows={data.countries} keyName="country" />
       </div>
         </>
       )}
