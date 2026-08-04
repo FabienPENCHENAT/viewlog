@@ -2013,7 +2013,6 @@ tbody tr:hover .row-copy,
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
-  margin-bottom: 20px;
 }
 
 .stat-tile {
@@ -2085,11 +2084,13 @@ tbody tr:hover .row-copy,
   margin-bottom: 0;
 }
 
-/* Les blocs pleine largeur sortent de la grille auto-fit. */
-.stats-block--wide,
-.stats-page > .stats-block {
-  grid-column: 1 / -1;
-  margin-bottom: 16px;
+/* Un seul rythme vertical pour toute la vue. Les marges par bloc donnaient des
+   écarts inégaux : 20 px sous les tuiles, 16 entre les graphes, et rien entre la
+   grille et le bloc suivant, qui se retrouvait collé. */
+.stats-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .stats-chart-head {

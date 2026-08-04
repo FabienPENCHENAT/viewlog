@@ -359,7 +359,7 @@ export default function Stats() {
       {tab === "entries" ? (
         <EventsTable rows={data.recent} />
       ) : (
-        <>
+        <div className="stats-stack">
       <div className="stats-tiles">
         <Tile label="Visites" value={fmt(visits)} />
         <Tile label="Usages actifs" value={fmt(active)} accent />
@@ -376,7 +376,6 @@ export default function Stats() {
         rows={data.features}
         keyName="feature"
         format={label}
-        wide
         dim={reloading}
       />
 
@@ -393,7 +392,7 @@ export default function Stats() {
 
       {/* Tout en bas : c'est une vue d'ensemble, pas un outil d'analyse. */}
       <CountryBubbles title="Pays" rows={data.countries} dim={reloading} />
-        </>
+        </div>
       )}
     </div>
   );

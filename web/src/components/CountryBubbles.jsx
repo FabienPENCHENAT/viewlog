@@ -61,7 +61,7 @@ export default function CountryBubbles({ title, rows, dim }) {
   }, [rows]);
 
   return (
-    <section className="card stats-block stats-block--wide" data-dim={dim || undefined}>
+    <section className="card stats-block" data-dim={dim || undefined}>
       <h2 className="card-title stats-chart-head">
         <span>{title}</span>
         <span className="stats-chart-note">

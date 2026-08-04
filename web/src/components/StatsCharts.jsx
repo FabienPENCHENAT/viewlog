@@ -111,7 +111,7 @@ export function DayChart({ title, rows, dim }) {
 // UNE seule teinte pour toutes les colonnes : la hauteur porte déjà la valeur, un
 // dégradé la répéterait en brûlant le seul canal libre, et sur des catégories sans
 // ordre naturel une échelle de couleur ne veut rien dire.
-export function RankedBars({ title, rows, keyName, format, wide, dim, height = 190 }) {
+export function RankedBars({ title, rows, keyName, format, dim, height = 190 }) {
   const data = useMemo(() => {
     const labelFor = format || ((k) => k);
     return (rows || [])
@@ -120,10 +120,7 @@ export function RankedBars({ title, rows, keyName, format, wide, dim, height = 1
   }, [rows, keyName, format]);
 
   return (
-    <section
-      className={`card stats-block ${wide ? "stats-block--wide" : ""}`}
-      data-dim={dim || undefined}
-    >
+    <section className="card stats-block" data-dim={dim || undefined}>
       <h2 className="card-title">{title}</h2>
       {data.length === 0 ? (
         <p className="muted">Aucune donnée.</p>
