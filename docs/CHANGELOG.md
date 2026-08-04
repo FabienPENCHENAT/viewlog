@@ -3,6 +3,12 @@
 All notable changes to ViewLog, newest first. Everything ships continuously,
 so each entry is filed under the day it went live.
 
+## 2026-08-04
+### Added
+- Import several log files at once, by dropping them or picking them, from the home page and from the tab bar's "+" alike
+- Drop a folder, or pick one, to import the logs it contains. Only the files directly inside are taken, not those in sub-folders, which is what you get from a freshly extracted archive
+- Give ViewLog more files than it can hold and it asks which ones to open instead of quietly dropping the rest. Tabs then appear in the order you selected them, and one unreadable file no longer cancels the others
+
 ## 2026-08-03
 ### Added
 - Switch between your open logs from a tab bar at the top of the dashboard, without going back to the file list. Each tab is labelled with the time you imported the log, in your language's own convention

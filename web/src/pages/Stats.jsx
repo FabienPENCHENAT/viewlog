@@ -41,6 +41,8 @@ const LABELS = {
   export: "Export",
   offline_on: "Passage hors ligne",
   tab_add: "Import depuis les onglets",
+  folder: "Dossier",
+  multi_import: "Import multiple",
   tab: "Onglet",
   tab_switch: "Changement d'onglet",
   tab_rename: "Renommage d'onglet",

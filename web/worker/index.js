@@ -23,7 +23,7 @@ const EVENTS = new Set(["page_view", "import", "open", "feature"]);
 const OUTCOMES = new Set(["success", "fail"]);
 // "tab_add" = import depuis le « + » de la barre d'onglets ; "tab" = passage
 // d'un onglet à l'autre sans repasser par l'accueil.
-const SOURCES = new Set(["drop", "picker", "paste", "tab_add", "recent", "direct", "tab"]);
+const SOURCES = new Set(["drop", "picker", "paste", "tab_add", "folder", "recent", "direct", "tab"]);
 const SIZES = new Set(["s", "m", "l", "xl"]);
 const PAGES = new Set(["home", "faq", "changelog", "legal"]);
 // Toute feature ajoutée au front doit être déclarée ici, sinon elle est
@@ -43,6 +43,8 @@ const FEATURES = new Set([
   "tab_switch",
   "tab_rename",
   "tab_reorder",
+  // Import de plusieurs fichiers en une fois (dépôt multiple ou dossier).
+  "multi_import",
   // Activation du mode hors ligne. Envoyé juste avant la coupure, donc c'est le
   // dernier event de la session : ensuite le front ne parle plus.
   "offline_on",

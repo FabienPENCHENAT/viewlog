@@ -5,11 +5,25 @@ données), voir [architecture.md](architecture.md).
 
 ## Import
 
-Trois façons d'ouvrir des logs, toutes traitées **localement** et à l'identique :
+Quatre façons d'ouvrir des logs, toutes traitées **localement** et à l'identique :
 
-- **Glisser-déposer** un fichier sur la zone de dépôt.
-- **Cliquer** pour parcourir (`.log`, `.txt`, `.csv`).
+- **Glisser-déposer** un ou plusieurs fichiers sur la zone de dépôt.
+- **Cliquer** pour parcourir, sélection multiple comprise (`.log`, `.txt`, `.csv`).
+- **Déposer un dossier**, ou le choisir via « Ou choisir un dossier » : seuls les
+  fichiers **directement dedans** sont pris, sans descendre dans les sous-dossiers.
+  C'est le cas d'une archive qu'on vient d'extraire.
 - **Coller** du texte directement (« Ou collez vos logs directement »), sans fichier.
+
+Le `+` de la barre d'onglets accepte lui aussi une sélection multiple, et se comporte
+exactement comme la zone de dépôt.
+
+**Au-delà de 5 fichiers**, ViewLog ne tronque pas en silence : il affiche la liste et
+demande lesquels ouvrir. Les chemins y sont élidés de leur préfixe commun, sans quoi
+trente entrées d'un même dossier seraient indiscernables. Les fichiers vides et les
+fichiers cachés (`.DS_Store`) sont écartés d'office.
+
+Les onglets apparaissent dans **l'ordre de la sélection**, et un fichier illisible
+n'annule pas le lot : les autres sont importés et l'échec est signalé.
 
 **5 fichiers** sont conservés dans le navigateur et proposés au retour. Chaque
 fichier peut être supprimé individuellement, et vider les données du site efface

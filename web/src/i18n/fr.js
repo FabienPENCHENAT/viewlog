@@ -34,12 +34,23 @@ export default {
   "dropzone.analyzing": "Lecture du fichier…",
   "dropzone.title": "Déposez votre fichier de log ici",
   "dropzone.wait": "Un instant",
-  "dropzone.hint": "ou cliquez pour parcourir · .log / .txt / .csv",
+  "dropzone.hint":
+    "ou cliquez pour parcourir · plusieurs fichiers acceptés · .log / .txt / .csv",
+  "dropzone.folder": "Ou choisir un dossier",
 
   "paste.toggle": "Ou collez vos logs directement",
   "paste.placeholder": "Collez vos logs ici…",
   "paste.submit": "Visualiser",
   "paste.name": "Logs collés",
+
+  "picker.title_files": "{count} fichiers sélectionnés",
+  "picker.title_folder": "{count} fichiers dans ce dossier",
+  "picker.lead":
+    "ViewLog en garde {max} à la fois. Choisissez lesquels ouvrir, les autres ne seront pas importés.",
+  "picker.count": "{n} / {max} sélectionnés",
+  "picker.cancel": "Annuler",
+  "picker.confirm": "Importer {n}",
+  "import.progress": "Import {done} / {total}",
 
   "stats.lines": "Lignes",
   "stats.errors": "Erreurs",
@@ -129,6 +140,8 @@ export default {
   "errors.delete": "Suppression impossible",
   "errors.rename": "Renommage impossible",
   "errors.reorder": "Réorganisation impossible",
+  "errors.no_file": "Aucun fichier exploitable dans ce que vous avez déposé",
+  "errors.import_partial": "Certains fichiers n'ont pas pu être importés",
 
   "nav.faq": "FAQ",
 

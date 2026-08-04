@@ -1,19 +1,24 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { filesFromDrop } from "../lib/files.js";
 import { useI18n } from "../i18n/index.jsx";
 
-export default function DropZone({ onFile, busy }) {
+// Zone de dépôt. Accepte un fichier, plusieurs fichiers, ou un dossier (dont on
+// ne lit que les enfants directs). Le tri de ce qui est déposé vit dans
+// `lib/files.js` ; ici on ne capte que le geste, et les inputs sont portés par
+// ImportManager pour que le « + » de la barre d'onglets se comporte pareil.
+export default function DropZone({ onFiles, onPickFiles, onPickFolder, busy }) {
   const { t } = useI18n();
   const [dragging, setDragging] = useState(false);
-  const inputRef = useRef(null);
 
   const handleDrop = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
       setDragging(false);
-      const file = e.dataTransfer.files?.[0];
-      if (file) onFile(file, "drop");
+      if (busy) return;
+      const { files, fromFolder } = await filesFromDrop(e.dataTransfer);
+      onFiles(files, fromFolder ? "folder" : "drop");
     },
-    [onFile]
+    [onFiles, busy]
   );
 
   return (
@@ -25,21 +30,15 @@ export default function DropZone({ onFile, busy }) {
       }}
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
-      onClick={() => !busy && inputRef.current?.click()}
+      onClick={() => !busy && onPickFiles()}
       role="button"
       tabIndex={0}
+      onKeyDown={(e) => {
+        if (busy || (e.key !== "Enter" && e.key !== " ")) return;
+        e.preventDefault();
+        onPickFiles();
+      }}
     >
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".log,.txt,.csv,text/plain,text/csv"
-        hidden
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) onFile(file, "picker");
-          e.target.value = "";
-        }}
-      />
       <div className="dropzone-icon">{busy ? "⏳" : "⬆"}</div>
       <div className="dropzone-title">
         {busy ? t("dropzone.analyzing") : t("dropzone.title")}
@@ -47,6 +46,18 @@ export default function DropZone({ onFile, busy }) {
       <div className="dropzone-sub">
         {busy ? t("dropzone.wait") : t("dropzone.hint")}
       </div>
+      {!busy && (
+        <button
+          type="button"
+          className="dropzone-folder"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPickFolder();
+          }}
+        >
+          {t("dropzone.folder")}
+        </button>
+      )}
     </div>
   );
 }

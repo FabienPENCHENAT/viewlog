@@ -7,7 +7,7 @@ import Timeline from "../components/Timeline.jsx";
 import LogTable from "../components/LogTable.jsx";
 import TabBar from "../components/TabBar.jsx";
 import { getLog, listLogs, deleteLog, renameLog, reorderLogs, MAX_FILES } from "../lib/api.js";
-import { importLog } from "../lib/import-log.js";
+import ImportManager from "../components/ImportManager.jsx";
 import { labelTabs } from "../lib/tab-label.js";
 import { getTabState, setTabState, dropTabState } from "../lib/tab-state.js";
 import { trackOpen, trackFeature, featureOnce } from "../lib/track.js";
@@ -23,7 +23,7 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [files, setFiles] = useState([]);
-  const fileInput = useRef(null);
+  const importer = useRef(null);
 
   const refreshTabs = useCallback(() => {
     listLogs()
@@ -141,15 +141,6 @@ export default function Dashboard() {
     }
   }
 
-  async function addFile(file) {
-    if (!file) return;
-    try {
-      const { id: newId } = await importLog(file, "tab_add");
-      navigate(`/dashboard/${newId}`, { state: { from: "import" } });
-    } catch (e) {
-      setError(e.message);
-    }
-  }
 
   if (error) {
     return (
@@ -175,7 +166,7 @@ export default function Dashboard() {
           onClose={closeTab}
           onRename={rename}
           onReorder={reorder}
-          onAdd={() => fileInput.current?.click()}
+          onAdd={() => importer.current?.openFiles()}
         />
       )}
       <div className="dash-head-row">
@@ -188,16 +179,12 @@ export default function Dashboard() {
             t("dash.default_name")}
         </h1>
       </div>
-      <input
-        ref={fileInput}
-        type="file"
-        accept=".log,.txt,.csv,text/plain,text/csv"
-        hidden
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          addFile(file);
-        }}
+      {/* Même orchestrateur que l'accueil : le « + » doit accepter plusieurs
+          fichiers et proposer le même choix au-delà de la capacité. */}
+      <ImportManager
+        ref={importer}
+        onDone={(ids) => navigate(`/dashboard/${ids[0]}`, { state: { from: "import" } })}
+        onError={setError}
       />
     </div>
   );

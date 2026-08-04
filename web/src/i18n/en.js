@@ -33,12 +33,22 @@ export default {
   "dropzone.analyzing": "Reading the file…",
   "dropzone.title": "Drop your log file here",
   "dropzone.wait": "One moment",
-  "dropzone.hint": "or click to browse · .log / .txt / .csv",
+  "dropzone.hint": "or click to browse · several files accepted · .log / .txt / .csv",
+  "dropzone.folder": "Or pick a folder",
 
   "paste.toggle": "Or paste your logs directly",
   "paste.placeholder": "Paste your logs here…",
   "paste.submit": "View",
   "paste.name": "Pasted logs",
+
+  "picker.title_files": "{count} files selected",
+  "picker.title_folder": "{count} files in this folder",
+  "picker.lead":
+    "ViewLog keeps {max} at a time. Choose which ones to open, the others will not be imported.",
+  "picker.count": "{n} / {max} selected",
+  "picker.cancel": "Cancel",
+  "picker.confirm": "Import {n}",
+  "import.progress": "Importing {done} / {total}",
 
   "stats.lines": "Lines",
   "stats.errors": "Errors",
@@ -125,6 +135,8 @@ export default {
   "errors.delete": "Couldn't delete",
   "errors.rename": "Couldn't rename",
   "errors.reorder": "Couldn't reorder",
+  "errors.no_file": "Nothing usable in what you dropped",
+  "errors.import_partial": "Some files couldn't be imported",
 
   "nav.faq": "FAQ",
 

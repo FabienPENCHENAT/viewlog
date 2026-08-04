@@ -322,6 +322,187 @@ body {
   opacity: 0.8;
 }
 
+/* Le dossier a besoin de son propre bouton : `webkitdirectory` remplace le
+   sélecteur de fichiers au lieu de s'y ajouter, donc un seul input ne peut pas
+   proposer les deux. */
+.dropzone-folder {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--page);
+  color: var(--ink-2);
+  padding: 6px 13px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.dropzone-folder:hover {
+  color: var(--ink);
+  border-color: var(--ink-2);
+}
+
+/* --- Sélecteur : choisir quels fichiers importer --- */
+
+.picker {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(70vh, 640px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.picker::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.picker-title {
+  margin: 0;
+  padding: 18px 20px 0;
+  font-size: 17px;
+}
+
+.picker-lead {
+  margin: 6px 0 0;
+  padding: 0 20px 14px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.picker-list {
+  margin: 0;
+  padding: 0 12px;
+  list-style: none;
+  max-height: 42vh;
+  overflow-y: auto;
+  border-top: 1px solid var(--grid);
+  border-bottom: 1px solid var(--grid);
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+}
+
+.picker-item:hover {
+  background: var(--row-hover);
+}
+
+/* La coche suffit à dire ce qui est sélectionné : pas de fond coloré en plus. */
+.picker-item input {
+  accent-color: var(--accent);
+  flex: none;
+}
+
+/* Un fichier non cochable alors que la limite est atteinte : on l'estompe, sinon
+   le clic sans effet passe pour un bug. */
+.picker-item input:disabled {
+  cursor: not-allowed;
+}
+
+.picker-item:has(input:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.picker-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.picker-size {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.picker-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+}
+
+.picker-count {
+  margin-right: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.picker-cancel,
+.picker-go {
+  border-radius: 8px;
+  padding: 8px 15px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--page);
+  color: var(--ink-2);
+}
+
+.picker-cancel:hover {
+  color: var(--ink);
+  border-color: var(--ink-2);
+}
+
+.picker-go {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--page);
+  font-weight: 600;
+}
+
+.picker-go:hover {
+  filter: brightness(1.08);
+}
+
+.picker-go:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* --- Progression d'un import multiple --- */
+
+.import-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--ink-2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.import-progress-bar {
+  flex: 1;
+  max-width: 220px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--grid);
+  overflow: hidden;
+}
+
+.import-progress-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 200ms ease;
+}
+
 .dropzone-icon {
   font-size: 32px;
   margin-bottom: 8px;

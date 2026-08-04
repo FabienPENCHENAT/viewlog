@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import DropZone from "../components/DropZone.jsx";
+import ImportManager from "../components/ImportManager.jsx";
 import { listLogs, deleteLog } from "../lib/api.js";
-import { importLog } from "../lib/import-log.js";
 import { useI18n } from "../i18n/index.jsx";
 import shieldIcon from "../assets/privacy-shield.svg";
 
@@ -21,6 +21,7 @@ export default function Home() {
   const [showPaste, setShowPaste] = useState(false);
   const [pasteText, setPasteText] = useState("");
   const navigate = useNavigate();
+  const importer = useRef(null);
 
   async function refresh() {
     try {
@@ -34,24 +35,17 @@ export default function Home() {
     refresh();
   }, []);
 
-  async function handleFile(file, method = "drop") {
-    setBusy(true);
-    setError(null);
-    try {
-      const { id } = await importLog(file, method);
-      navigate(`/dashboard/${id}`, { state: { from: "import" } });
-    } catch (e) {
-      setError(e.message);
-      setBusy(false);
-    }
+  // Tout l'import passe par ImportManager : un fichier, plusieurs, ou un dossier.
+  // On ouvre le PREMIER de la sélection, celui qui se retrouve à gauche.
+  function opened(ids) {
+    navigate(`/dashboard/${ids[0]}`, { state: { from: "import" } });
   }
 
   // Colle du texte : on l'emballe dans un File et on réutilise le même pipeline.
   function handlePaste() {
-    const text = pasteText;
-    if (!text.trim() || busy) return;
-    const file = new File([text], t("paste.name"), { type: "text/plain" });
-    handleFile(file, "paste");
+    if (!pasteText.trim() || busy) return;
+    const file = new File([pasteText], t("paste.name"), { type: "text/plain" });
+    importer.current?.intake([file], "paste");
   }
 
   async function handleDelete(e, id) {
@@ -72,7 +66,22 @@ export default function Home() {
         {t("home.lead_post")}
       </p>
 
-      <DropZone onFile={handleFile} busy={busy} />
+      <DropZone
+        busy={busy}
+        onFiles={(files, method) => importer.current?.intake(files, method)}
+        onPickFiles={() => importer.current?.openFiles()}
+        onPickFolder={() => importer.current?.openFolder()}
+      />
+
+      <ImportManager
+        ref={importer}
+        onDone={opened}
+        onBusy={setBusy}
+        onError={(key) => {
+          setError(key);
+          setBusy(false);
+        }}
+      />
 
       <div className="paste-block">
         <button
