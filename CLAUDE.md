@@ -83,6 +83,9 @@ Alors on rend la main, en disant **quoi regarder** (les cas limites, ce qui n'a 
 vérifié). Si une partie est restée bloquée ou hors périmètre, le dire explicitement
 plutôt que de laisser le mainteneur le découvrir.
 
+Une seule commande à lui donner, depuis la racine : `npm run dev` (installe si besoin,
+lance Vite, ouvre le navigateur sur <http://localhost:5173>).
+
 Restent utiles et bienvenues, les vérifications **hors navigateur** : le build, et un
 script Node ponctuel sur une fonction pure (par exemple le format des étiquettes
 d'onglets de `lib/tab-label.js`).

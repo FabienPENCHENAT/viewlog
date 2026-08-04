@@ -20,15 +20,21 @@ Lecteur de logs *privacy-first* : déposez un fichier `.log`, `.txt` ou `.csv`
 
 ### Développement
 
+Une seule commande, depuis la racine. Elle installe les dépendances si besoin,
+lance Vite et ouvre le navigateur :
+
 ```bash
-npm run dev:web      # front Vite → http://localhost:5173
+npm run dev          # → http://localhost:5173
 ```
 
-Le front est autonome (parsing + stockage côté navigateur). Le serveur Express
-n'est utile qu'en self-hosting :
+Le front est autonome (parsing et stockage côté navigateur), donc rien d'autre
+n'est à lancer pour tester une modification. Seul `/api/track` renvoie 404 en
+local : cet endpoint est servi par le Worker Cloudflare en production, et son
+absence n'a aucun effet sur l'app.
 
 ```bash
-npm run dev:server   # serveur statique Express → http://localhost:3001
+npm run dev:web      # idem, sans ouvrir le navigateur
+npm run dev:server   # serveur statique Express, utile en self-hosting seulement
 ```
 
 ### Docker (self-hosting)
