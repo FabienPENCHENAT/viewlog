@@ -104,20 +104,20 @@ export function DayChart({ title, rows, dim }) {
 }
 
 // Comparaison de magnitude entre catégories, triée du plus au moins utilisé.
-// Barres horizontales : les libellés sont longs et se lisent sans être tournés.
-// UNE seule teinte pour toutes les barres : la longueur porte déjà la valeur,
-// un dégradé la répéterait en brûlant le seul canal libre.
-export function RankedBars({ title, rows, keyName, format, wide, dim }) {
+//
+// Colonnes verticales, et non des barres horizontales : le bloc tient alors sur
+// la même hauteur que le graphe des visites, au prix de libellés inclinés.
+//
+// UNE seule teinte pour toutes les colonnes : la hauteur porte déjà la valeur, un
+// dégradé la répéterait en brûlant le seul canal libre, et sur des catégories sans
+// ordre naturel une échelle de couleur ne veut rien dire.
+export function RankedBars({ title, rows, keyName, format, wide, dim, height = 190 }) {
   const data = useMemo(() => {
     const labelFor = format || ((k) => k);
     return (rows || [])
       .map((r) => ({ k: String(r[keyName] ?? ""), name: labelFor(r[keyName]), n: Number(r.n || 0) }))
       .sort((a, b) => b.n - a.n);
   }, [rows, keyName, format]);
-
-  const top = data.length ? data[0].n : 0;
-  // Hauteur pilotée par le nombre de barres, sinon elles s'écrasent ou flottent.
-  const height = Math.max(140, data.length * 30 + 24);
 
   return (
     <section
@@ -131,20 +131,23 @@ export function RankedBars({ title, rows, keyName, format, wide, dim }) {
         <ResponsiveContainer width="100%" height={height}>
           <BarChart
             data={data}
-            layout="vertical"
-            margin={{ top: 0, right: 52, bottom: 0, left: 0 }}
-            barCategoryGap={8}
+            // La marge basse réserve la bande des libellés inclinés : sans elle,
+            // le graphe tient et les libellés sont rognés.
+            margin={{ top: 18, right: 8, bottom: 52, left: 8 }}
           >
-            <CartesianGrid stroke="var(--grid)" horizontal={false} />
-            <XAxis type="number" domain={[0, top]} hide />
-            <YAxis
-              type="category"
+            <XAxis
               dataKey="name"
-              tick={{ fill: "var(--ink-2)", fontSize: 12 }}
-              axisLine={false}
+              interval={0}
+              angle={-38}
+              textAnchor="end"
+              tick={{ fill: "var(--ink-2)", fontSize: 10 }}
+              axisLine={{ stroke: "var(--line)" }}
               tickLine={false}
-              width={168}
+              height={52}
             />
+            {/* Pas d'axe des valeurs : chaque colonne porte la sienne, ce qui est
+                plus direct et rend la hauteur du bloc au graphe. */}
+            <YAxis hide />
             <Tooltip
               cursor={{ fill: "var(--row-hover)" }}
               contentStyle={TOOLTIP}
@@ -152,17 +155,17 @@ export function RankedBars({ title, rows, keyName, format, wide, dim }) {
               itemStyle={{ color: "var(--ink)" }}
               formatter={(v) => [fmt(v), "Events"]}
             />
-            <Bar dataKey="n" radius={[4, 4, 4, 4]} maxBarSize={14}>
+            <Bar dataKey="n" radius={[4, 4, 0, 0]} maxBarSize={26}>
               {data.map((r) => (
                 <Cell key={r.k} fill="var(--accent)" />
               ))}
-              {/* La valeur est lisible sans survol : l'infobulle complète, elle
+              {/* La valeur reste lisible sans survol : l'infobulle complète, elle
                   ne conditionne pas la lecture. */}
               <LabelList
                 dataKey="n"
-                position="right"
+                position="top"
                 formatter={fmt}
-                style={{ fill: "var(--ink)", fontSize: 12 }}
+                style={{ fill: "var(--ink)", fontSize: 11 }}
               />
             </Bar>
           </BarChart>

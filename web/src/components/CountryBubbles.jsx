@@ -54,7 +54,6 @@ export default function CountryBubbles({ title, rows, dim }) {
         ...r,
         name: nameOf(r.code),
         flag: flagOf(r.code),
-        share: sum > 0 ? (r.n / sum) * 100 : 0,
         // Racine carrée : l'aire, et non le diamètre, est proportionnelle au compte.
         d: Math.round(MIN_D + (MAX_D - MIN_D) * Math.sqrt(r.n / top)),
       })),
@@ -79,7 +78,6 @@ export default function CountryBubbles({ title, rows, dim }) {
               key={r.code || "unknown"}
               className="bubble"
               style={{ "--d": `${r.d}px` }}
-              title={`${r.name} · ${fmt(r.n)} events · ${r.share.toFixed(1)} %`}
             >
               <span className="bubble-flag" aria-hidden="true">{r.flag}</span>
               <span className="bubble-code">{r.code || "??"}</span>

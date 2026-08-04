@@ -375,11 +375,10 @@ export default function Stats() {
         title="Fonctionnalités utilisées"
         rows={data.features}
         keyName="feature"
+        format={label}
         wide
         dim={reloading}
       />
-
-      <CountryBubbles title="Pays" rows={data.countries} dim={reloading} />
 
       <div className="stats-grid">
         <Bars title="Import vs réouverture" rows={data.importVsOpen} keyName="event" />
@@ -391,6 +390,9 @@ export default function Stats() {
         <Bars title="Échecs par taille" rows={data.failBySize} keyName="size_bucket" domain={SIZE_ORDER} />
         <Bars title="Pages vues" rows={data.pages} keyName="page" />
       </div>
+
+      {/* Tout en bas : c'est une vue d'ensemble, pas un outil d'analyse. */}
+      <CountryBubbles title="Pays" rows={data.countries} dim={reloading} />
         </>
       )}
     </div>
