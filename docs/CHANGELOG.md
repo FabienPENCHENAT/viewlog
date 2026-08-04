@@ -11,6 +11,7 @@ so each entry is filed under the day it went live.
 - Drag a tab to reorder it. New imports enter on the left, and the rightmost tab, shown faded, is the one replaced next: dragging a log left is how you keep it
 - Import a log straight from the tab bar with the "+" button, without going through the home page
 - Closing a tab asks for confirmation before deleting the log, showing that log's own colour so you can tell which one you are answering about. Deleting cannot be undone
+- The tab bar now keeps a fixed width instead of resizing with every import: the "+" stays pinned on the left and only the tabs scroll, with a fade at the edge when one is out of sight
 ### Changed
 - Dates in English now follow the US convention (08/03, 3:16 PM)
 

@@ -30,6 +30,7 @@ export default function TabBar({
 }) {
   const { t } = useI18n();
   const barRef = useRef(null);
+  const trackRef = useRef(null); // piste défilante : ne contient que les onglets
   const [pill, setPill] = useState(null);
   const [renaming, setRenaming] = useState(null); // id en cours de renommage
   const [confirming, setConfirming] = useState(null); // id dont on confirme la suppression
@@ -63,28 +64,71 @@ export default function TabBar({
 
   const activeHue = hueVar(tabs.find((tab) => tab.id === activeId));
 
+  const activeEl = () => trackRef.current?.querySelector('[role="tab"][aria-selected="true"]');
+
   // Le pill se positionne sur l'onglet actif après rendu : il faut les largeurs
   // réelles, donc une mesure en layout effect.
-  useLayoutEffect(() => {
-    const bar = barRef.current;
-    const el = bar?.querySelector('[role="tab"][aria-selected="true"]');
+  const placePill = () => {
+    const el = activeEl();
     if (!el) {
       setPill(null);
       return;
     }
     setPill({ left: el.offsetLeft, width: el.offsetWidth, hue: activeHue });
+  };
+
+  useLayoutEffect(() => {
+    placePill();
     // `renaming` et `confirming` élargissent l'onglet : sans eux ici, le pill
     // garde son ancienne largeur et vient trancher le texte.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId, activeHue, tabs, renaming, confirming]);
 
+  // L'onglet actif peut être hors du cadre (navigation au clavier, ou onglet
+  // ramené par un réordonnancement) : l'y ramener, sinon on active un onglet
+  // qu'on ne voit pas.
   useEffect(() => {
+    activeEl()?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
+
+  // Dégradés de bord : indispensables ici, car le premier onglet à sortir du
+  // cadre est le dernier de la liste, donc celui que le prochain import
+  // remplacera. Le cacher sans le dire serait un piège.
+  const [more, setMore] = useState("");
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const read = () => {
+      const slack = track.scrollWidth - track.clientWidth;
+      if (slack <= 1) return setMore("");
+      const flags = [];
+      if (track.scrollLeft > 1) flags.push("left");
+      if (track.scrollLeft < slack - 1) flags.push("right");
+      setMore(flags.join(" "));
+    };
+
+    read();
+    track.addEventListener("scroll", read, { passive: true });
+
+    const ro = new ResizeObserver(read);
+    ro.observe(track);
+
     const onResize = () => {
-      const el = barRef.current?.querySelector('[role="tab"][aria-selected="true"]');
-      if (el) setPill({ left: el.offsetLeft, width: el.offsetWidth, hue: activeHue });
+      read();
+      placePill();
     };
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [activeHue]);
+
+    return () => {
+      track.removeEventListener("scroll", read);
+      ro.disconnect();
+      window.removeEventListener("resize", onResize);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabs, activeHue]);
 
   function move(from, to) {
     if (to < 0 || to >= tabs.length || from === to) return;
@@ -104,7 +148,7 @@ export default function TabBar({
     if (e.key === "Escape" && confirming) {
       e.preventDefault();
       setConfirming(null);
-      barRef.current?.querySelectorAll('[role="tab"]')[index]?.focus();
+      trackRef.current?.querySelectorAll('[role="tab"]')[index]?.focus();
       return;
     }
 
@@ -121,7 +165,7 @@ export default function TabBar({
       const step = e.key === "ArrowLeft" ? -1 : 1;
       const next = (index + step + tabs.length) % tabs.length;
       select(tabs[next].id);
-      barRef.current?.querySelectorAll('[role="tab"]')[next]?.focus();
+      trackRef.current?.querySelectorAll('[role="tab"]')[next]?.focus();
     } else if (e.key === "F2") {
       e.preventDefault();
       setRenaming(tabs[index].id);
@@ -138,7 +182,7 @@ export default function TabBar({
     if (e.button !== 0 || renaming || confirming) return;
     const el = e.currentTarget;
 
-    const rects = Array.from(barRef.current.querySelectorAll('[role="tab"]')).map((n) => ({
+    const rects = Array.from(trackRef.current.querySelectorAll('[role="tab"]')).map((n) => ({
       el: n,
       left: n.offsetLeft,
       width: n.offsetWidth,
@@ -195,19 +239,9 @@ export default function TabBar({
   }
 
   return (
-    <div className="tabbar" ref={barRef} role="tablist" aria-label={t("tabs.aria_bar")}>
-      {pill && (
-        <span
-          className="tabbar-pill"
-          aria-hidden="true"
-          style={{
-            width: `${pill.width}px`,
-            transform: `translateX(${pill.left}px)`,
-            "--tab-hue": pill.hue,
-          }}
-        />
-      )}
-
+    <div className="tabbar" ref={barRef} data-more={more || undefined}>
+      {/* Hors de la piste : le point d'entrée ne doit jamais défiler hors du
+          cadre. Et hors du tablist : ce n'est pas un onglet. */}
       <button
         type="button"
         className="tab-add"
@@ -218,125 +252,144 @@ export default function TabBar({
         +
       </button>
 
-      {tabs.map((tab, index) => {
-        // Estompé seulement quand toutes les places sont prises : il est alors
-        // réellement le prochain remplacé.
-        const doomed = tabs.length >= max && index === tabs.length - 1;
-        const isRenaming = renaming === tab.id;
-        const isConfirming = confirming === tab.id;
-
-        const title = [
-          tab.name,
-          t("tabs.tip_lines", { lines: tab.lines?.toLocaleString() }),
-          doomed ? t("tabs.tip_doomed") : null,
-          t("tabs.tip_rename"),
-        ]
-          .filter(Boolean)
-          .join("\n");
-
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            className="tab"
-            aria-selected={tab.id === activeId}
-            data-doomed={doomed || undefined}
-            data-dragged={dragId === tab.id || undefined}
-            data-confirming={isConfirming || undefined}
-            style={{ "--tab-hue": hueVar(tab) }}
-            title={isConfirming ? undefined : title}
-            onClick={() => !isConfirming && select(tab.id)}
-            onDoubleClick={(e) => {
-              e.preventDefault();
-              if (!isConfirming) setRenaming(tab.id);
+      <div
+        className="tabbar-track"
+        ref={trackRef}
+        role="tablist"
+        aria-label={t("tabs.aria_bar")}
+      >
+        {pill && (
+          <span
+            className="tabbar-pill"
+            aria-hidden="true"
+            style={{
+              width: `${pill.width}px`,
+              transform: `translateX(${pill.left}px)`,
+              "--tab-hue": pill.hue,
             }}
-            onKeyDown={(e) => onKeyDown(e, index)}
-            onPointerDown={(e) => onPointerDown(e, index)}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-          >
-            {isConfirming ? (
-              // Supprimer un log est définitif : on demande avant. « Annuler » est
-              // à DROITE, là où le curseur vient de cliquer la croix, pour que le
-              // geste de trop tombe sur l'issue inoffensive.
-              <span className="tab-confirm" role="group" aria-label={t("tabs.confirm_aria")}>
-                {/* La pastille reste : on doit voir DE QUEL log on parle. */}
-                <span className="tab-dot" aria-hidden="true" />
-                <span
-                  className="tab-confirm-go"
-                  role="button"
-                  tabIndex={0}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    confirmDelete(tab.id);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key !== "Enter" && e.key !== " ") return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    confirmDelete(tab.id);
-                  }}
-                >
-                  {t("tabs.confirm_go")}
-                </span>
-                <span
-                  className="tab-confirm-no"
-                  role="button"
-                  tabIndex={0}
-                  ref={cancelRef}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirming(null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key !== "Enter" && e.key !== " ") return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setConfirming(null);
-                  }}
-                >
-                  {t("tabs.confirm_no")}
-                </span>
-              </span>
-            ) : (
-              <>
-                <span className="tab-dot" aria-hidden="true" />
+          />
+        )}
 
-                {isRenaming ? (
-                  <RenameInput
-                    value={tab.label || ""}
-                    placeholder={tab.autoLabel}
-                    onDone={(next) => {
-                      setRenaming(null);
-                      if ((next || "") !== (tab.label || "")) onRename(tab.id, next);
+        {tabs.map((tab, index) => {
+          // Estompé seulement quand toutes les places sont prises : il est alors
+          // réellement le prochain remplacé.
+          const doomed = tabs.length >= max && index === tabs.length - 1;
+          const isRenaming = renaming === tab.id;
+          const isConfirming = confirming === tab.id;
+
+          const title = [
+            tab.name,
+            t("tabs.tip_lines", { lines: tab.lines?.toLocaleString() }),
+            doomed ? t("tabs.tip_doomed") : null,
+            t("tabs.tip_rename"),
+          ]
+            .filter(Boolean)
+            .join("\n");
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              className="tab"
+              aria-selected={tab.id === activeId}
+              data-doomed={doomed || undefined}
+              data-dragged={dragId === tab.id || undefined}
+              data-confirming={isConfirming || undefined}
+              style={{ "--tab-hue": hueVar(tab) }}
+              title={isConfirming ? undefined : title}
+              onClick={() => !isConfirming && select(tab.id)}
+              onDoubleClick={(e) => {
+                e.preventDefault();
+                if (!isConfirming) setRenaming(tab.id);
+              }}
+              onKeyDown={(e) => onKeyDown(e, index)}
+              onPointerDown={(e) => onPointerDown(e, index)}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+            >
+              {isConfirming ? (
+                // Supprimer un log est définitif : on demande avant. « Annuler » est
+                // à DROITE, là où le curseur vient de cliquer la croix, pour que le
+                // geste de trop tombe sur l'issue inoffensive.
+                <span className="tab-confirm" role="group" aria-label={t("tabs.confirm_aria")}>
+                  {/* La pastille reste : on doit voir DE QUEL log on parle. */}
+                  <span className="tab-dot" aria-hidden="true" />
+                  <span
+                    className="tab-confirm-go"
+                    role="button"
+                    tabIndex={0}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      confirmDelete(tab.id);
                     }}
-                  />
-                ) : (
-                  <span className="tab-label">{tab.tabLabel}</span>
-                )}
-
-                <span
-                  className="tab-close"
-                  role="button"
-                  tabIndex={-1}
-                  aria-label={t("tabs.close", { label: tab.tabLabel })}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    askConfirm(tab.id);
-                  }}
-                >
-                  ✕
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" && e.key !== " ") return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      confirmDelete(tab.id);
+                    }}
+                  >
+                    {t("tabs.confirm_go")}
+                  </span>
+                  <span
+                    className="tab-confirm-no"
+                    role="button"
+                    tabIndex={0}
+                    ref={cancelRef}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirming(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" && e.key !== " ") return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setConfirming(null);
+                    }}
+                  >
+                    {t("tabs.confirm_no")}
+                  </span>
                 </span>
-              </>
-            )}
-          </button>
-        );
-      })}
+              ) : (
+                <>
+                  <span className="tab-dot" aria-hidden="true" />
+
+                  {isRenaming ? (
+                    <RenameInput
+                      value={tab.label || ""}
+                      placeholder={tab.autoLabel}
+                      onDone={(next) => {
+                        setRenaming(null);
+                        if ((next || "") !== (tab.label || "")) onRename(tab.id, next);
+                      }}
+                    />
+                  ) : (
+                    <span className="tab-label">{tab.tabLabel}</span>
+                  )}
+
+                  <span
+                    className="tab-close"
+                    role="button"
+                    tabIndex={-1}
+                    aria-label={t("tabs.close", { label: tab.tabLabel })}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      askConfirm(tab.id);
+                    }}
+                  >
+                    ✕
+                  </span>
+                </>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

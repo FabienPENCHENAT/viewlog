@@ -164,20 +164,19 @@ export default function Dashboard() {
     <div className="dash-head">
       {/* La barre occupe sa propre ligne, sur toute la largeur : partagée avec le
           lien de retour, il lui manquait la place de cinq étiquettes anglaises
-          avec les secondes, et elle débordait à droite du contenu. */}
+          avec les secondes, et elle débordait à droite du contenu. Le cadre est
+          désormais fixe et c'est la piste des onglets qui défile, voir TabBar. */}
       {tabs.length > 0 && (
-        <div className="tabbar-scroll">
-          <TabBar
-            tabs={tabs}
-            activeId={id}
-            max={MAX_FILES}
-            onSelect={selectTab}
-            onClose={closeTab}
-            onRename={rename}
-            onReorder={reorder}
-            onAdd={() => fileInput.current?.click()}
-          />
-        </div>
+        <TabBar
+          tabs={tabs}
+          activeId={id}
+          max={MAX_FILES}
+          onSelect={selectTab}
+          onClose={closeTab}
+          onRename={rename}
+          onReorder={reorder}
+          onAdd={() => fileInput.current?.click()}
+        />
       )}
       <div className="dash-head-row">
         <Link to="/" className="back-link">{t("dash.back_files")}</Link>

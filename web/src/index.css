@@ -599,19 +599,8 @@ body {
 
 /* --- Barre des logs ouverts --- */
 
-/* Soupape : cinq étiquettes anglaises avec les secondes ("08/03 04:25:25 PM")
-   dépassent la largeur du contenu. La barre défile alors à l'intérieur de sa
-   piste plutôt que de déborder à droite des cartes. */
-.tabbar-scroll {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  /* Le pill dépasse de quelques pixels vers le bas via son ombre : sans ça,
-     l'overflow le rognerait. */
-  padding-bottom: 3px;
-}
-
+/* Cadre de largeur FIXE. La barre faisait auparavant sa taille de contenu, donc
+   elle changeait de largeur à chaque import ou fermeture : le cadre sautait. */
 .tabbar {
   position: relative;
   display: flex;
@@ -621,20 +610,78 @@ body {
   background: var(--page);
   border: 1px solid var(--border);
   border-radius: 999px;
-  width: max-content;
-  touch-action: none;
+  width: 100%;
+  /* Contient la piste défilante à l'intérieur du cadre arrondi. */
+  overflow: hidden;
 }
 
-/* Un seul élément glisse et se redimensionne : c'est ce qui donne la fluidité. */
+/* Seuls les onglets défilent : le « + » reste posé au point d'entrée, il ne doit
+   jamais pouvoir disparaître. */
+.tabbar-track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  /* Une barre de défilement dans un cadre en pilule est disgracieuse, et avec 5
+     onglets au maximum le dépassement reste faible : les dégradés de bord
+     ci-dessous jouent l'indicateur. */
+  scrollbar-width: none;
+}
+
+.tabbar-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Indicateur de dépassement. Sans lui, un onglet caché est invisible, et le
+   premier à sortir du cadre est le dernier de la liste, donc précisément celui
+   qui sera remplacé au prochain import. */
+.tabbar::before,
+.tabbar::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  width: 34px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+  z-index: 2;
+}
+
+.tabbar::before {
+  left: 38px;
+  background: linear-gradient(to right, var(--page), transparent);
+}
+
+.tabbar::after {
+  right: 0;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(to left, var(--page), transparent);
+}
+
+.tabbar[data-more~="left"]::before,
+.tabbar[data-more~="right"]::after {
+  opacity: 1;
+}
+
+/* Un seul élément glisse et se redimensionne : c'est ce qui donne la fluidité.
+   Il vit DANS la piste, pour défiler avec les onglets qu'il souligne. */
 .tabbar-pill {
   position: absolute;
-  top: 5px;
-  bottom: 5px;
+  top: 0;
+  bottom: 0;
   left: 0;
   border-radius: 999px;
   background: var(--surface-hover);
   border: 1px solid color-mix(in srgb, var(--tab-hue) 40%, transparent);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--tab-hue) 15%, transparent);
+  /* Lueur en INSET : la piste rogne maintenant ce qui dépasse, et une lueur
+     externe se retrouverait tranchée net en haut et en bas. */
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--tab-hue) 12%, transparent);
   pointer-events: none;
   z-index: 0;
   transition:
@@ -672,6 +719,10 @@ body {
   background: var(--btn-hover);
 }
 
+/* Les onglets se répartissent la place restante, mais la croissance est BORNÉE :
+   étirés sans limite, deux onglets feraient 470 px pour une étiquette de huit
+   caractères, et leur largeur redeviendrait fonction de leur nombre, ce qui est
+   exactement l'instabilité que le cadre fixe supprime. */
 .tab {
   position: relative;
   z-index: 1;
@@ -679,8 +730,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  flex: 1 1 auto;
   min-width: 132px;
+  max-width: 200px;
   padding: 8px 12px;
+  /* Le geste de glisser-déposer vit sur l'onglet, pas sur la barre : la piste
+     doit rester libre de défiler au trackpad. */
+  touch-action: none;
   border: 0;
   background: none;
   border-radius: 999px;
@@ -830,6 +886,10 @@ body {
   .tabbar-pill,
   .tab {
     transition: none;
+  }
+
+  .tabbar-track {
+    scroll-behavior: auto;
   }
 }
 
