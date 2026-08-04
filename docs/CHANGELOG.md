@@ -6,8 +6,8 @@ so each entry is filed under the day it went live.
 ## 2026-08-04
 ### Added
 - Import several log files at once, by dropping them or picking them, from the home page and from the tab bar's "+" alike
-- Drop a folder, or pick one, to import the logs it contains. Only the files directly inside are taken, not those in sub-folders, which is what you get from a freshly extracted archive
-- Give ViewLog more files than it can hold and it asks which ones to open instead of quietly dropping the rest. Tabs then appear in the order you selected them, and one unreadable file no longer cancels the others
+- Drop a folder, or pick one, to import the logs it contains. Only the files directly inside are taken, not those in sub-folders.
+- Give ViewLog more files than it can hold and it asks which ones to open instead of quietly dropping the rest. Tabs then appear in the order you selected them.
 
 ## 2026-08-03
 ### Added
