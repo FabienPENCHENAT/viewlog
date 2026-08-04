@@ -65,6 +65,11 @@ repasser par l'accueil ni ré-importer un fichier déjà présent.
 Le nom brut du fichier reste affiché sous la barre et dans l'infobulle de l'onglet ;
 il n'a simplement plus le droit de dicter la géométrie.
 
+La barre garde une **largeur fixe**, alignée sur le reste de la page : les onglets se
+répartissent la place restante et seuls eux défilent, le `+` restant posé à gauche. Un
+dégradé apparaît au bord quand un onglet sort du cadre, ce qui compte : le premier à
+sortir est le dernier de la liste, donc celui que le prochain import remplacera.
+
 ## Formats pris en charge
 
 ### Texte (`.log`, `.txt`)
