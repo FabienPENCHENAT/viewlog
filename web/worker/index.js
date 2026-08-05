@@ -37,6 +37,8 @@ const FEATURES = new Set([
   "copy_line",
   "view_patterns",
   "pattern_click",
+  // Comparaison des motifs d'une zone avec ceux du reste du fichier.
+  "pattern_diff",
   "jump_context",
   "export",
   // Barre d'onglets : changement d'onglet, renommage, réordonnancement.

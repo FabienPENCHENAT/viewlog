@@ -1451,6 +1451,117 @@ body {
   padding: 32px;
 }
 
+/* --- Comparaison d'une zone avec le reste du fichier ---
+   Le point d'entrée n'ajoute aucun contrôle à la barre : c'est une action au
+   bout de la ligne de compte, qui existait déjà et n'était qu'informative. */
+.count-cmp {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  text-underline-offset: 3px;
+}
+
+.count-cmp:hover {
+  text-decoration-color: var(--accent);
+}
+
+/* Texte du bandeau de comparaison : occupe la place que `.pattern-tpl` prend
+   dans le bandeau de drill-down, pour repousser le ✕ à droite. */
+.banner-txt {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+}
+
+.pat-diff-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* En-tête de groupe : collant, parce que la liste des motifs « seulement ici »
+   peut être longue et qu'on doit savoir ce qu'on lit en défilant. */
+.pat-group {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--page);
+  border-bottom: 1px solid var(--grid);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.pat-group span {
+  margin-left: auto;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+
+/* Les groupes secondaires tiennent sur une ligne : la comparaison doit se lire
+   plus vite que la vue Motifs, pas plus lentement. */
+.pat-fold {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-2);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pat-fold:hover {
+  background: var(--row-hover);
+  color: var(--ink);
+}
+
+.pat-fold i {
+  font-style: normal;
+  color: var(--muted);
+  transition: transform 0.18s;
+}
+
+.pat-fold[aria-expanded="true"] i {
+  transform: rotate(90deg);
+}
+
+/* Aucun motif atypique, ou complément trop mince : un diagnostic, pas une liste
+   vide qui passerait pour une panne. */
+.lt-verdict {
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.lt-verdict b {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.lt-verdict span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 /* Bannière de drill-down (journal filtré sur un motif). */
 .pattern-banner {
   display: flex;

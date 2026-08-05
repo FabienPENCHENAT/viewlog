@@ -139,7 +139,45 @@ horodatage, niveau, message.
 Regroupe des milliers de lignes en quelques **motifs récurrents** : les messages
 sont normalisés (nombres, identifiants, dates et adresses masqués) pour agréger
 les entrées identiques, triées par fréquence. Cliquer un motif ramène au journal
-filtré dessus.
+filtré dessus. Un nombre collé à son unité est masqué comme les autres
+(`30000ms`, `512kB`), sinon le même message se scinderait en autant de motifs
+qu'il a de valeurs.
+
+### Comparer une zone au reste du fichier
+
+Trié par fréquence, un pic ne révèle rien : il multiplie tout par le même
+facteur, donc le **bruit déjà présent reste en tête** et la cause, souvent peu
+fréquente, reste invisible. D'où la comparaison, qui raisonne en **taux et non
+en comptes** : un motif à 5 % des lignes dedans et 5 % dehors est du bruit même
+s'il passe de 12 à 3 400 occurrences.
+
+Dès qu'une période est sélectionnée, la vue Motifs propose de **comparer la zone
+au reste du fichier**. Le résultat est classé en trois groupes :
+
+- **Seulement ici** : absents du reste du fichier, triés par nombre. C'est le
+  cœur, et il n'y a pas de plancher : une seule occurrence propre à la zone peut
+  être la cause.
+- **Sur-représentés ici** : présents des deux côtés, triés par rapport des taux,
+  à partir de 3 occurrences et d'un facteur 2. Sans ce plancher, la longue
+  traîne de lignes uniques monterait en tête avec un rapport calculé sur deux
+  lignes.
+- **Absents ici** : présents partout ailleurs, disparus dans la zone. Le
+  battement de cœur qui s'arrête, qu'aucun défilement ne montre.
+
+Un seul groupe est déplié, les autres tiennent sur une ligne : la comparaison
+doit se lire plus vite que la liste complète, pas plus lentement. Un clic sur un
+motif ramène au journal filtré dessus, comme ailleurs.
+
+Deux réponses valent un résultat et s'affichent comme telles, pas comme une
+liste vide : **« même mélange, en plus dense »** quand aucun motif n'est propre à
+la zone, ce qui désigne une surcharge et non un nouveau comportement, et **« le
+reste du fichier est trop mince »** quand la sélection couvre presque tout le
+fichier et qu'il ne reste rien à quoi la comparer.
+
+Les filtres de niveau et la recherche restent appliqués **des deux côtés** ;
+seule la période est inversée. Sans cela, avec un filtre ERROR actif, le reste
+du fichier ramènerait tous les INFO et noierait la comparaison. Les lignes sans
+horodatage ne participent à aucun des deux côtés.
 
 ## Confort de lecture
 

@@ -40,6 +40,7 @@ const LABELS = {
   copy_line: "Copie de ligne",
   view_patterns: "Vue Motifs",
   pattern_click: "Clic motif",
+  pattern_diff: "Comparaison de zone",
   jump_context: "Saut vers le contexte",
   export: "Export",
   offline_on: "Passage hors ligne",

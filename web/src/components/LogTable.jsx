@@ -2,8 +2,11 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { levelColor } from "../levels.js";
 import MessageCell from "./MessageCell.jsx";
+import PatternRow from "./PatternRow.jsx";
+import PatternDiff from "./PatternDiff.jsx";
 import { formatDuration } from "../lib/duration.js";
 import { groupPatterns, patternKey, templateFromKey } from "../lib/patterns.js";
+import { comparePatterns } from "../lib/pattern-diff.js";
 import { featureOnce } from "../lib/track.js";
 import { copyText } from "../lib/clipboard.js";
 import { fullRange, rangeStep, isPartialRange } from "../lib/time-range.js";
@@ -84,6 +87,9 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
   const [view, setView] = useState(() => restored.current.view || "journal"); // "journal" | "patterns"
   const [patternFilter, setPatternFilter] = useState(() => restored.current.patternFilter ?? null); // clé de motif (drill-down)
   const [regexMode, setRegexMode] = useState(() => restored.current.regexMode || false); // recherche : contains vs regex
+  // Comparaison de la zone sélectionnée avec le reste du fichier : un mode de la
+  // vue Motifs, pas une troisième vue. Il n'a de sens qu'avec une période active.
+  const [compare, setCompare] = useState(() => restored.current.compare || false);
 
   // Analytics feature : on ne compte chaque feature qu'UNE fois par fichier
   // ouvert (mesure l'adoption, pas le volume de clics). Remis à zéro au fichier.
@@ -108,6 +114,9 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
     if (v === "patterns") {
       setPatternFilter(null); // le regroupement porte sur l'ensemble filtré
       markFeature("view_patterns");
+    } else {
+      // La comparaison parle de motifs : elle n'a rien à dire dans le journal.
+      setCompare(false);
     }
   }
 
@@ -164,10 +173,18 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
       view,
       patternFilter,
       regexMode,
+      compare,
       saved,
       marked,
     });
-  }, [tabId, query, active, view, patternFilter, regexMode, saved, marked]);
+  }, [tabId, query, active, view, patternFilter, regexMode, compare, saved, marked]);
+
+  // Relâcher la période retire la référence : sans zone, il n'y a plus rien à
+  // comparer au reste du fichier. Vaut pour le bouton « Tout » comme pour un
+  // double-clic dans le graphe de volume, qui passent tous les deux par ici.
+  useEffect(() => {
+    if (!timeActive) setCompare(false);
+  }, [timeActive]);
 
   const anyFilter =
     active.size > 0 || !!query.trim() || timeActive || patternFilter != null;
@@ -267,6 +284,15 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
     [byLevel]
   );
 
+  // Drill-down sur un motif : depuis la vue Motifs comme depuis la comparaison,
+  // le clic mène au journal filtré dessus. Comportement inchangé, un seul chemin.
+  function pickPattern(key) {
+    markFeature("pattern_click");
+    setPatternFilter(key);
+    setView("journal");
+    setCompare(false);
+  }
+
   function toggleLevel(level) {
     markFeature("filter_level");
     setActive((prev) => {
@@ -302,6 +328,30 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
   const groups = useMemo(
     () => (view === "patterns" ? groupPatterns(filtered) : null),
     [view, filtered]
+  );
+
+  const diffOn = compare && view === "patterns" && timeActive;
+
+  // Le reste du fichier, référence de la comparaison. Les niveaux et la
+  // recherche restent appliqués des DEUX côtés : sans ça, avec un filtre ERROR
+  // actif, le complément ramènerait tous les INFO et noierait la comparaison.
+  // Seule la période est inversée.
+  const complement = useMemo(() => {
+    if (!diffOn || !bounds || !dRange) return null;
+    return entries.filter((e) => {
+      if (active.size > 0 && !active.has(e.level)) return false;
+      if (searchRe.test && !searchRe.test(e.raw)) return false;
+      // Une entrée sans horodatage n'est ni dedans ni dehors : la comparaison
+      // est temporelle, donc elle ne participe pas plutôt que de peser d'un côté.
+      if (!e.ts) return false;
+      const ms = new Date(e.ts).getTime();
+      return ms < dRange.from || ms > dRange.to;
+    });
+  }, [diffOn, entries, active, searchRe, dRange, bounds]);
+
+  const diff = useMemo(
+    () => (complement ? comparePatterns(filtered, complement) : null),
+    [complement, filtered]
   );
 
   // --- Virtualisation du journal : on ne rend que les lignes visibles.
@@ -508,6 +558,22 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
         </div>
       )}
 
+      {/* Même idiome que les deux autres bandeaux : une bande contextuelle qui
+          apparaît avec un mode et se referme d'un ✕. */}
+      {diffOn && (
+        <div className="pattern-banner">
+          <span className="banner-txt">{t("patterns.compare_on")}</span>
+          <button
+            type="button"
+            title={t("patterns.compare_off")}
+            aria-label={t("patterns.compare_off")}
+            onClick={() => setCompare(false)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {saved && (
         <div className="pattern-banner context-banner">
           <span className="muted">
@@ -542,35 +608,41 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
         {t("table.entries", { count: filtered.length.toLocaleString(locale) })}
         {view === "patterns" &&
           " → " + t("patterns.unique", { count: groups.length.toLocaleString(locale) })}
+        {/* Le point d'entrée de la comparaison : une action au bout d'une ligne
+            qui existe déjà, et seulement quand une période borne une zone. Rien
+            n'est ajouté à l'écran tant que la fonctionnalité est inutilisable. */}
+        {view === "patterns" && timeActive && !compare && (
+          <>
+            {" · "}
+            <button
+              type="button"
+              className="count-cmp"
+              onClick={() => {
+                markFeature("pattern_diff");
+                setCompare(true);
+              }}
+            >
+              {t("patterns.compare")}
+            </button>
+          </>
+        )}
       </div>
 
       <div className="logtable-scroll" ref={scrollRef}>
-        {view === "patterns" ? (
+        {diffOn && diff ? (
+          <PatternDiff diff={diff} onPick={pickPattern} />
+        ) : view === "patterns" ? (
           <div className="patterns">
             {groups.length === 0 && <div className="lt-empty muted">{t("table.empty")}</div>}
             {groups.slice(0, MAX_PATTERNS).map((g) => (
-              <button
+              <PatternRow
                 key={g.key}
-                type="button"
-                className="pat-row"
-                onClick={() => {
-                  markFeature("pattern_click");
-                  setPatternFilter(g.key);
-                  setView("journal");
-                }}
-              >
-                <span className="pat-count">{g.count.toLocaleString(locale)}×</span>
-                <span className="level-tag" style={{ "--chip-color": levelColor(g.level) }}>
-                  {g.level}
-                </span>
-                <span className="pat-body">
-                  <span className="pat-template">{g.template}</span>
-                  <span className="pat-example muted">
-                    {t("patterns.example")}
-                    {g.example}
-                  </span>
-                </span>
-              </button>
+                lead={`${g.count.toLocaleString(locale)}×`}
+                level={g.level}
+                template={g.template}
+                second={t("patterns.example") + g.example}
+                onClick={() => pickPattern(g.key)}
+              />
             ))}
             {groups.length > MAX_PATTERNS && (
               <div className="muted pat-more">
