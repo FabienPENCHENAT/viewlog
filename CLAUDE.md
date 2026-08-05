@@ -32,7 +32,7 @@ Une feature = du code rangé dans le bon module, **jamais à plat**.
 | `web/src/parser/` | Parsing : `shared`, `text`, `csv`, `stats`, `index` (dispatch) |
 | `web/src/lib/` | Logique non-UI : `api`, `db`, `track`, `duration`, `patterns`, `parse-async` |
 | `web/src/i18n/` | Dictionnaires `fr.js` / `en.js` + provider |
-| `web/src/components/` | Composants réutilisables |
+| `web/src/components/` | Composants, **rangés par page** (voir ci-dessous) |
 | `web/src/pages/` | Pages routées |
 
 Règles :
@@ -41,6 +41,24 @@ Règles :
 - Un composant = une responsabilité. Si un fichier grossit ou mélange les
   responsabilités, on le **découpe**.
 - Réutiliser l'existant avant d'ajouter (helpers, tokens, composants).
+
+### Un composant se range par page
+
+Un composant utilisé par **une seule page** vit dans le dossier de cette page ;
+tout le reste va dans `shared/`. La question « ce composant concerne quelle
+page ? » doit se répondre en lisant le chemin, pas en cherchant qui l'importe.
+
+| Dossier | Contenu |
+|---|---|
+| `components/dashboard/` | `LogTable`, `MessageCell`, `PatternDiff`, `PatternRow`, `Timeline`, `StatCards`, `LevelChart`, `TabBar` |
+| `components/stats/` | `StatsCharts`, `CountryBubbles` |
+| `components/home/` | `DropZone` |
+| `components/shared/` | `ImportManager` et `FilePicker` (Home **et** Dashboard), `OfflineSwitch` (coquille de l'app) |
+
+Un composant qui n'est utilisé que par un autre composant se range **avec lui** :
+`MessageCell` et `PatternRow` ne servent qu'au dashboard, ils y restent. Le jour
+où une seconde page en a besoin, il déménage dans `shared/`, et c'est le seul
+moment où on y touche.
 
 ## Workflow d'une feature
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useI18n } from "../i18n/index.jsx";
+import { useI18n } from "../../i18n/index.jsx";
 
 // Rendu générique du message d'une entrée de log.
 // Principe : on n'AJOUTE que de la lisibilité, on ne retire jamais de contenu,

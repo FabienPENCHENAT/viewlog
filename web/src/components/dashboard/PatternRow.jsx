@@ -4,7 +4,7 @@
 // alignement, seule la première case change de sens (un nombre d'occurrences
 // dans un cas, un rapport de densité dans l'autre).
 
-import { levelColor } from "../levels.js";
+import { levelColor } from "../../levels.js";
 
 export default function PatternRow({ lead, level, template, second, onClick }) {
   return (

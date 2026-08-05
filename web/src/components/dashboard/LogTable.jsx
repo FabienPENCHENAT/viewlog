@@ -1,17 +1,17 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { levelColor } from "../levels.js";
+import { levelColor } from "../../levels.js";
 import MessageCell from "./MessageCell.jsx";
 import PatternRow from "./PatternRow.jsx";
 import PatternDiff from "./PatternDiff.jsx";
-import { formatDuration } from "../lib/duration.js";
-import { groupPatterns, patternKey, templateFromKey } from "../lib/patterns.js";
-import { comparePatterns } from "../lib/pattern-diff.js";
-import { featureOnce } from "../lib/track.js";
-import { copyText } from "../lib/clipboard.js";
-import { fullRange, rangeStep, isPartialRange } from "../lib/time-range.js";
-import { getTabState, setTabState } from "../lib/tab-state.js";
-import { useI18n } from "../i18n/index.jsx";
+import { formatDuration } from "../../lib/duration.js";
+import { groupPatterns, patternKey, templateFromKey } from "../../lib/patterns.js";
+import { comparePatterns } from "../../lib/pattern-diff.js";
+import { featureOnce } from "../../lib/track.js";
+import { copyText } from "../../lib/clipboard.js";
+import { fullRange, rangeStep, isPartialRange } from "../../lib/time-range.js";
+import { getTabState, setTabState } from "../../lib/tab-state.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 const MAX_PATTERNS = 100; // motifs affichés au maximum
 

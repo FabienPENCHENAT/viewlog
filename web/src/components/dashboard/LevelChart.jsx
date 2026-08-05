@@ -1,6 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { levelColor } from "../levels.js";
-import { useI18n } from "../i18n/index.jsx";
+import { levelColor } from "../../levels.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 export default function LevelChart({ byLevel }) {
   const { t, locale } = useI18n();

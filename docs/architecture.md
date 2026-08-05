@@ -42,9 +42,14 @@ lib/               api.js · db.js · track.js · duration.js · patterns.js · 
                    import-log.js (import partagé Home / barre d'onglets)
                    log-cache.js (LRU des logs analysés) · tab-label.js (étiquettes)
                    tab-state.js (filtres par onglet) · time-range.js · clipboard.js
-components/        DropZone · StatCards · LevelChart · Timeline · LogTable · MessageCell
-                   OfflineSwitch · TabBar
-pages/             Home · Dashboard · Faq · Legal · Changelog · Stats · NotFound
+components/        rangés par page : le chemin dit quelle page est concernée
+  dashboard/       LogTable · MessageCell · PatternDiff · PatternRow · Timeline
+                   StatCards · LevelChart · TabBar
+  stats/           StatsCharts · CountryBubbles
+  home/            DropZone
+  shared/          ImportManager · FilePicker (Home et Dashboard)
+                   OfflineSwitch (coquille de l'app)
+pages/             Home · Dashboard · Faq · Legal · Changelog · Stats · UseCases · NotFound
 assets/            privacy-shield.svg
 ```
 
@@ -126,7 +131,7 @@ sans réseau, et un `manifest.webmanifest` la rend installable.
 `lib/offline.js` est la source unique de vérité avant toute requête sortante :
 `networkAllowed()` combine l'état du navigateur (`navigator.onLine`) et le mode
 hors ligne **choisi** par l'utilisateur (persisté dans `localStorage`, exposé par
-`components/OfflineSwitch.jsx`).
+`components/shared/OfflineSwitch.jsx`).
 
 La promesse affichée (« aucune requête ne sort de votre navigateur ») n'est
 tenable que si rien ne contourne ce garde-fou : **toute requête sortante passe

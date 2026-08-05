@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { shortPaths } from "../lib/files.js";
-import { useI18n } from "../i18n/index.jsx";
+import { shortPaths } from "../../lib/files.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 function formatSize(bytes, t) {
   if (bytes < 1024) return `${bytes} ${t("unit.b")}`;

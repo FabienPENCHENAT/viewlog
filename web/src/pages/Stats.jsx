@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import CountryBubbles from "../components/CountryBubbles.jsx";
-import { DayChart, RankedBars } from "../components/StatsCharts.jsx";
+import CountryBubbles from "../components/stats/CountryBubbles.jsx";
+import { DayChart, RankedBars } from "../components/stats/StatsCharts.jsx";
 import { netFetch, OFFLINE_ERROR } from "../lib/net.js";
 
 // Dashboard interne (privé, verrouillé par token). Volontairement HORS i18n :

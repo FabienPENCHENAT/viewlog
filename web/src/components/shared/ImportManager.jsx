@@ -1,11 +1,11 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 
 import FilePicker from "./FilePicker.jsx";
-import { filesFromDirectoryInput } from "../lib/files.js";
-import { importMany } from "../lib/import-log.js";
-import { trackFeature } from "../lib/track.js";
-import { MAX_FILES } from "../lib/api.js";
-import { useI18n } from "../i18n/index.jsx";
+import { filesFromDirectoryInput } from "../../lib/files.js";
+import { importMany } from "../../lib/import-log.js";
+import { trackFeature } from "../../lib/track.js";
+import { MAX_FILES } from "../../lib/api.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 // Orchestre un import, d'un ou plusieurs fichiers.
 //

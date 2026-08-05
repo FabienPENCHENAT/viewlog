@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 
-import StatCards from "../components/StatCards.jsx";
-import LevelChart from "../components/LevelChart.jsx";
-import Timeline from "../components/Timeline.jsx";
-import LogTable from "../components/LogTable.jsx";
-import TabBar from "../components/TabBar.jsx";
+import StatCards from "../components/dashboard/StatCards.jsx";
+import LevelChart from "../components/dashboard/LevelChart.jsx";
+import Timeline from "../components/dashboard/Timeline.jsx";
+import LogTable from "../components/dashboard/LogTable.jsx";
+import TabBar from "../components/dashboard/TabBar.jsx";
 import { getLog, listLogs, deleteLog, renameLog, reorderLogs, MAX_FILES } from "../lib/api.js";
-import ImportManager from "../components/ImportManager.jsx";
+import ImportManager from "../components/shared/ImportManager.jsx";
 import { labelTabs } from "../lib/tab-label.js";
 import { getTabState, setTabState, dropTabState } from "../lib/tab-state.js";
 import { trackOpen, trackFeature, featureOnce } from "../lib/track.js";

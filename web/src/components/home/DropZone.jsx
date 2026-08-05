@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { filesFromDrop } from "../lib/files.js";
-import { useI18n } from "../i18n/index.jsx";
+import { filesFromDrop } from "../../lib/files.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 // Zone de dépôt. Accepte un fichier, plusieurs fichiers, ou un dossier (dont on
 // ne lit que les enfants directs). Le tri de ce qui est déposé vit dans

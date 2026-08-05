@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { MAX_LABEL } from "../lib/tab-label.js";
-import { useI18n } from "../i18n/index.jsx";
+import { MAX_LABEL } from "../../lib/tab-label.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 // Barre des logs ouverts.
 //

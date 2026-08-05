@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useI18n } from "./i18n/index.jsx";
 import { trackPageView } from "./lib/track.js";
-import OfflineSwitch from "./components/OfflineSwitch.jsx";
+import OfflineSwitch from "./components/shared/OfflineSwitch.jsx";
 
 // Pages de contenu suivies (page_view). Les dashboards sont couverts par les
 // events import/open, pas ici.

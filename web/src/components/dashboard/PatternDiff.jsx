@@ -6,8 +6,8 @@
 
 import { useState } from "react";
 import PatternRow from "./PatternRow.jsx";
-import { formatRatio, formatRate, MIN_RATIO } from "../lib/pattern-diff.js";
-import { useI18n } from "../i18n/index.jsx";
+import { formatRatio, formatRate, MIN_RATIO } from "../../lib/pattern-diff.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 // Même esprit que MAX_PATTERNS : on borne l'affichage, pas le calcul.
 const MAX_ROWS = 40;

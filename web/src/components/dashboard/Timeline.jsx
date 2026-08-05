@@ -10,9 +10,9 @@ import {
   ReferenceArea,
   ResponsiveContainer,
 } from "recharts";
-import { LEVEL_COLORS } from "../levels.js";
-import { fullRange, isPartialRange } from "../lib/time-range.js";
-import { useI18n } from "../i18n/index.jsx";
+import { LEVEL_COLORS } from "../../levels.js";
+import { fullRange, isPartialRange } from "../../lib/time-range.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 export default function Timeline({ timeline, bounds, range, onRangeChange }) {
   const { t, locale } = useI18n();

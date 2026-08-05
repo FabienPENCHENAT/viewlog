@@ -9,14 +9,14 @@
 // d'usage anonymes, plus de nouveautés du site). Volontairement non bloquant :
 // couper le réseau est un geste voulu, on informe sans le freiner.
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { useI18n } from "../i18n/index.jsx";
+import { useI18n } from "../../i18n/index.jsx";
 import {
   isBrowserOnline,
   isForcedOffline,
   setForcedOffline,
   subscribeOffline,
-} from "../lib/offline.js";
-import { trackFeature } from "../lib/track.js";
+} from "../../lib/offline.js";
+import { trackFeature } from "../../lib/track.js";
 
 // Adoption de la fonctionnalité : on ne compte que l'activation, et l'event est
 // envoyé AVANT de couper, sinon le garde-fou de track.js l'abandonne. La

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import DropZone from "../components/DropZone.jsx";
-import ImportManager from "../components/ImportManager.jsx";
+import DropZone from "../components/home/DropZone.jsx";
+import ImportManager from "../components/shared/ImportManager.jsx";
 import { listLogs, deleteLog } from "../lib/api.js";
 import { useI18n } from "../i18n/index.jsx";
 import shieldIcon from "../assets/privacy-shield.svg";

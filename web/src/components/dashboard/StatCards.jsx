@@ -1,5 +1,5 @@
-import { formatDuration } from "../lib/duration.js";
-import { useI18n } from "../i18n/index.jsx";
+import { formatDuration } from "../../lib/duration.js";
+import { useI18n } from "../../i18n/index.jsx";
 
 function duration(span, t, locale) {
   if (!span) return "—";
