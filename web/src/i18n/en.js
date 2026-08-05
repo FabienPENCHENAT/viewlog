@@ -159,19 +159,18 @@ export default {
   "errors.import_partial": "Some files couldn't be imported",
 
   "uc.title": "Use cases",
-  "uc.brings": "What ViewLog gives you",
+  "uc.steps": "The steps",
   "uc.seen": "Visible in the walkthrough, and useful on any log",
   "uc.demo_alt":
     "Animated walkthrough: brushing the spike on the chart, comparing the zone to the rest of the file, then reading the three pattern groups",
   "uc.cta_lead": "Nothing to install, nothing to upload.",
   "uc.cta": "Open a log",
 
-  "uc.spike_q": "There was a spike. What happened in there?",
-  "uc.spike_hook": "The chart shows the spike. It does not tell you what is inside it.",
-  "uc.spike_problem":
-    "You watch the curve climb at 2:32 PM, and that is all you know. Filtering on the period and listing the patterns is not enough: the list is sorted by count, and a spike multiplies everything by the same factor. The usual noise stays on top, and the cause, often infrequent, stays invisible.\n\nThat is the moment you end up scrolling thousands of lines hoping to recognise something.",
-  "uc.spike_brings":
-    "Brush the zone on the chart, then compare it to the rest of the file.\nThe comparison reasons in share of lines rather than number of occurrences: a pattern that grows at the same rate as everything else never surfaces. The usage spike is ruled out by construction.\nThree answers: the patterns that exist only there, those taking three times more room than elsewhere, and those that have stopped.\nAnd when nothing stands out, ViewLog says so. It was load, not an incident.",
+  "uc.spike_title": "How to analyse a spike in your logs",
+  "uc.spike_desc":
+    "When a spike shows up on the chart, scrolling through thousands of log lines is rarely worth it. What you want is to find out quickly what makes that period different from the rest of your file.\n\nWith ViewLog, just select the spike. The app compares that period to the rest of the logs and highlights the patterns that appear, disappear, or become unusually frequent.",
+  "uc.spike_steps":
+    "Select the spike on the chart.\nViewLog compares that period to the rest of the file.\nReview the new, over-represented and absent patterns.\nOpen the lines involved to trace the cause of the spike.",
   "uc.spike_seen":
     "Journal / Patterns switch, two readings of the same file\nSearch as plain text or as a regular expression, .* button\nLevel filters, each with its own count\nDrag across the chart to select a period, double-click to see it all again\nChart and period slider synced both ways\nVirtualised journal: hundreds of thousands of lines without a stutter",
 

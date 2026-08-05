@@ -164,19 +164,18 @@ export default {
   "errors.import_partial": "Certains fichiers n'ont pas pu être importés",
 
   "uc.title": "Cas d'usage",
-  "uc.brings": "Ce que ViewLog apporte",
+  "uc.steps": "Les étapes",
   "uc.seen": "Visible dans la démonstration, et valable sur n'importe quel log",
   "uc.demo_alt":
     "Démonstration animée : sélectionner le pic sur le graphe, comparer la zone au reste du fichier, puis lire les trois groupes de motifs",
   "uc.cta_lead": "Rien à installer, rien à envoyer.",
   "uc.cta": "Ouvrir un log",
 
-  "uc.spike_q": "Il y a eu un pic. Qu'est-ce qui s'est passé ?",
-  "uc.spike_hook": "Le graphe montre le pic. Il ne dit pas ce qui se passe dedans.",
-  "uc.spike_problem":
-    "Vous voyez la courbe grimper à 14h32, et c'est tout ce que vous savez. Filtrer sur la période puis lister les motifs ne suffit pas : la liste est triée par fréquence, et un pic multiplie tout par le même facteur. Le bruit habituel reste donc en tête, et la cause, souvent peu fréquente, reste invisible.\n\nC'est le moment où l'on finit par défiler des milliers de lignes en espérant reconnaître quelque chose.",
-  "uc.spike_brings":
-    "Sélectionnez la zone à la souris sur le graphe, puis comparez-la au reste du fichier.\nLa comparaison raisonne en part des lignes et non en nombre d'occurrences : un motif qui grossit au même rythme que le reste ne remonte jamais. Le pic d'utilisation est écarté par construction.\nTrois réponses : les motifs qui n'existent que là, ceux qui occupent trois fois plus de place qu'ailleurs, et ceux qui ont disparu.\nEt si rien ne sort de l'ordinaire, ViewLog l'écrit. C'est alors une surcharge, pas un incident.",
+  "uc.spike_title": "Comment analyser un pic dans vos logs",
+  "uc.spike_desc":
+    "Lorsqu'un pic apparaît sur le graphique, il est rarement utile de parcourir des milliers de lignes de logs. L'objectif est d'identifier rapidement ce qui rend cette période différente du reste de votre fichier.\n\nAvec ViewLog, sélectionnez simplement la zone du pic. L'application compare automatiquement cette période au reste des logs et met en évidence les motifs qui apparaissent, disparaissent ou deviennent anormalement fréquents.",
+  "uc.spike_steps":
+    "Sélectionnez le pic sur le graphique.\nViewLog compare cette période au reste du fichier.\nConsultez les motifs nouveaux, sur-représentés ou absents.\nOuvrez les lignes concernées pour remonter à la cause du pic.",
   "uc.spike_seen":
     "Bascule Journal / Motifs, deux lectures du même fichier\nRecherche en texte simple ou en expression régulière, bouton .*\nFiltres par niveau, avec le compte de chacun\nSélection de période au glisser sur le graphe, double-clic pour tout revoir\nGraphe et curseur de période synchronisés dans les deux sens\nJournal virtualisé : des centaines de milliers de lignes sans ralentir",
 

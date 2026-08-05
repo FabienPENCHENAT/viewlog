@@ -41,7 +41,7 @@ export default function UseCases() {
                   onClick={() => setOpen(isOpen ? null : c.id)}
                 >
                   <span className="uc-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="uc-q">{t(`uc.${c.id}_q`)}</span>
+                  <span className="uc-q">{t(`uc.${c.id}_title`)}</span>
                   <span className="uc-caret" aria-hidden="true">▸</span>
                 </button>
               </h2>
@@ -51,19 +51,20 @@ export default function UseCases() {
                   {/* Le texte à gauche, la démonstration à droite : côte à côte,
                       on lit le problème en regardant le geste. */}
                   <div className="uc-text">
-                    <p className="uc-hook">{t(`uc.${c.id}_hook`)}</p>
-                    {t(`uc.${c.id}_problem`)
+                    {t(`uc.${c.id}_desc`)
                       .split("\n\n")
                       .map((para, k) => (
-                        <p key={k} className="uc-problem">{para}</p>
+                        <p key={k} className="uc-desc">{para}</p>
                       ))}
 
-                    <h3 className="uc-sub">{t("uc.brings")}</h3>
-                    <ul className="uc-bullets">
-                      {lines(`uc.${c.id}_brings`).map((s, k) => (
+                    <h3 className="uc-sub">{t("uc.steps")}</h3>
+                    {/* Une liste ordonnée, parce que c'en est une : les quatre
+                        temps se suivent, la numérotation porte une information. */}
+                    <ol className="uc-steps">
+                      {lines(`uc.${c.id}_steps`).map((s, k) => (
                         <li key={k}>{s}</li>
                       ))}
-                    </ul>
+                    </ol>
                   </div>
 
                   {c.demo && (
