@@ -165,7 +165,16 @@ export default {
 
   "uc.title": "Cas d'usage",
   "uc.steps": "Les étapes",
-  "uc.seen": "Visible dans la démonstration, et valable sur n'importe quel log",
+  "uc.caps_title": "Tout ce qu'il vous faut pour analyser vos logs",
+  "uc.cap_explore": "Explorer",
+  "uc.cap_explore_items":
+    "Alternez entre les vues Journal et Motifs.\nSélectionnez une période directement sur le graphique.\nNaviguez librement entre le graphique et les logs.",
+  "uc.cap_search": "Rechercher",
+  "uc.cap_search_items":
+    "Recherchez en texte libre ou avec une expression régulière.\nFiltrez les événements par niveau de gravité.",
+  "uc.cap_analyse": "Analyser",
+  "uc.cap_analyse_items":
+    "Comparez une période au reste du fichier.\nParcourez des centaines de milliers de lignes sans ralentissement.",
   "uc.demo_alt":
     "Démonstration animée : sélectionner le pic sur le graphe, comparer la zone au reste du fichier, puis lire les trois groupes de motifs",
   "uc.cta_lead": "Rien à installer, rien à envoyer.",
@@ -176,8 +185,6 @@ export default {
     "Lorsqu'un pic apparaît sur le graphique, il est rarement utile de parcourir des milliers de lignes de logs. L'objectif est d'identifier rapidement ce qui rend cette période différente du reste de votre fichier.\n\nAvec ViewLog, sélectionnez simplement la zone du pic. L'application compare automatiquement cette période au reste des logs et met en évidence les motifs qui apparaissent, disparaissent ou deviennent anormalement fréquents.",
   "uc.spike_steps":
     "Sélectionnez le pic sur le graphique.\nViewLog compare cette période au reste du fichier.\nConsultez les motifs nouveaux, sur-représentés ou absents.\nOuvrez les lignes concernées pour remonter à la cause du pic.",
-  "uc.spike_seen":
-    "Bascule Journal / Motifs, deux lectures du même fichier\nRecherche en texte simple ou en expression régulière, bouton .*\nFiltres par niveau, avec le compte de chacun\nSélection de période au glisser sur le graphe, double-clic pour tout revoir\nGraphe et curseur de période synchronisés dans les deux sens\nJournal virtualisé : des centaines de milliers de lignes sans ralentir",
 
   "nav.use_cases": "Cas d'usage",
   "nav.faq": "FAQ",

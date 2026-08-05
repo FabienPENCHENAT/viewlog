@@ -1293,37 +1293,64 @@ body {
   border: 1px solid var(--border);
 }
 
-.uc-seen {
+/* Les capacités : un bloc à part, sur fond de page, pour qu'il se lise comme une
+   promesse d'ensemble et non comme la fin du cas d'usage qu'on vient d'ouvrir. */
+.uc-caps {
   grid-column: 1 / -1;
-  border-top: 1px solid var(--grid);
-  padding-top: 4px;
+  margin-top: 6px;
+  padding: 20px;
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-radius: 10px;
 }
 
-.uc-feats {
+.uc-caps-title {
+  margin: 0 0 18px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.uc-caps-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 8px 22px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px 28px;
+}
+
+.uc-cap-title {
+  margin: 0 0 9px;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.uc-cap-items {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
-.uc-feats li {
+.uc-cap-items li {
   position: relative;
-  padding-left: 16px;
+  padding-left: 15px;
   font-size: 13.5px;
   color: var(--ink-2);
 }
 
-.uc-feats li::before {
+.uc-cap-items li::before {
   content: "";
   position: absolute;
   left: 0;
   top: 8px;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 .uc-cta {

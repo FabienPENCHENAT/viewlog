@@ -12,6 +12,11 @@ import demoEn from "../assets/demo-spike.en.svg";
 // catalogue.
 const CASES = [{ id: "spike", demo: true }];
 
+// Les capacités de l'outil, regroupées par intention plutôt qu'égrenées en
+// liste. Elles ne dépendent d'aucun cas d'usage : ce sont celles qu'on emploie
+// quel que soit ce qu'on cherche, d'où un bloc défini une seule fois.
+const CAPS = ["explore", "search", "analyse"];
+
 export default function UseCases() {
   const { t, lang } = useI18n();
   // Rien d'ouvert au départ : la grille de cartes est la vue d'ensemble, et
@@ -77,15 +82,23 @@ export default function UseCases() {
                     </div>
                   )}
 
-                  {/* Les fonctionnalités croisées au passage, valables sur
-                      n'importe quel log : c'est le second rôle de la page. */}
-                  <div className="uc-seen">
-                    <h3 className="uc-sub">{t("uc.seen")}</h3>
-                    <ul className="uc-feats">
-                      {lines(`uc.${c.id}_seen`).map((s, k) => (
-                        <li key={k}>{s}</li>
+                  {/* Les capacités croisées au passage : c'est le second rôle de
+                      la page, montrer ce que l'outil sait faire au-delà du cas
+                      qu'on est venu lire. */}
+                  <div className="uc-caps">
+                    <h3 className="uc-caps-title">{t("uc.caps_title")}</h3>
+                    <div className="uc-caps-grid">
+                      {CAPS.map((cap) => (
+                        <div key={cap} className="uc-cap">
+                          <h4 className="uc-cap-title">{t(`uc.cap_${cap}`)}</h4>
+                          <ul className="uc-cap-items">
+                            {lines(`uc.cap_${cap}_items`).map((s, k) => (
+                              <li key={k}>{s}</li>
+                            ))}
+                          </ul>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 </div>
               )}

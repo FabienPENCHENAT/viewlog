@@ -160,7 +160,16 @@ export default {
 
   "uc.title": "Use cases",
   "uc.steps": "The steps",
-  "uc.seen": "Visible in the walkthrough, and useful on any log",
+  "uc.caps_title": "Everything you need to analyse your logs",
+  "uc.cap_explore": "Explore",
+  "uc.cap_explore_items":
+    "Switch between the Journal and Patterns views.\nSelect a period straight from the chart.\nMove freely between the chart and the logs.",
+  "uc.cap_search": "Search",
+  "uc.cap_search_items":
+    "Search as free text or with a regular expression.\nFilter events by severity level.",
+  "uc.cap_analyse": "Analyse",
+  "uc.cap_analyse_items":
+    "Compare a period to the rest of the file.\nScroll hundreds of thousands of lines without a stutter.",
   "uc.demo_alt":
     "Animated walkthrough: brushing the spike on the chart, comparing the zone to the rest of the file, then reading the three pattern groups",
   "uc.cta_lead": "Nothing to install, nothing to upload.",
@@ -171,8 +180,6 @@ export default {
     "When a spike shows up on the chart, scrolling through thousands of log lines is rarely worth it. What you want is to find out quickly what makes that period different from the rest of your file.\n\nWith ViewLog, just select the spike. The app compares that period to the rest of the logs and highlights the patterns that appear, disappear, or become unusually frequent.",
   "uc.spike_steps":
     "Select the spike on the chart.\nViewLog compares that period to the rest of the file.\nReview the new, over-represented and absent patterns.\nOpen the lines involved to trace the cause of the spike.",
-  "uc.spike_seen":
-    "Journal / Patterns switch, two readings of the same file\nSearch as plain text or as a regular expression, .* button\nLevel filters, each with its own count\nDrag across the chart to select a period, double-click to see it all again\nChart and period slider synced both ways\nVirtualised journal: hundreds of thousands of lines without a stutter",
 
   "nav.use_cases": "Use cases",
   "nav.faq": "FAQ",
