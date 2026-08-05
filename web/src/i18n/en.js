@@ -158,14 +158,11 @@ export default {
   "errors.no_file": "Nothing usable in what you dropped",
   "errors.import_partial": "Some files couldn't be imported",
 
-  "uc.title": "What you actually came here to do",
-  "uc.lead":
-    "Four concrete situations, and the gesture that answers each one. Everything happens in your browser: no log is ever sent anywhere.",
+  "uc.title": "Use cases",
   "uc.brings": "What ViewLog gives you",
-  "uc.more": "What you run into along the way",
+  "uc.seen": "Visible in the walkthrough, and useful on any log",
   "uc.demo_alt":
     "Animated walkthrough: brushing the spike on the chart, comparing the zone to the rest of the file, then reading the three pattern groups",
-  "uc.demo_caption": "The whole gesture, on a loop. No real data: every line is made up.",
   "uc.cta_lead": "Nothing to install, nothing to upload.",
   "uc.cta": "Open a log",
 
@@ -175,35 +172,8 @@ export default {
     "You watch the curve climb at 2:32 PM, and that is all you know. Filtering on the period and listing the patterns is not enough: the list is sorted by count, and a spike multiplies everything by the same factor. The usual noise stays on top, and the cause, often infrequent, stays invisible.\n\nThat is the moment you end up scrolling thousands of lines hoping to recognise something.",
   "uc.spike_brings":
     "Brush the zone on the chart, then compare it to the rest of the file.\nThe comparison reasons in share of lines rather than number of occurrences: a pattern that grows at the same rate as everything else never surfaces. The usage spike is ruled out by construction.\nThree answers: the patterns that exist only there, those taking three times more room than elsewhere, and those that have stopped.\nAnd when nothing stands out, ViewLog says so. It was load, not an incident.",
-  "uc.spike_more":
-    "Drag across the chart to select, double-click to go back to the whole period.\nThe chart and the period slider drive the same window, both ways.\nClicking a pattern filters the journal on it.\nMessages are normalised, with numbers, IDs, dates and addresses masked, to group identical lines.",
-
-  "uc.local_q": "I cannot upload these logs to a website.",
-  "uc.local_hook": "A production log carries IDs, addresses and customer names.",
-  "uc.local_problem":
-    "Online viewers ask you to upload the file. For a production log that is often forbidden, and always uncomfortable: you know neither where it lands nor how long it stays there.\n\nSo you fall back on less and grep, and give up on charts.",
-  "uc.local_brings":
-    "The file is read, parsed and stored inside your browser. Neither its content nor its name goes over the network.\nFiles of tens of megabytes and hundreds of thousands of lines stay smooth: only the visible rows are rendered.\nA switch cuts the network on demand, and the app stays usable with no connection at all. It also installs as an app.",
-  "uc.local_more":
-    "Text (.log, .txt) and CSV, detected from the content, even without a header row.\nISO, Apache and syslog timestamps, with multi-line stack traces attached to their entry.\nPaste the text straight in, without a file.\nFive files kept in the browser, each deletable on its own.\nThe only thing sent is an anonymous, aggregated usage counter that honours Do Not Track.",
-
-  "uc.context_q": "This error, what was going on around it?",
-  "uc.context_hook": "A search result without its surroundings tells you nothing.",
-  "uc.context_problem":
-    "You search for a term and get forty lines torn out of their sequence. To understand, you need what came before and after, so you have to drop the filters. And that is where you lose sight of the line.\n\nDropping them one at a time does not work: a single remaining filter that still excludes the line makes it vanish.",
-  "uc.context_brings":
-    "Search as plain text or as a regular expression, with matches highlighted.\nLevel filters, one click each, and a slider to bound the period.\nOn any filtered line, one click shows it in place in the full journal: every filter is released at once, the journal scrolls to it, it pulses on arrival then keeps a discreet marker.\nA banner offers to see it again or to go back to your results, restoring the filters exactly as they were.",
-  "uc.context_more":
-    "The .* button switches between plain text and regular expression.\nA JSON payload inside a message is detected and shown indented.\nUUIDs and long hex strings are dimmed so the message stands out.\nVery long messages fold, and unfold on demand.\nCopy a line in one click.",
-
-  "uc.several_q": "I have several logs to cross-check.",
-  "uc.several_hook": "Before and after a deploy, two customers, five pods.",
-  "uc.several_problem":
-    "Five browser tabs, the same import five times, and filters to set up again on every round trip. You end up comparing from memory, which is exactly what you were trying to avoid.",
-  "uc.several_brings":
-    "Drop several files at once, or a whole folder. Past five, ViewLog asks which ones to open instead of quietly dropping the rest.\nA tab bar puts five logs one click away, without going back to the home page.\nEvery tab keeps its search, filters, period and view. Leave a log in the middle of an investigation, come back, and you find it as you left it.",
-  "uc.several_more":
-    "One colour dot per file: two open tabs never share the same one.\nThe label carries the import time, in the shortest format that tells the five apart.\nDouble-click to rename, and label your logs the way you think of them.\nDrag to reorder: new imports enter on the left, and the last tab is the one replaced next.\nThe + in the bar imports a file without going back to the home page.",
+  "uc.spike_seen":
+    "Journal / Patterns switch, two readings of the same file\nSearch as plain text or as a regular expression, .* button\nLevel filters, each with its own count\nDrag across the chart to select a period, double-click to see it all again\nChart and period slider synced both ways\nVirtualised journal: hundreds of thousands of lines without a stutter",
 
   "nav.use_cases": "Use cases",
   "nav.faq": "FAQ",

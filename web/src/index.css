@@ -1140,28 +1140,17 @@ body {
 }
 
 /* --- Cas d'usage ---
-   Une liste dépliable : la question reste lisible d'un coup d'œil, le détail
-   n'apparaît qu'au clic. Un seul panneau ouvert à la fois, sinon la page se
-   transforme en mur de texte et perd sa fonction d'aiguillage. */
-.uc {
-  max-width: 860px;
-}
-
-.uc-title {
-  font-size: 26px;
-  margin: 14px 0 10px;
-}
-
-.uc-lead {
-  margin: 0 0 26px;
-  color: var(--ink-2);
-  max-width: 62ch;
-}
-
-.uc-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+   Une grille de cartes qui ne portent que la question. Rien n'est ouvert au
+   départ : la grille est la vue d'ensemble, ouvrir un cas est un geste. La carte
+   ouverte prend toute la largeur, parce que le texte et la démonstration doivent
+   tenir côte à côte : lire le problème en regardant le geste vaut mieux que
+   défiler de l'un à l'autre. */
+.uc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+  align-items: start;
+  margin-top: 18px;
 }
 
 .uc-item {
@@ -1171,6 +1160,7 @@ body {
 }
 
 .uc-item[data-open="true"] {
+  grid-column: 1 / -1;
   border-color: color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
@@ -1182,11 +1172,11 @@ body {
 
 .uc-head {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
-  gap: 14px;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: center;
   width: 100%;
-  padding: 16px 18px;
+  padding: 18px;
   font: inherit;
   color: inherit;
   text-align: left;
@@ -1205,25 +1195,14 @@ body {
   color: var(--muted);
 }
 
-.uc-head-body {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
 .uc-q {
-  font-size: 16px;
+  font-size: 16.5px;
   font-weight: 600;
+  text-wrap: balance;
 }
 
 .uc-item[data-open="true"] .uc-q {
   color: var(--accent);
-}
-
-.uc-hook {
-  font-size: 13.5px;
-  color: var(--ink-2);
 }
 
 .uc-caret {
@@ -1236,16 +1215,27 @@ body {
   transform: rotate(90deg);
 }
 
+/* Texte à gauche, démonstration à droite, puis les fonctionnalités sur toute la
+   largeur en dessous. La démonstration prend la part la plus large : c'est une
+   interface miniature, elle devient illisible en dessous d'une certaine taille. */
 .uc-panel {
-  padding: 2px 18px 20px 66px;
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
+  gap: 26px;
+  padding: 20px 18px 22px;
   border-top: 1px solid var(--grid);
-  margin-top: -1px;
+}
+
+.uc-hook {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--ink);
 }
 
 .uc-problem {
-  margin: 16px 0 0;
+  margin: 0 0 12px;
   color: var(--ink-2);
-  max-width: 66ch;
+  font-size: 14px;
 }
 
 .uc-sub {
@@ -1254,34 +1244,21 @@ body {
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--muted);
-  margin: 22px 0 10px;
+  margin: 20px 0 10px;
 }
 
 .uc-bullets {
   margin: 0;
   padding-left: 18px;
-  max-width: 66ch;
 }
 
 .uc-bullets li {
   margin-bottom: 8px;
-  color: var(--ink);
+  font-size: 14px;
 }
 
 .uc-bullets li:last-child {
   margin-bottom: 0;
-}
-
-/* Les fonctionnalités accessoires : présentes, mais elles ne doivent pas peser
-   autant que la réponse principale. */
-.uc-bullets--more li {
-  color: var(--ink-2);
-  font-size: 13.5px;
-  margin-bottom: 6px;
-}
-
-.uc-demo {
-  margin: 20px 0 0;
 }
 
 .uc-demo img {
@@ -1292,10 +1269,37 @@ body {
   border: 1px solid var(--border);
 }
 
-.uc-demo figcaption {
-  margin-top: 8px;
-  font-size: 12.5px;
-  color: var(--muted);
+.uc-seen {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--grid);
+  padding-top: 4px;
+}
+
+.uc-feats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 8px 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.uc-feats li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.uc-feats li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .uc-cta {
@@ -1303,8 +1307,8 @@ body {
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  margin-top: 30px;
-  padding-top: 22px;
+  margin-top: 26px;
+  padding-top: 20px;
   border-top: 1px solid var(--grid);
 }
 
@@ -1327,16 +1331,24 @@ body {
   filter: brightness(1.08);
 }
 
+/* Sous cette largeur, côte à côte ne tient plus : on empile, la démonstration
+   d'abord puisque c'est elle qui explique. */
+@media (max-width: 900px) {
+  .uc-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .uc-demo {
+    order: -1;
+  }
+}
+
 @media (max-width: 560px) {
   .uc-head {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
   }
   .uc-num {
     display: none;
-  }
-  .uc-panel {
-    padding-left: 18px;
   }
   .uc-cta-btn {
     margin-left: 0;

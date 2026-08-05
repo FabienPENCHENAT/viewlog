@@ -163,14 +163,11 @@ export default {
   "errors.no_file": "Aucun fichier exploitable dans ce que vous avez déposé",
   "errors.import_partial": "Certains fichiers n'ont pas pu être importés",
 
-  "uc.title": "Ce qu'on vient faire ici",
-  "uc.lead":
-    "Quatre situations concrètes, et le geste qui y répond. Tout se passe dans votre navigateur : aucun log n'est envoyé, jamais.",
+  "uc.title": "Cas d'usage",
   "uc.brings": "Ce que ViewLog apporte",
-  "uc.more": "Ce que vous croisez au passage",
+  "uc.seen": "Visible dans la démonstration, et valable sur n'importe quel log",
   "uc.demo_alt":
     "Démonstration animée : sélectionner le pic sur le graphe, comparer la zone au reste du fichier, puis lire les trois groupes de motifs",
-  "uc.demo_caption": "Le geste complet, en boucle. Aucune donnée réelle : les lignes sont fabriquées.",
   "uc.cta_lead": "Rien à installer, rien à envoyer.",
   "uc.cta": "Ouvrir un log",
 
@@ -180,35 +177,8 @@ export default {
     "Vous voyez la courbe grimper à 14h32, et c'est tout ce que vous savez. Filtrer sur la période puis lister les motifs ne suffit pas : la liste est triée par fréquence, et un pic multiplie tout par le même facteur. Le bruit habituel reste donc en tête, et la cause, souvent peu fréquente, reste invisible.\n\nC'est le moment où l'on finit par défiler des milliers de lignes en espérant reconnaître quelque chose.",
   "uc.spike_brings":
     "Sélectionnez la zone à la souris sur le graphe, puis comparez-la au reste du fichier.\nLa comparaison raisonne en part des lignes et non en nombre d'occurrences : un motif qui grossit au même rythme que le reste ne remonte jamais. Le pic d'utilisation est écarté par construction.\nTrois réponses : les motifs qui n'existent que là, ceux qui occupent trois fois plus de place qu'ailleurs, et ceux qui ont disparu.\nEt si rien ne sort de l'ordinaire, ViewLog l'écrit. C'est alors une surcharge, pas un incident.",
-  "uc.spike_more":
-    "La sélection se fait au glisser sur le graphe, un double-clic revient à la période complète.\nLe graphe et le curseur de période pilotent la même fenêtre, dans les deux sens.\nUn clic sur un motif filtre le journal dessus.\nLes messages sont normalisés, nombres, identifiants, dates et adresses masqués, pour regrouper les lignes identiques.",
-
-  "uc.local_q": "Je ne peux pas envoyer ces logs sur un site.",
-  "uc.local_hook": "Un log de production contient des identifiants, des adresses, des noms de clients.",
-  "uc.local_problem":
-    "Les visionneuses en ligne demandent d'envoyer le fichier. Pour un log de production c'est souvent interdit, et toujours désagréable : on ne sait ni où il atterrit, ni combien de temps il y reste.\n\nAlors on retombe sur less et grep, et on renonce aux graphes.",
-  "uc.local_brings":
-    "Le fichier est lu, analysé et stocké dans votre navigateur. Ni son contenu ni son nom ne partent sur le réseau.\nDes fichiers de plusieurs dizaines de Mo et des centaines de milliers de lignes passent sans ralentir : seules les lignes visibles sont rendues.\nUn interrupteur coupe le réseau à la demande, et l'application reste utilisable sans aucune connexion. Elle s'installe aussi comme une application.",
-  "uc.local_more":
-    "Texte (.log, .txt) et CSV, détecté au contenu, même sans ligne d'en-tête.\nHorodatages ISO, Apache et syslog, et les stack traces multi-lignes rattachées à leur entrée.\nColler le texte directement, sans passer par un fichier.\nCinq fichiers gardés dans le navigateur, supprimables un par un.\nLe seul envoi est un compteur d'usage anonyme et agrégé, qui respecte le Do Not Track.",
-
-  "uc.context_q": "Cette erreur, que se passait-il autour ?",
-  "uc.context_hook": "Un résultat de recherche sans son contexte ne raconte rien.",
-  "uc.context_problem":
-    "Vous cherchez un terme, vous obtenez quarante lignes arrachées à leur suite. Pour comprendre, il faut voir ce qui précède et ce qui suit, donc relâcher les filtres. Et c'est là qu'on perd la ligne de vue.\n\nLes relâcher un par un ne marche pas : il suffit qu'un seul exclue encore la ligne pour qu'elle disparaisse.",
-  "uc.context_brings":
-    "Recherche en texte simple ou en expression régulière, avec les correspondances surlignées.\nFiltres par niveau, d'un clic, et un curseur pour borner la période.\nSur n'importe quelle ligne filtrée, un clic la montre à sa place dans le journal complet : tous les filtres sont relâchés d'un bloc, le journal défile jusqu'à elle, elle pulse à l'arrivée puis garde un repère discret.\nUn bandeau propose de la revoir ou de revenir aux résultats, en restaurant l'état complet des filtres.",
-  "uc.context_more":
-    "Le bouton .* bascule entre texte simple et expression régulière.\nUn payload JSON dans un message est détecté et affiché indenté.\nLes UUID et les longues chaînes hexadécimales sont atténués pour faire ressortir le message.\nLes messages très longs se replient, et se déplient à la demande.\nCopie d'une ligne en un clic.",
-
-  "uc.several_q": "J'ai plusieurs logs à recouper.",
-  "uc.several_hook": "Avant et après un déploiement, deux clients, cinq pods.",
-  "uc.several_problem":
-    "Cinq onglets de navigateur, cinq fois le même import, et des filtres à refaire à chaque aller-retour. On finit par comparer de mémoire, ce qui est exactement ce qu'on voulait éviter.",
-  "uc.several_brings":
-    "Déposez plusieurs fichiers d'un coup, ou un dossier entier. Au-delà de cinq, ViewLog demande lesquels ouvrir plutôt que d'en jeter en silence.\nUne barre d'onglets met cinq logs à un clic, sans repasser par l'accueil.\nChaque onglet garde sa recherche, ses filtres, sa période et sa vue. Quitter un log au milieu d'une investigation et y revenir le rend tel qu'on l'a laissé.",
-  "uc.several_more":
-    "Une pastille de couleur par fichier : deux onglets ouverts n'ont jamais la même.\nL'étiquette porte l'heure d'import, dans le format le plus court qui distingue les cinq.\nRenommage au double-clic, pour étiqueter ses logs comme on y pense.\nRéordonnancement au glisser : les nouveaux imports entrent à gauche, et c'est le dernier onglet qui sera remplacé.\nLe + de la barre importe un fichier sans repasser par l'accueil.",
+  "uc.spike_seen":
+    "Bascule Journal / Motifs, deux lectures du même fichier\nRecherche en texte simple ou en expression régulière, bouton .*\nFiltres par niveau, avec le compte de chacun\nSélection de période au glisser sur le graphe, double-clic pour tout revoir\nGraphe et curseur de période synchronisés dans les deux sens\nJournal virtualisé : des centaines de milliers de lignes sans ralentir",
 
   "nav.use_cases": "Cas d'usage",
   "nav.faq": "FAQ",
