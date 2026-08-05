@@ -47,6 +47,10 @@ const FEATURES = new Set([
   "tab_reorder",
   // Import de plusieurs fichiers en une fois (dépôt multiple ou dossier).
   "multi_import",
+  // Zones à surveiller (détection expérimentale) : affichage de la liste,
+  // puis clic sur une zone proposée.
+  "peaks_show",
+  "peaks_pick",
   // Activation du mode hors ligne. Envoyé juste avant la coupure, donc c'est le
   // dernier event de la session : ensuite le front ne parle plus.
   "offline_on",

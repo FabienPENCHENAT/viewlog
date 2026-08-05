@@ -128,6 +128,22 @@ export default {
   "patterns.thin_hint":
     "La sélection couvre presque tout le fichier, il ne reste rien à quoi la comparer. Réduisez la période.",
 
+  // Zones à surveiller, détection expérimentale (voir lib/peaks.js).
+  "peaks.show_one": "1 zone à surveiller",
+  "peaks.show_many": "{count} zones à surveiller",
+  "peaks.hide": "Masquer les zones",
+  "peaks.experimental": "expérimental",
+  "peaks.open": "Analyser cette zone",
+  "peaks.errors": "{count} erreurs",
+  "peaks.rate": "taux ×{lift}",
+  "peaks.only_here_one": "1 motif n'existe nulle part ailleurs",
+  "peaks.only_here_many": "{count} motifs n'existent nulle part ailleurs",
+  "peaks.over_one": "1 motif bien plus présent qu'ailleurs",
+  "peaks.over_many": "{count} motifs bien plus présents qu'ailleurs",
+  "peaks.flat": "Même mélange, en plus dense.",
+  "peaks.caveat":
+    "Détection expérimentale : elle peut passer à côté d'un incident, ou proposer une zone sans intérêt. Le graphe et la sélection à la main restent la référence.",
+
   "context.jump": "Voir cette ligne dans le journal complet",
   "context.banner": "Journal complet autour de la ligne {line}, filtres relâchés.",
   "context.recenter": "Revoir la ligne",

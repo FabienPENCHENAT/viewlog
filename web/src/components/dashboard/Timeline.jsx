@@ -14,7 +14,10 @@ import { LEVEL_COLORS } from "../../levels.js";
 import { fullRange, isPartialRange } from "../../lib/time-range.js";
 import { useI18n } from "../../i18n/index.jsx";
 
-export default function Timeline({ timeline, bounds, range, onRangeChange }) {
+// `marks` : zones signalées par la détection, dessinées en pointillés pour ne
+// pas se confondre avec le plein de la sélection. Elles n'apparaissent que si
+// l'utilisateur a demandé à les voir.
+export default function Timeline({ timeline, bounds, range, marks, onRangeChange }) {
   const { t, locale } = useI18n();
   // Glisser en cours : bornes brutes (a = point de départ, b = point courant).
   const [drag, setDrag] = useState(null);
@@ -157,6 +160,20 @@ export default function Timeline({ timeline, bounds, range, onRangeChange }) {
             fillOpacity={0}
             isAnimationActive={false}
           />
+          {/* Avant la sélection, pour que celle-ci reste au-dessus si les deux
+              se recouvrent : c'est le geste de l'utilisateur qui prime. */}
+          {(marks || []).map((m) => (
+            <ReferenceArea
+              key={m.from}
+              x1={m.from}
+              x2={m.to}
+              fill={LEVEL_COLORS.ERROR}
+              fillOpacity={0.1}
+              stroke={LEVEL_COLORS.ERROR}
+              strokeOpacity={0.7}
+              strokeDasharray="3 2"
+            />
+          ))}
           {zone && (
             <ReferenceArea
               x1={zone.from}

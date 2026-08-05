@@ -6,6 +6,7 @@ import LevelChart from "../components/dashboard/LevelChart.jsx";
 import Timeline from "../components/dashboard/Timeline.jsx";
 import LogTable from "../components/dashboard/LogTable.jsx";
 import TabBar from "../components/dashboard/TabBar.jsx";
+import PeakHint from "../components/dashboard/PeakHint.jsx";
 import { getLog, listLogs, deleteLog, renameLog, reorderLogs, MAX_FILES } from "../lib/api.js";
 import ImportManager from "../components/shared/ImportManager.jsx";
 import { labelTabs } from "../lib/tab-label.js";
@@ -71,11 +72,18 @@ export default function Dashboard() {
   // et l'écrivent tous les deux, donc elle vit ici.
   const bounds = useMemo(() => (data ? timeBounds(data.entries) : null), [data]);
   const [range, setRange] = useState(null);
+  // Zones détectées : rien n'est affiché avant un geste explicite.
+  const [showPeaks, setShowPeaks] = useState(false);
+  // Incrémenté au clic sur une zone : il entre dans la clé de LogTable pour
+  // le remonter, donc pour qu'il relise la vue et le mode qu'on vient d'écrire
+  // dans l'état d'onglet. Sans ça, la comparaison ne s'ouvrirait pas.
+  const [peakNonce, setPeakNonce] = useState(0);
   useEffect(() => {
     // Reprise de la période là où on l'avait laissée sur CET onglet : revenir
     // dessus doit rendre le journal tel qu'on l'a quitté.
     const saved = getTabState(id)?.range;
     setRange(saved ? clampRange(saved, bounds) : fullRange(bounds));
+    setShowPeaks(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bounds]);
 
@@ -92,6 +100,21 @@ export default function Dashboard() {
     setTabState(id, { range: r });
     // Un retour à la période complète n'est pas un usage du filtre.
     if (source && isPartialRange(bounds, r)) markRef.current(source);
+  }
+
+  // Un clic sur une zone proposée : la période devient la zone, et le journal
+  // s'ouvre directement sur la comparaison des motifs. Le bloc est une entrée
+  // dans la fonctionnalité existante, pas une seconde analyse.
+  function pickPeak(zone) {
+    trackFeature("peaks_pick");
+    setTabState(id, { view: "patterns", compare: true });
+    selectRange({ from: zone.from, to: zone.to }, "timeline_select");
+    setPeakNonce((n) => n + 1);
+  }
+
+  function togglePeaks() {
+    if (!showPeaks) trackFeature("peaks_show");
+    setShowPeaks((v) => !v);
   }
 
   function selectTab(nextId) {
@@ -221,7 +244,15 @@ export default function Dashboard() {
             timeline={stats.timeline}
             bounds={bounds}
             range={range}
+            marks={showPeaks ? data.peaks : null}
             onRangeChange={(r) => selectRange(r, "timeline_select")}
+          />
+          <PeakHint
+            peaks={data.peaks || []}
+            entries={entries}
+            shown={showPeaks}
+            onToggle={togglePeaks}
+            onPick={pickPeak}
           />
         </section>
         <section className="card">
@@ -233,7 +264,7 @@ export default function Dashboard() {
       <section className="card">
         <h2 className="card-title">{t("dash.journal")}</h2>
         <LogTable
-          key={id}
+          key={`${id}:${peakNonce}`}
           tabId={id}
           entries={entries}
           byLevel={stats.byLevel}

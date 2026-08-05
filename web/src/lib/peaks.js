@@ -243,6 +243,15 @@ export function findPeaks(entries) {
         from = rawFrom;
         to = rawTo;
       }
+      // Compromis assumé : les bornes tombent sur la première et la dernière
+      // ERREUR, donc elles rognent légèrement les épaules de l'incident. Les
+      // avertissements qui l'annoncent arrivent quelques secondes avant, et une
+      // seule occurrence laissée dehors suffit à faire perdre à un motif son
+      // statut de « seulement ici » : mesuré, 2 motifs exclusifs au lieu de 3
+      // sur le fichier type. Rendre une marge a été essayé et écarté, parce que
+      // toute valeur défendable sur un fichier l'est mal sur un autre (une marge
+      // d'une tranche vaut 5 min sur une semaine et avale trop). Le motif perdu
+      // ressort de toute façon en « sur-représenté », avec un rapport énorme.
       return {
         from, to,
         errors: c.errors, lines: c.lines,

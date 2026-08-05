@@ -124,6 +124,22 @@ export default {
   "patterns.thin_hint":
     "The selection covers almost the whole file, leaving nothing to compare it against. Narrow the period.",
 
+  // Zones worth watching, experimental detection (see lib/peaks.js).
+  "peaks.show_one": "1 zone to watch",
+  "peaks.show_many": "{count} zones to watch",
+  "peaks.hide": "Hide the zones",
+  "peaks.experimental": "experimental",
+  "peaks.open": "Analyse this zone",
+  "peaks.errors": "{count} errors",
+  "peaks.rate": "rate ×{lift}",
+  "peaks.only_here_one": "1 pattern exists nowhere else",
+  "peaks.only_here_many": "{count} patterns exist nowhere else",
+  "peaks.over_one": "1 pattern far more present than elsewhere",
+  "peaks.over_many": "{count} patterns far more present than elsewhere",
+  "peaks.flat": "Same mix, just denser.",
+  "peaks.caveat":
+    "Experimental detection: it can miss an incident, or suggest a zone that turns out empty. The chart and your own selection remain the reference.",
+
   "context.jump": "See this line in the full journal",
   "context.banner": "Full journal around line {line}, filters released.",
   "context.recenter": "Show the line again",

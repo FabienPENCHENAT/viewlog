@@ -3,6 +3,10 @@
 All notable changes to ViewLog, newest first. Everything ships continuously,
 so each entry is filed under the day it went live.
 
+## 2026-08-06
+### Added
+- Under "Volume over time", show the zones worth a look: they are drawn on the chart with what was found in each, and a click opens one already compared to the rest of the file. Marked experimental.
+
 ## 2026-08-05
 ### Added
 - Select a period, then compare that zone to the rest of the file: the patterns view tells you which ones exist only there, which ones are denser than elsewhere, and which ones have stopped. When nothing stands out, it says so.

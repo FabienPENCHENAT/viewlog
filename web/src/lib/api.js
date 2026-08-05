@@ -140,7 +140,7 @@ export async function getLog(id) {
   const record = await dbGet(id);
   if (!record) throw new Error("errors.not_found");
 
-  const { entries, truncated, totalLines, stats, levels } = await parseAsync(
+  const { entries, truncated, totalLines, stats, levels, peaks } = await parseAsync(
     record.content,
     true
   );
@@ -155,6 +155,7 @@ export async function getLog(id) {
     },
     levels,
     stats,
+    peaks: peaks || [],
     entries,
   };
 

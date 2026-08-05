@@ -223,6 +223,36 @@ seule la période est inversée. Sans cela, avec un filtre ERROR actif, le reste
 du fichier ramènerait tous les INFO et noierait la comparaison. Les lignes sans
 horodatage ne participent à aucun des deux côtés.
 
+### Les zones à surveiller (expérimental)
+
+Sous « Volume dans le temps », une ligne discrète annonce les zones que ViewLog
+juge dignes d'un coup d'œil. Un clic les dessine **en pointillés** sur le graphe
+et les décrit ; un clic sur l'une d'elles ouvre la période, la vue Motifs et la
+comparaison, d'un seul geste.
+
+**Rien ne s'affiche avant ce clic**, et sans zone détectée la ligne n'apparaît pas
+du tout. C'est volontaire : une heuristique qui peut se tromper n'a pas sa place
+en évidence sur le tableau de bord, parce que ce qu'on voit sans l'avoir demandé,
+on le prend pour un fait. Le statut expérimental est donc écrit sur le bouton
+d'accès et rappelé sous la liste.
+
+Ce qui est détecté est le **taux d'erreur**, jamais le volume : un pic de volume,
+c'est du trafic. Cinq pauses café d'une semaine de bureau ne déclenchent rien.
+
+Une zone n'est pas annoncée parce qu'elle est haute, mais **parce que la
+comparaison y a trouvé quelque chose** : un pic se voit déjà sur le graphe, ce qui
+ne se voit pas, c'est s'il contient quelque chose d'atypique. Chaque zone est donc
+comparée au rythme habituel avant d'être décrite, et la ligne annonce la
+trouvaille. Une zone où rien ne ressort le dit aussi (« même mélange, en plus
+dense »), ce qui est un diagnostic de surcharge et pas un échec.
+
+Trois zones au maximum, classées, jamais une liste qui défile.
+
+Détails de la méthode et de ses limites connues dans `lib/peaks.js` : ce qui a été
+essayé et écarté y est gardé, parce que les deux approches évidentes (découper en
+tranches, mesurer la densité entre erreurs voisines) échouent chacune pour une
+raison qu'il serait coûteux de redécouvrir.
+
 ## Confort de lecture
 
 - **Pretty-print du JSON inline** : un payload JSON valide dans un message est

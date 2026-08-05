@@ -42,6 +42,8 @@ const LABELS = {
   view_patterns: "Vue Motifs",
   pattern_click: "Clic motif",
   pattern_diff: "Comparaison de zone",
+  peaks_show: "Zones à surveiller (affichage)",
+  peaks_pick: "Zones à surveiller (clic)",
   jump_context: "Saut vers le contexte",
   export: "Export",
   offline_on: "Passage hors ligne",
