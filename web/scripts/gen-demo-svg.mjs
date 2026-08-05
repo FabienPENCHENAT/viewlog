@@ -40,8 +40,9 @@ const SANS = "system-ui,-apple-system,'Segoe UI',sans-serif";
 const MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
 
 /* ================= Le cycle ================= */
-const CYCLE = 15; // secondes
-const P = (t) => +((t / CYCLE) * 100).toFixed(2);
+// Propre à chaque scénario : le second a une étape de plus, donc il lui faut plus
+// de temps sans accélérer les gestes.
+const pct = (t, cycle) => +((t / cycle) * 100).toFixed(2);
 const EASE = "cubic-bezier(.4,0,.2,1)";
 
 /* ================= Géométrie ================= */
@@ -164,7 +165,7 @@ const ISOLATED = {
   ],
   rowsZone: [
     ["INFO", "Order 7734 accepted: Caramel Latte"],
-    ["ERROR", "Ingredient unavailable: caramel_syrup"],
+    ["ERROR", "Ingredient unavailable: caramel_syrup (order 7734)"],
     ["WARN", "Preparation failed for order 7734"],
     ["INFO", "Order 7735 accepted: Flat White"],
     ["INFO", "Drink ready in 8700ms"],
@@ -176,8 +177,16 @@ const ISOLATED = {
   flat: [
     ["INFO", "Drink ready in {n}ms", "Drink ready in 8900ms"],
     ["INFO", "Order {n} accepted: Flat White", "Order 7735 accepted: Flat White"],
-    ["ERROR", "Ingredient unavailable: caramel_syrup", "Ingredient unavailable: caramel_syrup"],
+    ["ERROR", "Ingredient unavailable: caramel_syrup (order {n})", "Ingredient unavailable: caramel_syrup (order 7734)"],
     ["INFO", "Order {n} accepted: Caramel Latte", "Order 7734 accepted: Caramel Latte"],
+  ],
+  // Ce que le clic sur le motif ouvre : les trois occurrences, avec le vrai numéro
+  // de commande là où le gabarit affichait un paramètre. Trois commandes
+  // différentes, parce que l'utilisateur a repassé commande à chaque échec.
+  rowsHits: [
+    ["ERROR", "Ingredient unavailable: caramel_syrup (order 7734)"],
+    ["ERROR", "Ingredient unavailable: caramel_syrup (order 7739)"],
+    ["ERROR", "Ingredient unavailable: caramel_syrup (order 7742)"],
   ],
   hlRow: 2, // la ligne mise en évidence dans la liste des motifs
 };
@@ -258,8 +267,11 @@ const TXT = {
         ["13/03 11:10 → 13/03 11:50", "· 40 min"],
         ["13/03 11:28 → 13/03 11:34", "· 6 min"],
       ],
-      counts: ["412 908 entrées", "17 240 entrées", "2 568 entrées", "2 568 entrées → 8 motifs uniques"],
+      counts: ["412 908 entrées", "17 240 entrées", "2 568 entrées", "2 568 entrées → 8 motifs uniques", "3 entrées"],
       patternsSub: "8 uniques · les plus fréquents d'abord",
+      patternLabel: "Motif :",
+      numHits: ["61 449", "61 468", "61 474"],
+      tsHits: ["13/03 11:31:08", "13/03 11:32:44", "13/03 11:33:19"],
       numAll: ["9 118", "9 119", "9 120", "9 121", "9 122"],
       tsAll: ["13/03 09:41:02", "13/03 09:41:04", "13/03 09:41:20", "13/03 09:41:31", "13/03 09:41:48"],
       numZone: ["61 447", "61 448", "61 449", "61 452", "61 453"],
@@ -273,8 +285,11 @@ const TXT = {
         ["03/13, 11:10 AM → 03/13, 11:50 AM", "· 40 min"],
         ["03/13, 11:28 AM → 03/13, 11:34 AM", "· 6 min"],
       ],
-      counts: ["412,908 entries", "17,240 entries", "2,568 entries", "2,568 entries → 8 unique patterns"],
+      counts: ["412,908 entries", "17,240 entries", "2,568 entries", "2,568 entries → 8 unique patterns", "3 entries"],
       patternsSub: "8 unique · most frequent first",
+      patternLabel: "Pattern:",
+      numHits: ["61,449", "61,468", "61,474"],
+      tsHits: ["03/13, 11:31:08 AM", "03/13, 11:32:44 AM", "03/13, 11:33:19 AM"],
       numAll: ["9,118", "9,119", "9,120", "9,121", "9,122"],
       tsAll: ["03/13, 09:41:02 AM", "03/13, 09:41:04 AM", "03/13, 09:41:20 AM", "03/13, 09:41:31 AM", "03/13, 09:41:48 AM"],
       numZone: ["61,447", "61,448", "61,449", "61,452", "61,453"],
@@ -288,16 +303,39 @@ const TXT = {
 function kf(name, frames) {
   return `@keyframes ${name}{${frames.map(([p, d]) => `${p}%{${d}}`).join("")}}`;
 }
-function fade(name, inAt, outAt) {
-  const f = [[0, "opacity:0"]];
-  if (inAt > 0) f.push([Math.max(0, P(inAt) - 0.8), "opacity:0"]);
-  f.push([P(inAt), "opacity:1"]);
-  if (outAt != null) {
-    f.push([Math.max(P(inAt) + 0.1, P(outAt) - 0.8), "opacity:1"]);
-    f.push([P(outAt), "opacity:0"]);
-  }
-  f.push([100, outAt == null ? "opacity:1" : "opacity:0"]);
-  return kf(name, f);
+function makeFade(P) {
+  return (name, inAt, outAt) => {
+    const f = [[0, "opacity:0"]];
+    if (inAt > 0) f.push([Math.max(0, P(inAt) - 0.8), "opacity:0"]);
+    f.push([P(inAt), "opacity:1"]);
+    if (outAt != null) {
+      f.push([Math.max(P(inAt) + 0.1, P(outAt) - 0.8), "opacity:1"]);
+      f.push([P(outAt), "opacity:0"]);
+    }
+    f.push([100, outAt == null ? "opacity:1" : "opacity:0"]);
+    return kf(name, f);
+  };
+}
+
+// Plusieurs fenêtres de visibilité pour un même élément : la bascule de vue
+// revient sur Journal à la fin du second scénario, donc son libellé actif est
+// visible, caché, puis visible à nouveau.
+function makeVisible(P) {
+  return (name, wins) => {
+    const f = [[0, `opacity:${wins.some(([a]) => a <= 0) ? 1 : 0}`]];
+    for (const [a, b] of wins) {
+      if (a > 0) {
+        f.push([Math.max(0.1, P(a) - 0.8), "opacity:0"]);
+        f.push([P(a), "opacity:1"]);
+      }
+      if (b != null) {
+        f.push([Math.max(P(a) + 0.1, P(b) - 0.8), "opacity:1"]);
+        f.push([P(b), "opacity:0"]);
+      }
+    }
+    f.push([100, `opacity:${wins.some(([, b]) => b == null) ? 1 : 0}`]);
+    return kf(name, f);
+  };
 }
 
 // Barre de période : `left` et `width` doivent bouger ensemble, sinon le bord
@@ -307,7 +345,9 @@ const barTo = (x, w) => `translateX(${(x - 18).toFixed(1)}px) scaleX(${(w / 924)
 const thumbTo = (x, from) => `translateX(${(x - from).toFixed(1)}px)`;
 
 /* --- Scénario 1 : brosser le pic, puis comparer au reste du fichier --- */
-function compareScript(z) {
+function compareScript(z, cycle) {
+  const P = (t) => pct(t, cycle);
+  const fade = makeFade(P);
   const T = {
     cursorIn: 0.6, brush: 1.3, brushEnd: 2.1, toPatterns: 2.8, clickPatterns: 3.4,
     cmpShows: 4.8, toCmp: 5.5, clickCmp: 6.1, highlight: 6.7, scroll: 8.8,
@@ -429,17 +469,23 @@ function compareScript(z) {
   return { anims, rules, animated, freeze: T.highlight + 0.6 };
 }
 
-/* --- Scénario 2 : brosser large, resserrer au curseur, lire les motifs --- */
-function narrowScript(z) {
+/* --- Scénario 2 : brosser large, resserrer au curseur, lire les motifs, puis
+       ouvrir toutes les occurrences de celui qui explique l'échec --- */
+function narrowScript(z, cycle) {
+  const P = (t) => pct(t, cycle);
+  const fade = makeFade(P);
+  const visible = makeVisible(P);
   const T = {
     cursorIn: 0.6, brush: 1.3, brushEnd: 2.2, toThumb: 3.1, drag: 4.0,
-    dragEnd: 5.0, toPatterns: 5.9, clickPatterns: 6.6, highlight: 7.6, out: 12.6,
+    dragEnd: 5.0, toPatterns: 5.9, clickPatterns: 6.6, highlight: 7.6,
+    toRow: 9.2, clickRow: 10.0, hits: 10.3, out: 15.8,
   };
   const anims = [];
   const rules = [];
   const A = (sel, name) => rules.push(`${sel}{animation-name:${name}}`);
   const { a, b, a2 } = z;
-  const thumbY = JO.y + 156; // la poignée gauche de la barre temporelle
+  const thumbY = JO.y + 156;      // la poignée gauche de la barre temporelle
+  const rowY = LIST.y + 30 + 2 * 47 + 22; // la ligne de motif surlignée
 
   anims.push(kf("cur", [
     [0, `transform:translate(${a.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:0`],
@@ -453,8 +499,12 @@ function narrowScript(z) {
     [P(T.dragEnd), `transform:translate(${a2.toFixed(1)}px,${thumbY}px);opacity:1`],
     [P(T.toPatterns), `transform:translate(${a2.toFixed(1)}px,${thumbY}px);opacity:1;animation-timing-function:${EASE}`],
     [P(T.clickPatterns) - 1, `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:1`],
-    [P(T.clickPatterns) + 1, `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:0`],
-    [100, `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:0`],
+    // Puis sur la ligne de motif, pour en ouvrir toutes les occurrences.
+    [P(T.highlight), `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.toRow), `transform:translate(400px,${rowY}px);opacity:1`],
+    [P(T.clickRow) + 0.4, `transform:translate(400px,${rowY}px);opacity:1`],
+    [P(T.clickRow) + 1, `transform:translate(400px,${rowY}px);opacity:0`],
+    [100, `transform:translate(400px,${rowY}px);opacity:0`],
   ]));
   A(".cursor", "cur");
 
@@ -465,22 +515,25 @@ function narrowScript(z) {
     [P(T.drag) - 0.2, "opacity:0"], [P(T.drag), "opacity:1"],
     [P(T.dragEnd), "opacity:1"], [P(T.dragEnd) + 0.3, "opacity:0"],
     [P(T.clickPatterns) - 0.2, "opacity:0"], [P(T.clickPatterns), "opacity:1"],
-    [P(T.clickPatterns) + 0.9, "opacity:1"], [P(T.clickPatterns) + 1.2, "opacity:0"],
+    [P(T.clickPatterns) + 0.7, "opacity:1"], [P(T.clickPatterns) + 1, "opacity:0"],
+    [P(T.clickRow) - 0.2, "opacity:0"], [P(T.clickRow), "opacity:1"],
+    [P(T.clickRow) + 0.7, "opacity:1"], [P(T.clickRow) + 1, "opacity:0"],
     [100, "opacity:0"],
   ]));
   A(".press", "press");
 
   // La sélection du graphe croît d'abord vers la zone large, puis son bord gauche
   // avance : c'est la même forme qui se resserre, pas une nouvelle sélection.
+  const narrowed = `translateX(${(a2 - a).toFixed(1)}px) scaleX(${((b - a2) / (b - a)).toFixed(4)})`;
   anims.push(kf("selGrow", [
     [0, "transform:scaleX(0);opacity:0"],
     [P(T.brush) - 0.2, "transform:scaleX(0);opacity:0"],
     [P(T.brush), `transform:scaleX(0);opacity:1;animation-timing-function:${EASE}`],
     [P(T.brushEnd), "transform:scaleX(1);opacity:1"],
     [P(T.drag), `transform:scaleX(1);opacity:1;animation-timing-function:${EASE}`],
-    [P(T.dragEnd), `transform:translateX(${(a2 - a).toFixed(1)}px) scaleX(${((b - a2) / (b - a)).toFixed(4)});opacity:1`],
-    [P(T.out), `transform:translateX(${(a2 - a).toFixed(1)}px) scaleX(${((b - a2) / (b - a)).toFixed(4)});opacity:1`],
-    [P(T.out) + 1.5, `transform:translateX(${(a2 - a).toFixed(1)}px) scaleX(${((b - a2) / (b - a)).toFixed(4)});opacity:0`],
+    [P(T.dragEnd), `transform:${narrowed};opacity:1`],
+    [P(T.out), `transform:${narrowed};opacity:1`],
+    [P(T.out) + 1.5, `transform:${narrowed};opacity:0`],
     [100, "transform:scaleX(0);opacity:0"],
   ]));
   A(".chartSel", "selGrow");
@@ -505,7 +558,11 @@ function narrowScript(z) {
 
   anims.push(fade("fJA", 0, T.brushEnd)); A(".journalAll", "fJA");
   anims.push(fade("fJZ", T.brushEnd, T.clickPatterns)); A(".journalZone", "fJZ");
-  anims.push(fade("fFL", T.clickPatterns, T.out + 1.5)); A(".flat", "fFL");
+  anims.push(fade("fFL", T.clickPatterns, T.hits)); A(".flat", "fFL");
+  // Le journal filtré sur le motif : les trois occurrences, avec leurs vraies
+  // valeurs là où le gabarit affichait un paramètre.
+  anims.push(fade("fHits", T.hits, T.out + 1.5)); A(".journalHits", "fHits");
+  anims.push(fade("fBan", T.hits, T.out + 1.5)); A(".banner", "fBan");
   anims.push(fade("fAll", T.brushEnd, T.out + 1.5)); A(".allBtn", "fAll");
   anims.push(fade("fPerA", 0, T.brushEnd)); A(".perA", "fPerA");
   anims.push(fade("fPerB", T.brushEnd, T.dragEnd)); A(".perB", "fPerB");
@@ -513,31 +570,37 @@ function narrowScript(z) {
   anims.push(fade("fCntA", 0, T.brushEnd)); A(".cntA", "fCntA");
   anims.push(fade("fCntB", T.brushEnd, T.dragEnd)); A(".cntB", "fCntB");
   anims.push(fade("fCntC", T.dragEnd, T.clickPatterns)); A(".cntC", "fCntC");
-  anims.push(fade("fCntD", T.clickPatterns, T.out + 1.5)); A(".cntD", "fCntD");
-  anims.push(fade("fPillJ", 0, T.clickPatterns)); A(".pillJ", "fPillJ");
-  anims.push(fade("fLabJon", 0, T.clickPatterns)); A(".labJon", "fLabJon");
-  anims.push(fade("fPillP", T.clickPatterns, T.out + 1.5)); A(".pillP", "fPillP");
-  anims.push(fade("fLabPon", T.clickPatterns, T.out + 1.5)); A(".labPon", "fLabPon");
-  anims.push(fade("fLabJoff", T.clickPatterns, T.out + 1.5)); A(".labJoff", "fLabJoff");
-  anims.push(fade("fLabPoff", 0, T.clickPatterns)); A(".labPoff", "fLabPoff");
-  anims.push(fade("fHl2", T.highlight, T.out + 1.5)); A(".hl2", "fHl2");
+  anims.push(fade("fCntD", T.clickPatterns, T.hits)); A(".cntD", "fCntD");
+  anims.push(fade("fCntE", T.hits, T.out + 1.5)); A(".cntE", "fCntE");
 
+  // La bascule de vue revient sur Journal quand le motif est ouvert.
+  anims.push(visible("vPillJ", [[0, T.clickPatterns], [T.hits, null]])); A(".pillJ", "vPillJ");
+  anims.push(visible("vLabJon", [[0, T.clickPatterns], [T.hits, null]])); A(".labJon", "vLabJon");
+  anims.push(visible("vLabPoff", [[0, T.clickPatterns], [T.hits, null]])); A(".labPoff", "vLabPoff");
+  anims.push(visible("vPillP", [[T.clickPatterns, T.hits]])); A(".pillP", "vPillP");
+  anims.push(visible("vLabPon", [[T.clickPatterns, T.hits]])); A(".labPon", "vLabPon");
+  anims.push(visible("vLabJoff", [[T.clickPatterns, T.hits]])); A(".labJoff", "vLabJoff");
+
+  anims.push(fade("fHl2", T.highlight, T.hits)); A(".hl2", "fHl2");
   anims.push(kf("hlTxt2", [
     [0, `fill:${K.ink2};font-weight:400`],
     [P(T.highlight) - 0.5, `fill:${K.ink2};font-weight:400`],
     [P(T.highlight), "fill:#fff;font-weight:600"],
-    [P(T.out), "fill:#fff;font-weight:600"],
+    [P(T.hits) - 0.5, "fill:#fff;font-weight:600"],
+    [P(T.hits), `fill:${K.ink2};font-weight:400`],
     [100, `fill:${K.ink2};font-weight:400`],
   ]));
   A(".hlTxt2", "hlTxt2");
 
   const animated = [
     ".cursor", ".press", ".chartSel", ".tsel", ".thA", ".thB", ".journalAll", ".journalZone",
-    ".flat", ".allBtn", ".perA", ".perB", ".perC", ".cntA", ".cntB", ".cntC", ".cntD",
-    ".pillJ", ".pillP", ".labJon", ".labJoff", ".labPon", ".labPoff", ".hl2", ".hlTxt2",
+    ".flat", ".journalHits", ".banner", ".allBtn", ".perA", ".perB", ".perC", ".cntA", ".cntB",
+    ".cntC", ".cntD", ".cntE", ".pillJ", ".pillP", ".labJon", ".labJoff", ".labPon", ".labPoff",
+    ".hl2", ".hlTxt2",
   ].join(",");
 
-  return { anims, rules, animated, freeze: T.highlight + 0.6 };
+  // On gèle sur le résultat : le journal filtré, qui est la réponse.
+  return { anims, rules, animated, freeze: T.hits + 2 };
 }
 
 /* ================= Les scénarios ================= */
@@ -548,6 +611,7 @@ const SCENARIOS = {
     zone: { a: zoneX(28.6 / 48), b: zoneX(38.4 / 48) },
     content: SPIKE,
     script: compareScript,
+    cycle: 15,
     banner: true,
     compare: true,
     diff: true,
@@ -560,7 +624,11 @@ const SCENARIOS = {
     zone: { a: zoneX(24 / 48), b: zoneX(29 / 48), a2: zoneX(26 / 48) },
     content: ISOLATED,
     script: narrowScript,
+    // Une étape de plus que le premier : il lui faut plus de temps sans que les
+    // gestes s'accélèrent.
+    cycle: 18,
     banner: false,
+    patternBanner: true,
     compare: false,
     diff: false,
   },
@@ -572,7 +640,7 @@ function build(name, lang) {
   const l = L[lang];
   const x = TXT[name][lang];
   const c = s.content;
-  const { anims, rules, animated, freeze } = s.script(s.zone);
+  const { anims, rules, animated, freeze } = s.script(s.zone, s.cycle);
   const selA = s.zone.a;
   const selW = s.zone.b - s.zone.a;
 
@@ -702,7 +770,16 @@ function build(name, lang) {
     `<circle class="thB" cx="942" cy="${py + 26}" r="7" fill="${K.accent}" stroke="${K.page}" stroke-width="2"/>`;
 
   const by = JO.y + 176;
-  const banner = s.banner
+  const patternTpl = c.hlRow != null ? c.flat[c.hlRow][1] : "";
+  const banner = s.patternBanner
+    ? `<g class="banner">` +
+      rect(18, by, 924, 32, K.accent, { rx: 8, opacity: 0.12 }) +
+      `<rect x="18" y="${by}" width="924" height="32" rx="8" fill="none" stroke="${K.accent}" stroke-opacity="0.3"/>` +
+      text(30, by + 21, x.patternLabel, { size: 13, fill: K.ink2 }) +
+      text(30 + est(x.patternLabel, 13) + 10, by + 21, patternTpl, { size: 12.5, mono: true }) +
+      text(926, by + 21, "✕", { size: 14, fill: K.ink2, anchor: "end" }) +
+      `</g>`
+    : s.banner
     ? `<g class="banner">` +
       rect(18, by, 924, 32, K.accent, { rx: 8, opacity: 0.12 }) +
       `<rect x="18" y="${by}" width="924" height="32" rx="8" fill="none" stroke="${K.accent}" stroke-opacity="0.3"/>` +
@@ -714,7 +791,7 @@ function build(name, lang) {
   // Ligne de compte : un état par étape, et l'action au bout quand le scénario
   // l'utilise. Aucun contrôle n'est ajouté à la barre d'outils.
   const ny = JO.y + 226;
-  const cntCls = ["cntA", "cntB", "cntC", "cntD"];
+  const cntCls = ["cntA", "cntB", "cntC", "cntD", "cntE"];
   let count = x.counts.map((s2, i) => text(18, ny, s2, { size: 13, fill: K.muted, cls: cntCls[i] })).join("");
   if (s.compare) {
     const cmpX = 18 + est(x.counts[x.counts.length - 1], 13) + 14;
@@ -728,7 +805,7 @@ function build(name, lang) {
 <style>
   .chartSel,.tsel{transform-box:fill-box;transform-origin:left center}
   ${rules.join("\n  ")}
-  ${animated}{animation-duration:${CYCLE}s;animation-iteration-count:infinite;animation-timing-function:linear;animation-fill-mode:both}
+  ${animated}{animation-duration:${s.cycle}s;animation-iteration-count:infinite;animation-timing-function:linear;animation-fill-mode:both}
   /* Mouvement réduit : on gèle sur l'image qui porte l'information, grâce à un
      retard négatif combiné à une animation en pause. */
   @media (prefers-reduced-motion:reduce){
@@ -774,7 +851,7 @@ ${rect(LIST.x, LIST.y, LIST.w, LIST.h, "none", { rx: 10, stroke: "rgba(255,255,2
   <g class="journalAll">${journal(c.rowsAll, x.numAll, x.tsAll)}</g>
   <g class="journalZone">${journal(c.rowsZone, x.numZone, x.tsZone)}</g>
   <g class="flat">${flat}</g>
-${diff}</g>
+${c.rowsHits ? `  <g class="journalHits">${journal(c.rowsHits, x.numHits, x.tsHits)}</g>\n` : ""}${diff}</g>
 
 <g class="cursor">
   <circle class="press" r="15" fill="${K.accent}" fill-opacity="0.22"/>

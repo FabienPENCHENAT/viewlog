@@ -230,11 +230,13 @@ lieu de plusieurs Mo, en restant net à toutes les tailles. Le mouvement respect
 chose :
 
 - **Le pic** vend la comparaison d'une zone au reste du fichier.
-- **L'erreur signalée par un client** vend le resserrage de la fenêtre. Il n'y a
-  pas de pic : l'erreur n'apparaît que cinq fois, parce que le client a réessayé
-  cinq fois. Elle est noyée dans le fichier entier, et devient évidente dès que la
-  période se réduit à quelques minutes, parce que la liste des motifs est alors
-  assez courte pour qu'un motif rare s'y voie.
+- **L'échec signalé par un utilisateur** vend le resserrage de la fenêtre, puis le
+  passage du motif à ses occurrences. Il n'y a pas de pic : la cause tient en trois
+  lignes au milieu de milliers, et le graphique ne montre qu'un frémissement. La
+  démonstration resserre la période à quelques minutes, ce qui rend la liste des
+  motifs assez courte pour qu'un motif à trois occurrences s'y voie, puis clique ce
+  motif pour ouvrir ses trois lignes, où le paramètre du gabarit laisse place à sa
+  vraie valeur.
 
 Le nombre de démonstrations reste volontairement petit : une reconstruction peut
 vieillir en silence quand l'interface bouge, et une démonstration fausse est pire

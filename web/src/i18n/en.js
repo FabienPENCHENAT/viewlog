@@ -163,7 +163,7 @@ export default {
   "uc.caps_title": "Features visible in this walkthrough",
   "uc.cap_explore": "Explore",
   "uc.cap_explore_items":
-    "Switch between the Journal and Patterns views.\nSelect a period straight from the chart.\nFine-tune your analysis window with the time range slider.",
+    "Switch between the Journal and Patterns views.\nSelect a period straight from the chart.\nFine-tune your analysis window with the time range slider.\nSee every occurrence of a pattern in one click.",
   "uc.cap_search": "Search",
   "uc.cap_search_items":
     "Search as free text or with a regular expression.\nFilter events by severity level.",
@@ -186,7 +186,7 @@ export default {
   "uc.isolated_steps":
     "Select the time range the user reported.\nNarrow the analysis window step by step with the time range slider.\nReview the events or the patterns for that period.\nOpen the lines involved to understand the cause of the failure.",
   "uc.isolated_demo_alt":
-    "Animated walkthrough: selecting the reported time range, narrowing the window with the time range slider, then spotting in the patterns the missing ingredient that made the drink fail",
+    "Animated walkthrough: selecting the reported time range, narrowing the window with the time range slider, spotting the missing ingredient in the patterns, then opening its three occurrences in the journal",
 
   "nav.use_cases": "Use cases",
   "nav.faq": "FAQ",

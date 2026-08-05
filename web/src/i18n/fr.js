@@ -168,7 +168,7 @@ export default {
   "uc.caps_title": "Fonctionnalités visibles dans cette démonstration",
   "uc.cap_explore": "Explorer",
   "uc.cap_explore_items":
-    "Alternez entre les vues Journal et Motifs.\nSélectionnez une période directement sur le graphique.\nAffinez votre période d'analyse grâce à la barre temporelle.",
+    "Alternez entre les vues Journal et Motifs.\nSélectionnez une période directement sur le graphique.\nAffinez votre période d'analyse grâce à la barre temporelle.\nConsultez toutes les occurrences d'un motif en un clic.",
   "uc.cap_search": "Rechercher",
   "uc.cap_search_items":
     "Recherchez en texte libre ou avec une expression régulière.\nFiltrez les événements par niveau de gravité.",
@@ -191,7 +191,7 @@ export default {
   "uc.isolated_steps":
     "Sélectionnez la plage horaire indiquée par l'utilisateur.\nAffinez progressivement la fenêtre d'analyse grâce à la barre temporelle.\nConsultez les événements ou les motifs de cette période.\nOuvrez les lignes concernées pour comprendre la cause de l'échec.",
   "uc.isolated_demo_alt":
-    "Démonstration animée : sélectionner la plage horaire indiquée, resserrer la fenêtre à la barre temporelle, puis repérer dans les motifs l'ingrédient manquant qui a fait échouer la préparation",
+    "Démonstration animée : sélectionner la plage horaire indiquée, resserrer la fenêtre à la barre temporelle, repérer dans les motifs l'ingrédient manquant, puis ouvrir ses trois occurrences dans le journal",
 
   "nav.use_cases": "Cas d'usage",
   "nav.faq": "FAQ",
