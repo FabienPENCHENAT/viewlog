@@ -98,21 +98,19 @@ function sample(totalAt, errAt) {
   return { lineT: poly(tot), lineE: poly(er), areaT: area(tot), areaE: area(er) };
 }
 
-// Scénario 1 : une ruée. Le total explose, mais la courbe rouge reste basse, et
-// ce n'est pas un oubli : le graphe de l'app ne trace que `total` et `ERROR`
-// (voir components/Timeline.jsx), or ce pic est fait de WARN. Sur les 24 106
-// lignes de la zone, seules 313 sont des erreurs, les délais dépassés et le
-// FATAL final, soit 1,3 % : la cloche des erreurs vaut donc 1,3 % de celle du
-// total. C'est même l'argument du cas d'usage, l'incident ne se lit sur aucune
-// des deux courbes, seul le volume alerte.
+// Scénario 1 : une ruée qui fait déborder la file. Le total explose, et les
+// erreurs montent franchement avec lui, moins haut : sur les 32 412 lignes de la
+// zone, 9 725 sont des erreurs, soit 30 %. La cloche des erreurs vaut donc 30 %
+// de celle du total, et le graphe reste cohérent avec ce que la liste des motifs
+// affiche. Hors du pic, la machine n'écrit presque aucune erreur.
 const SPIKE_CURVES = sample(
   (x) =>
     52 + 16 * Math.sin(x * 0.62) + 9 * Math.sin(x * 1.31 + 1.2) +
     300 * bell(x, 7.5, 0.9) + 420 * bell(x, 21, 1) + 3320 * bell(x, 33.5, 2.5) +
     260 * bell(x, 44.5, 1.1),
   (x) =>
-    13 + 6 * Math.sin(x * 0.71 + 0.4) + 120 * bell(x, 7.5, 0.85) +
-    150 * bell(x, 21, 0.95) + 45 * bell(x, 34.1, 2.2) + 90 * bell(x, 44.5, 1.05)
+    5 + 2.5 * Math.sin(x * 0.71 + 0.4) + 40 * bell(x, 7.5, 0.85) +
+    60 * bell(x, 21, 0.95) + 1000 * bell(x, 34.1, 2.3) + 30 * bell(x, 44.5, 1.05)
 );
 
 // Scénario 2 : une journée calme. Le frémissement à l'endroit de l'erreur est
@@ -137,22 +135,24 @@ const SPIKE = {
   ],
   rowsZone: [
     ["INFO", "Order 88214 accepted"],
-    ["WARN", "Queue overflow, dropping order 88215"],
-    ["WARN", "Queue overflow, dropping order 88216"],
+    ["ERROR", "Queue overflow, dropping order 88215"],
+    ["ERROR", "Queue overflow, dropping order 88216"],
     ["ERROR", "Order timed out after 30000ms"],
     ["FATAL", "Scheduler saturated, halting intake"],
   ],
+  // Triée par fréquence, donc l'erreur y figure à son vrai rang : la fréquence
+  // ne dit pas ce qui est anormal, c'est la comparaison qui le dira.
   flat: [
     ["INFO", "Espresso pulled in {n}ms", "Espresso pulled in 9400ms"],
+    ["ERROR", "Queue overflow, dropping order {n}", "Queue overflow, dropping order 88215"],
     ["INFO", "Cup detected on tray {n}", "Cup detected on tray 3"],
     ["INFO", "Steam wand purge {n}ms", "Steam wand purge 1200ms"],
-    ["WARN", "Retrying order {n}/{n}", "Retrying order 3/5"],
   ],
   // La trouvaille en premier, puis l'aggravation : la file débordait, les
   // commandes ont fini par expirer, et l'ordonnanceur a coupé les entrées. C'est
   // ce que « avant que la situation ne s'aggrave » veut dire.
   only: [
-    ["WARN", "Queue overflow, dropping order {n}", "Queue overflow, dropping order 88215"],
+    ["ERROR", "Queue overflow, dropping order {n}", "Queue overflow, dropping order 88215"],
     ["ERROR", "Order timed out after {n}ms", "Order timed out after 30000ms"],
     ["FATAL", "Scheduler saturated, halting intake", "Scheduler saturated, halting intake"],
   ],
@@ -234,7 +234,7 @@ const TXT = {
         ["12/03 08:14 → 14/03 18:02", "· 2 j 9 h"],
         ["14/03 07:48 → 14/03 09:21", "· 1 h 33 min"],
       ],
-      counts: ["412 908 entrées", "24 106 entrées", "24 106 entrées → 41 motifs uniques"],
+      counts: ["412 908 entrées", "32 412 entrées", "32 412 entrées → 41 motifs uniques"],
       cmp: "· Comparer au reste du fichier",
       banner: "Zone comparée au reste du fichier",
       patternsSub: "41 uniques · les plus fréquents d'abord",
@@ -244,8 +244,8 @@ const TXT = {
       tsAll: ["13/03 02:11:04", "13/03 02:11:06", "13/03 02:11:09", "13/03 02:11:22", "13/03 02:12:31"],
       numZone: ["204 881", "204 882", "204 883", "204 884", "204 885"],
       tsZone: ["14/03 08:02:11", "14/03 08:02:11", "14/03 08:02:12", "14/03 08:02:12", "14/03 08:02:19"],
-      flatCounts: ["9 480×", "6 902×", "3 217×", "1 044×"],
-      onlyCounts: ["2 418×", "312×", "1×"],
+      flatCounts: ["9 480×", "9 412×", "6 902×", "3 217×"],
+      onlyCounts: ["9 412×", "312×", "1×"],
     },
     en: {
       aria: "ViewLog: brushing a spike and comparing it to the rest of the log file",
@@ -253,7 +253,7 @@ const TXT = {
         ["03/12, 08:14 AM → 03/14, 06:02 PM", "· 2 d 9 h"],
         ["03/14, 07:48 AM → 03/14, 09:21 AM", "· 1 h 33 min"],
       ],
-      counts: ["412,908 entries", "24,106 entries", "24,106 entries → 41 unique patterns"],
+      counts: ["412,908 entries", "32,412 entries", "32,412 entries → 41 unique patterns"],
       cmp: "· Compare to the rest of the file",
       banner: "Zone compared to the rest of the file",
       patternsSub: "41 unique · most frequent first",
@@ -263,8 +263,8 @@ const TXT = {
       tsAll: ["03/13, 02:11:04 AM", "03/13, 02:11:06 AM", "03/13, 02:11:09 AM", "03/13, 02:11:22 AM", "03/13, 02:12:31 AM"],
       numZone: ["204,881", "204,882", "204,883", "204,884", "204,885"],
       tsZone: ["03/14, 08:02:11 AM", "03/14, 08:02:11 AM", "03/14, 08:02:12 AM", "03/14, 08:02:12 AM", "03/14, 08:02:19 AM"],
-      flatCounts: ["9,480×", "6,902×", "3,217×", "1,044×"],
-      onlyCounts: ["2,418×", "312×", "1×"],
+      flatCounts: ["9,480×", "9,412×", "6,902×", "3,217×"],
+      onlyCounts: ["9,412×", "312×", "1×"],
     },
   },
   isolated: {

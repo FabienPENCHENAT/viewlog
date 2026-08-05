@@ -181,9 +181,9 @@ export default {
 
   "uc.spike_title": "Comment analyser un pic dans vos logs",
   "uc.spike_desc":
-    "Vous gérez un parc de distributeurs de boissons et remarquez un pic d'activité inhabituel dans les logs d'une machine. Aucun utilisateur n'a encore signalé de problème, mais vous souhaitez comprendre ce qui s'est passé avant que la situation ne s'aggrave.\n\nRécupérez les logs de la journée, ouvrez-les dans ViewLog, puis sélectionnez la période correspondant au pic. En quelques clics, ViewLog compare automatiquement cette période au reste des logs et met en évidence les événements qui apparaissent, disparaissent ou deviennent anormalement fréquents.\n\nVous identifiez rapidement qu'une erreur revient en boucle :\n\n`WARN Queue overflow, dropping order`\n\nLe pic ne cache plus un mystère : les logs expliquent immédiatement ce qui s'est produit.",
+    "Vous gérez un parc de distributeurs de boissons et remarquez un pic d'activité inhabituel dans les logs d'une machine. Aucun utilisateur n'a encore signalé de problème, mais vous souhaitez comprendre ce qui s'est passé avant que la situation ne s'aggrave.\n\nRécupérez les logs de la journée, ouvrez-les dans ViewLog, puis sélectionnez la période correspondant au pic. En quelques clics, ViewLog compare automatiquement cette période au reste des logs et met en évidence les événements qui apparaissent, disparaissent ou deviennent anormalement fréquents.\n\nVous identifiez rapidement qu'une erreur revient en boucle :\n\n`ERROR Queue overflow, dropping order`\n\nLe pic ne cache plus un mystère : les logs expliquent immédiatement ce qui s'est produit.",
   "uc.spike_steps":
-    "Récupérez les logs de la journée et ouvrez-les dans ViewLog.\nSélectionnez le pic directement sur le graphique.\nConsultez les motifs nouveaux, sur-représentés ou absents.\nOuvrez les événements associés pour comprendre l'origine du pic.",
+    "Récupérez les logs de la journée et ouvrez-les dans ViewLog.\nSélectionnez le pic directement sur le graphique.\nConsultez les motifs nouveaux, sur-représentés ou absents.",
 
   "uc.isolated_title": "Comment retrouver la cause d'un échec signalé par un utilisateur",
   "uc.isolated_desc":

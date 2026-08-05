@@ -176,9 +176,9 @@ export default {
 
   "uc.spike_title": "How to analyse a spike in your logs",
   "uc.spike_desc":
-    "You run a fleet of drink machines and notice an unusual burst of activity in one machine's logs. No user has reported anything yet, but you want to understand what happened before it gets worse.\n\nGrab the day's logs, open them in ViewLog, then select the period matching the spike. Within a few clicks, ViewLog compares that period to the rest of the logs and highlights the events that appear, disappear, or become unusually frequent.\n\nYou quickly find an error looping:\n\n`WARN Queue overflow, dropping order`\n\nThe spike is no longer a mystery: the logs explain what happened right away.",
+    "You run a fleet of drink machines and notice an unusual burst of activity in one machine's logs. No user has reported anything yet, but you want to understand what happened before it gets worse.\n\nGrab the day's logs, open them in ViewLog, then select the period matching the spike. Within a few clicks, ViewLog compares that period to the rest of the logs and highlights the events that appear, disappear, or become unusually frequent.\n\nYou quickly find an error looping:\n\n`ERROR Queue overflow, dropping order`\n\nThe spike is no longer a mystery: the logs explain what happened right away.",
   "uc.spike_steps":
-    "Grab the day's logs and open them in ViewLog.\nSelect the spike straight on the chart.\nReview the new, over-represented and absent patterns.\nOpen the related events to understand where the spike came from.",
+    "Grab the day's logs and open them in ViewLog.\nSelect the spike straight on the chart.\nReview the new, over-represented and absent patterns.",
 
   "uc.isolated_title": "How to trace the cause of a failure a user reported",
   "uc.isolated_desc":
