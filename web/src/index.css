@@ -1140,56 +1140,50 @@ body {
 }
 
 /* --- Cas d'usage ---
-   Une grille de cartes qui ne portent que la question. Rien n'est ouvert au
-   départ : la grille est la vue d'ensemble, ouvrir un cas est un geste. La carte
-   ouverte prend toute la largeur, parce que le texte et la démonstration doivent
-   tenir côte à côte : lire le problème en regardant le geste vaut mieux que
-   défiler de l'un à l'autre. */
+   Deux rôles séparés, et c'est ce qui règle la mise en page : la grille ne porte
+   que les déclencheurs, tous de même hauteur, et le détail vit dans un panneau
+   pleine largeur en dessous. Déplier une carte dans la grille laisserait forcément
+   un trou à côté d'elle, puisqu'un élément pleine largeur passe à la ligne. */
 .uc-grid {
   display: grid;
   /* `auto-fit` et non `auto-fill` : les colonnes vides sont supprimées, donc une
-     carte seule occupe toute la largeur et son titre tient sur une ligne. Avec
-     `auto-fill`, elle resterait coincée dans un tiers de la grille. */
+     carte seule occupe toute la largeur. Pas d'`align-items: start`, pour que
+     deux cartes voisines aient la même hauteur même si un titre passe sur deux
+     lignes. */
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 14px;
-  align-items: start;
   margin-top: 18px;
-}
-
-.uc-item {
-  padding: 0;
-  overflow: hidden;
-  transition: border-color 0.15s;
-}
-
-.uc-item[data-open="true"] {
-  grid-column: 1 / -1;
-  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
 .uc-h {
   margin: 0;
+  display: flex;
   font-size: inherit;
   font-weight: inherit;
 }
 
-.uc-head {
+.uc-card {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   width: 100%;
-  padding: 18px;
+  min-height: 82px;
+  padding: 16px 18px;
   font: inherit;
   color: inherit;
   text-align: left;
-  background: transparent;
-  border: 0;
   cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-.uc-head:hover {
-  background: var(--btn-hover);
+.uc-card:hover {
+  background: var(--surface-hover);
+}
+
+.uc-card[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--accent-soft);
 }
 
 .uc-num {
@@ -1204,7 +1198,7 @@ body {
   text-wrap: balance;
 }
 
-.uc-item[data-open="true"] .uc-q {
+.uc-card[aria-expanded="true"] .uc-q {
   color: var(--accent);
 }
 
@@ -1214,19 +1208,20 @@ body {
   transition: transform 0.18s;
 }
 
-.uc-item[data-open="true"] .uc-caret {
+.uc-card[aria-expanded="true"] .uc-caret {
   transform: rotate(90deg);
+  color: var(--accent);
 }
 
-/* Texte à gauche, démonstration à droite, puis les fonctionnalités sur toute la
-   largeur en dessous. La démonstration prend la part la plus large : c'est une
-   interface miniature, elle devient illisible en dessous d'une certaine taille. */
-.uc-panel {
+/* Texte à gauche, démonstration à droite, puis les capacités sur toute la
+   largeur. La démonstration prend la part la plus large : c'est une interface en
+   miniature, elle devient illisible en dessous d'une certaine taille. */
+.uc-detail {
   display: grid;
   grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
   gap: 26px;
-  padding: 20px 18px 22px;
-  border-top: 1px solid var(--grid);
+  margin-top: 14px;
+  padding: 22px;
 }
 
 .uc-desc {
@@ -1381,7 +1376,7 @@ body {
 /* Sous cette largeur, côte à côte ne tient plus : on empile, la démonstration
    d'abord puisque c'est elle qui explique. */
 @media (max-width: 900px) {
-  .uc-panel {
+  .uc-detail {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
   }
@@ -1391,14 +1386,11 @@ body {
 }
 
 @media (max-width: 560px) {
-  .uc-head {
+  .uc-card {
     grid-template-columns: minmax(0, 1fr) auto;
   }
   .uc-num {
     display: none;
-  }
-  .uc-cta-btn {
-    margin-left: 0;
   }
 }
 
