@@ -349,9 +349,13 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
     });
   }, [diffOn, entries, active, searchRe, dRange, bounds]);
 
+  // La zone est passée à la comparaison : sa DURÉE définit les fenêtres de
+  // référence, donc « le taux habituel sur une zone équivalente ailleurs »
+  // plutôt que « le taux moyen de tout le reste ». C'est ce qui empêche un
+  // second pic ailleurs dans le fichier d'écraser la comparaison.
   const diff = useMemo(
-    () => (complement ? comparePatterns(filtered, complement) : null),
-    [complement, filtered]
+    () => (complement ? comparePatterns(filtered, complement, dRange) : null),
+    [complement, filtered, dRange]
   );
 
   // --- Virtualisation du journal : on ne rend que les lignes visibles.

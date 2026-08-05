@@ -50,7 +50,13 @@ export default function PatternDiff({ diff, onPick }) {
       id: "absent",
       items: diff.absent,
       lead: () => "0×",
-      second: rates,
+      // Deux taux ne disent pas l'ampleur du manque. Le nombre qu'on ATTENDAIT
+      // ici au rythme habituel, lui, répond à « et alors ? » : « attendu ~232,
+      // vu 0 » se lit d'un coup, « 3 121 fois ailleurs » demande un calcul.
+      second: (g) =>
+        t("patterns.expected", {
+          count: Math.round(g.expected).toLocaleString(locale),
+        }),
       fold: (n) => t("patterns.fold_absent", { count: n.toLocaleString(locale) }),
     },
   ].filter((g) => g.items.length > 0);

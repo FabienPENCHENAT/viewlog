@@ -8,6 +8,8 @@ so each entry is filed under the day it went live.
 - Select a period, then compare that zone to the rest of the file: the patterns view tells you which ones exist only there, which ones are denser than elsewhere, and which ones have stopped. When nothing stands out, it says so.
 - A "Use cases" page: how to analyse a spike in your logs, and how to trace the cause of a failure a user reported. Each one opens on the steps and an animated walkthrough.
 ### Changed
+- Comparing a zone now measures each pattern against its usual share over a window of the same length elsewhere, instead of its share of the whole file
+- "Absent here" now tells you how many occurrences were expected in the zone, and stays quiet on a zone where none were
 - Grouping by pattern now masks a number stuck to its unit (`30000ms`, `512kB`), so one message no longer splits into as many patterns as it has values
 
 ## 2026-08-04

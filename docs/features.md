@@ -163,14 +163,43 @@ au reste du fichier**. Le résultat est classé en trois groupes :
   cœur, et il n'y a pas de plancher : une seule occurrence propre à la zone peut
   être la cause.
 - **Sur-représentés ici** : présents des deux côtés, mais occupant **3 fois
-  plus de lignes en proportion** dans la zone qu'en moyenne dans le reste du
-  fichier, et au moins 3 occurrences. Le plancher de 3 évite qu'un rapport
+  plus de lignes en proportion** dans la zone que sur une zone équivalente
+  ailleurs, et au moins 3 occurrences. Le plancher de 3 évite qu'un rapport
   calculé sur deux lignes remonte en tête. Le facteur, lui, est volontairement
   bas : un motif déjà fréquent partout ne peut pas atteindre un gros rapport,
   alors que sa hausse est souvent la plus parlante. Monter la barre écarte donc
   les incidents les plus francs avant les dérives molles.
-- **Absents ici** : présents partout ailleurs, disparus dans la zone. Le
-  battement de cœur qui s'arrête, qu'aucun défilement ne montre.
+- **Absents ici** : attendus dans la zone au rythme habituel, jamais vus. Le
+  battement de cœur qui s'arrête, qu'aucun défilement ne montre. La ligne
+  annonce le nombre qu'on attendait (« attendu ~232 ici, vu 0 »), parce que
+  c'est ça qui répond à « et alors ? ».
+
+#### La référence est un rythme, pas un total
+
+Le taux « ailleurs » n'est pas le total du reste du fichier divisé par ses
+lignes : c'est la **moyenne des taux mesurés sur des fenêtres de la même durée
+que la zone**. La question posée est donc « combien de place ce motif prend-il
+d'habitude sur une zone équivalente », et pas « quelle part occupe-t-il dans le
+fichier entier ». Trois conséquences, mesurées sur une semaine de logs
+contenant deux incidents connus :
+
+- **Un second pic ailleurs ne pollue plus la comparaison.** Il ne pèse plus que
+  deux fenêtres sur cent trente-cinq au lieu de ses milliers de lignes. Un
+  incident du samedi remontait à ×9 quand un autre incident traînait le
+  dimanche ; il remonte à ×39. Et ça ne demande aucune détection préalable : un
+  pic qu'on n'a pas repéré est amorti de la même façon.
+- **Le rythme du fichier ne fabrique plus de faux positifs.** Une nuit ne
+  contient presque que de la télémétrie ; comparée au fichier entier, cette
+  télémétrie sortait « sur-représentée » alors que c'est le comportement normal
+  d'une nuit. Comparée aux autres nuits, elle ne sort plus.
+- **Une sélection trop serrée reste lisible** : au sommet seul d'un pic, les
+  motifs de l'incident passent de ×20 à ×295, donc ils restent en tête même
+  avec les épaules de l'incident dans la référence.
+
+Le plancher du groupe « absents » porte sur le **nombre attendu dans la zone**,
+jamais sur le nombre d'occurrences ailleurs. Trois mille occurrences réparties
+sur une semaine n'annoncent rien pour vingt minutes de nuit : avec un plancher
+par nombre, une nuit parfaitement normale remontait trente-huit faux absents.
 
 Un seul groupe est déplié, les autres tiennent sur une ligne : la comparaison
 doit se lire plus vite que la liste complète, pas plus lentement. Un clic sur un
@@ -182,10 +211,12 @@ la zone, ce qui désigne une surcharge et non un nouveau comportement, et **« l
 reste du fichier est trop mince »** quand la sélection couvre presque tout le
 fichier et qu'il ne reste rien à quoi la comparer.
 
-Une conséquence à connaître : la référence étant le reste du fichier, **il faut
-brosser l'incident en entier, pas seulement son sommet**. Une zone réduite à la
-tranche la plus haute laisse le reste de l'incident dans la référence, et les
-motifs qui lui sont propres cessent d'être « seulement ici ».
+Reste un conseil, moins impérieux depuis que la référence est un rythme :
+**mieux vaut brosser l'incident en entier que son seul sommet**. Une zone
+réduite à la tranche la plus haute laisse les épaules de l'incident dans la
+référence, donc ses motifs cessent d'être « seulement ici » et basculent en
+« sur-représentés ». Ils y arrivent très haut (×295 sur le fichier de mesure),
+donc rien n'est perdu, mais le groupe le plus direct se vide.
 
 Les filtres de niveau et la recherche restent appliqués **des deux côtés** ;
 seule la période est inversée. Sans cela, avec un filtre ERROR actif, le reste
