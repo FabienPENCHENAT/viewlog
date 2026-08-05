@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../i18n/index.jsx";
+import { levelColor } from "../levels.js";
 import spikeFr from "../assets/demo-spike.fr.svg";
 import spikeEn from "../assets/demo-spike.en.svg";
 import isolatedFr from "../assets/demo-isolated.fr.svg";
@@ -25,6 +26,29 @@ const CASES = [
 // liste. Elles ne dépendent d'aucun cas d'usage : ce sont celles qu'on emploie
 // quel que soit ce qu'on cherche, d'où un bloc défini une seule fois.
 const CAPS = ["explore", "search", "analyse"];
+
+const LEVELS = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"];
+
+// Un paragraphe entièrement entre accents graves est une ligne de log. On la rend
+// comme dans le produit, niveau coloré puis message en monospace : citer une ligne
+// telle qu'elle apparaît vaut mieux que la décrire. Les accents graves sont déjà la
+// convention de la page /changelog.
+function paragraph(para, k) {
+  if (!(para.startsWith("`") && para.endsWith("`"))) {
+    return <p key={k} className="uc-desc">{para}</p>;
+  }
+  const raw = para.slice(1, -1);
+  const [first, ...rest] = raw.split(" ");
+  const lvl = LEVELS.includes(first) ? first : null;
+  return (
+    <p key={k} className="uc-logline">
+      {lvl && (
+        <span className="uc-log-lvl" style={{ "--c": levelColor(lvl) }}>{lvl}</span>
+      )}
+      <code>{lvl ? rest.join(" ") : raw}</code>
+    </p>
+  );
+}
 
 export default function UseCases() {
   const { t, lang } = useI18n();
@@ -78,11 +102,7 @@ export default function UseCases() {
           aria-labelledby={`uc-card-${active.id}`}
         >
           <div className="uc-text">
-            {t(`uc.${active.id}_desc`)
-              .split("\n\n")
-              .map((para, k) => (
-                <p key={k} className="uc-desc">{para}</p>
-              ))}
+            {t(`uc.${active.id}_desc`).split("\n\n").map(paragraph)}
 
             <h3 className="uc-sub">{t("uc.steps")}</h3>
             {/* Une liste ordonnée, parce que c'en est une : les quatre temps se

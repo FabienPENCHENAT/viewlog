@@ -185,13 +185,13 @@ export default {
   "uc.spike_steps":
     "Sélectionnez le pic sur le graphique.\nViewLog compare cette période au reste du fichier.\nConsultez les motifs nouveaux, sur-représentés ou absents.\nOuvrez les lignes concernées pour remonter à la cause du pic.",
 
-  "uc.isolated_title": "Comment retrouver la cause d'une erreur signalée par un client",
+  "uc.isolated_title": "Comment retrouver la cause d'un échec signalé par un utilisateur",
   "uc.isolated_desc":
-    "Un client signale qu'une commande a échoué vers 14 h. Le graphique ne montre aucun pic, et pour une bonne raison : l'erreur n'est apparue que cinq fois, parce qu'il a réessayé cinq fois. Cherchée dans le fichier entier, elle est noyée dans le trafic normal.\n\nAvec ViewLog, resserrez la fenêtre autour de l'heure annoncée, puis regardez les motifs de cette seule période. La liste devient assez courte pour qu'une erreur vue cinq fois se remarque immédiatement.",
+    "Un utilisateur vous indique qu'il n'a pas pu commander un Caramel Latte en fin de matinée. L'application affiche simplement que la préparation a échoué, sans autre explication.\n\nVous connaissez uniquement une plage horaire approximative. Pendant ce temps, des centaines d'autres boissons ont été préparées avec succès. L'erreur est noyée dans les logs et le graphique ne montre aucune anomalie particulière.\n\nAvec ViewLog, sélectionnez simplement la période concernée. Affinez progressivement la fenêtre d'analyse jusqu'à isoler quelques minutes, puis explorez uniquement les événements qui se sont produits pendant cet intervalle.\n\nEn quelques clics, les tentatives de préparation du Caramel Latte apparaissent aux côtés de l'erreur responsable de l'échec :\n\n`ERROR Ingredient unavailable: caramel_syrup`\n\nLa cause devient immédiatement évidente, même si elle n'a jamais été affichée à l'utilisateur.",
   "uc.isolated_steps":
-    "Sélectionnez sur le graphique la période annoncée par le client.\nAffinez les bornes à la barre temporelle, jusqu'à ne garder que quelques minutes.\nPassez en vue Motifs : la liste ne contient plus que ce qui s'est produit là.\nRepérez l'erreur vue quelques fois, et ouvrez ses lignes.",
+    "Sélectionnez la plage horaire indiquée par l'utilisateur.\nAffinez progressivement la fenêtre d'analyse grâce à la barre temporelle.\nConsultez les événements ou les motifs de cette période.\nOuvrez les lignes concernées pour comprendre la cause de l'échec.",
   "uc.isolated_demo_alt":
-    "Démonstration animée : sélectionner sur le graphique la période annoncée, resserrer les bornes à la barre temporelle, puis repérer dans les motifs une erreur vue cinq fois",
+    "Démonstration animée : sélectionner la plage horaire indiquée, resserrer la fenêtre à la barre temporelle, puis repérer dans les motifs l'ingrédient manquant qui a fait échouer la préparation",
 
   "nav.use_cases": "Cas d'usage",
   "nav.faq": "FAQ",

@@ -61,6 +61,10 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 // et évite des positions en dur qui ne tiendraient pas d'une langue à l'autre
 // (le français est plus long).
 const est = (s, size, mono = false) => s.length * size * (mono ? 0.6 : 0.53);
+// Les noms de niveau sont en capitales, donc nettement plus larges que la moyenne
+// d'une chaîne courante : avec le facteur générique, le compte de DEBUG, WARN ou
+// ERROR venait se coller au libellé.
+const estCaps = (s, size) => s.length * size * 0.7;
 const rect = (x, y, w, h, fill, o = {}) =>
   `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"` +
   `${o.rx ? ` rx="${o.rx}"` : ""}${o.stroke ? ` stroke="${o.stroke}"` : ""}` +
@@ -144,32 +148,35 @@ const SPIKE = {
   ],
 };
 
-// La machine n'a plus de grains et ne le sait pas. Le client réessaie cinq fois,
-// donc l'erreur apparaît cinq fois : invisible dans le fichier entier, évidente
-// dès que la fenêtre se resserre.
+// Un utilisateur n'a pas pu commander son Caramel Latte en fin de matinée.
+// L'application lui a seulement dit que la préparation avait échoué. Pendant ce
+// temps, des centaines d'autres boissons sont sorties normalement : l'erreur est
+// noyée, et le graphique ne montre rien. Elle devient évidente dès que la fenêtre
+// se resserre sur quelques minutes.
 const ISOLATED = {
   rowsAll: [
-    ["INFO", "Order 5480 completed"],
-    ["INFO", "Espresso pulled in 9200ms"],
-    ["DEBUG", "Bean hopper at 6%"],
-    ["INFO", "Cup detected on tray 2"],
-    ["INFO", "Order 5481 completed"],
+    ["INFO", "Drink ready in 8900ms"],
+    ["INFO", "Order 7690 accepted: Flat White"],
+    ["DEBUG", "Milk level at 62%"],
+    ["INFO", "Drink ready in 9100ms"],
+    ["INFO", "Idle standby entered"],
   ],
   rowsZone: [
-    ["INFO", "Order 5512 accepted"],
-    ["ERROR", "Bean hopper empty, cannot grind"],
-    ["WARN", "Retrying order 5512 (2/5)"],
-    ["ERROR", "Bean hopper empty, cannot grind"],
-    ["WARN", "Retrying order 5512 (3/5)"],
+    ["INFO", "Order 7734 accepted: Caramel Latte"],
+    ["ERROR", "Ingredient unavailable: caramel_syrup"],
+    ["WARN", "Preparation failed for order 7734"],
+    ["INFO", "Order 7735 accepted: Flat White"],
+    ["INFO", "Drink ready in 8700ms"],
   ],
-  // Trié par fréquence : l'erreur cherchée est en troisième position, donc
-  // visible sans défiler. C'est ce que le resserrage de la fenêtre a rendu
-  // possible, une liste assez courte pour qu'un motif à cinq occurrences se voie.
+  // Trié par fréquence : l'erreur cherchée arrive en troisième position, donc
+  // visible sans défiler, et les tentatives de Caramel Latte juste en dessous.
+  // C'est le resserrage de la fenêtre qui rend la liste assez courte pour qu'un
+  // motif vu trois fois s'y remarque.
   flat: [
-    ["INFO", "Order {n} completed", "Order 5512 completed"],
-    ["INFO", "Espresso pulled in {n}ms", "Espresso pulled in 9200ms"],
-    ["ERROR", "Bean hopper empty, cannot grind", "Bean hopper empty, cannot grind"],
-    ["WARN", "Retrying order {n} ({n}/{n})", "Retrying order 5512 (2/5)"],
+    ["INFO", "Drink ready in {n}ms", "Drink ready in 8900ms"],
+    ["INFO", "Order {n} accepted: Flat White", "Order 7735 accepted: Flat White"],
+    ["ERROR", "Ingredient unavailable: caramel_syrup", "Ingredient unavailable: caramel_syrup"],
+    ["INFO", "Order {n} accepted: Caramel Latte", "Order 7734 accepted: Caramel Latte"],
   ],
   hlRow: 2, // la ligne mise en évidence dans la liste des motifs
 };
@@ -244,34 +251,34 @@ const TXT = {
   },
   isolated: {
     fr: {
-      aria: "ViewLog : resserrer la fenêtre sur l'heure signalée par un client, puis repérer dans les motifs une erreur vue cinq fois",
+      aria: "ViewLog : resserrer la fenêtre sur la plage horaire indiquée par un utilisateur, puis repérer dans les motifs l'ingrédient manquant qui a fait échouer la préparation",
       periods: [
         ["12/03 08:14 → 14/03 18:02", "· 2 j 9 h"],
-        ["13/03 13:40 → 13/03 14:20", "· 40 min"],
-        ["13/03 14:02 → 13/03 14:10", "· 8 min"],
+        ["13/03 11:10 → 13/03 11:50", "· 40 min"],
+        ["13/03 11:28 → 13/03 11:34", "· 6 min"],
       ],
-      counts: ["412 908 entrées", "1 204 entrées", "148 entrées", "148 entrées → 9 motifs uniques"],
-      patternsSub: "9 uniques · les plus fréquents d'abord",
+      counts: ["412 908 entrées", "1 204 entrées", "96 entrées", "96 entrées → 8 motifs uniques"],
+      patternsSub: "8 uniques · les plus fréquents d'abord",
       numAll: ["9 118", "9 119", "9 120", "9 121", "9 122"],
       tsAll: ["13/03 09:41:02", "13/03 09:41:04", "13/03 09:41:20", "13/03 09:41:31", "13/03 09:41:48"],
       numZone: ["61 447", "61 448", "61 449", "61 452", "61 453"],
-      tsZone: ["13/03 14:03:12", "13/03 14:03:12", "13/03 14:03:19", "13/03 14:03:41", "13/03 14:03:47"],
-      flatCounts: ["58×", "46×", "5×", "4×"],
+      tsZone: ["13/03 11:31:07", "13/03 11:31:07", "13/03 11:31:08", "13/03 11:31:22", "13/03 11:31:31"],
+      flatCounts: ["34×", "19×", "3×", "3×"],
     },
     en: {
-      aria: "ViewLog: narrowing the window down to the time a customer reported, then spotting an error seen five times in the patterns",
+      aria: "ViewLog: narrowing the window down to the time a user reported, then spotting in the patterns the missing ingredient that made the drink fail",
       periods: [
         ["03/12, 08:14 AM → 03/14, 06:02 PM", "· 2 d 9 h"],
-        ["03/13, 01:40 PM → 03/13, 02:20 PM", "· 40 min"],
-        ["03/13, 02:02 PM → 03/13, 02:10 PM", "· 8 min"],
+        ["03/13, 11:10 AM → 03/13, 11:50 AM", "· 40 min"],
+        ["03/13, 11:28 AM → 03/13, 11:34 AM", "· 6 min"],
       ],
-      counts: ["412,908 entries", "1,204 entries", "148 entries", "148 entries → 9 unique patterns"],
-      patternsSub: "9 unique · most frequent first",
+      counts: ["412,908 entries", "1,204 entries", "96 entries", "96 entries → 8 unique patterns"],
+      patternsSub: "8 unique · most frequent first",
       numAll: ["9,118", "9,119", "9,120", "9,121", "9,122"],
       tsAll: ["03/13, 09:41:02 AM", "03/13, 09:41:04 AM", "03/13, 09:41:20 AM", "03/13, 09:41:31 AM", "03/13, 09:41:48 AM"],
       numZone: ["61,447", "61,448", "61,449", "61,452", "61,453"],
-      tsZone: ["03/13, 02:03:12 PM", "03/13, 02:03:12 PM", "03/13, 02:03:19 PM", "03/13, 02:03:41 PM", "03/13, 02:03:47 PM"],
-      flatCounts: ["58×", "46×", "5×", "4×"],
+      tsZone: ["03/13, 11:31:07 AM", "03/13, 11:31:07 AM", "03/13, 11:31:08 AM", "03/13, 11:31:22 AM", "03/13, 11:31:31 AM"],
+      flatCounts: ["34×", "19×", "3×", "3×"],
     },
   },
 };
@@ -669,12 +676,12 @@ function build(name, lang) {
   let cx = 18;
   const cy = ty + 40;
   for (const [name2, n] of l.chips) {
-    const w = est(name2, 12) + est(n, 12) + 42;
+    const w = estCaps(name2, 12) + est(n, 12) + 44;
     toolbar +=
       rect(cx.toFixed(1), cy, w.toFixed(1), 26, K.surface, { rx: 13, stroke: LVC[name2], sw: 1 }) +
       `<circle cx="${(cx + 15).toFixed(1)}" cy="${cy + 13}" r="4.5" fill="${LVC[name2]}"/>` +
       text(cx + 25, cy + 18, name2, { size: 12, weight: 600, fill: K.ink2 }) +
-      text(cx + 25 + est(name2, 12) + 8, cy + 18, n, { size: 12, fill: K.muted });
+      text(cx + 25 + estCaps(name2, 12) + 10, cy + 18, n, { size: 12, fill: K.muted });
     cx += w + 6;
   }
 

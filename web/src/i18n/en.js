@@ -180,13 +180,13 @@ export default {
   "uc.spike_steps":
     "Select the spike on the chart.\nViewLog compares that period to the rest of the file.\nReview the new, over-represented and absent patterns.\nOpen the lines involved to trace the cause of the spike.",
 
-  "uc.isolated_title": "How to trace an error a customer reported",
+  "uc.isolated_title": "How to trace the cause of a failure a user reported",
   "uc.isolated_desc":
-    "A customer tells you an order failed around 2 PM. The chart shows no spike, and for good reason: the error only appeared five times, because they retried five times. Searched across the whole file, it is buried in normal traffic.\n\nWith ViewLog, narrow the window around the time you were given, then look at the patterns for that period alone. The list gets short enough for an error seen five times to stand out at once.",
+    "A user tells you they could not order a Caramel Latte in the late morning. The app simply says the drink failed, with no further explanation.\n\nAll you know is a rough time range. During that time, hundreds of other drinks were served just fine. The error is buried in the logs, and the chart shows nothing unusual.\n\nWith ViewLog, just select the period in question. Narrow the analysis window step by step down to a few minutes, then look only at the events that happened in that interval.\n\nWithin a few clicks, the Caramel Latte attempts show up next to the error behind the failure:\n\n`ERROR Ingredient unavailable: caramel_syrup`\n\nThe cause becomes obvious at once, even though it was never shown to the user.",
   "uc.isolated_steps":
-    "Select the period the customer reported on the chart.\nFine-tune the bounds with the time range slider, down to a few minutes.\nSwitch to the Patterns view: the list now holds only what happened there.\nSpot the error seen a few times, and open its lines.",
+    "Select the time range the user reported.\nNarrow the analysis window step by step with the time range slider.\nReview the events or the patterns for that period.\nOpen the lines involved to understand the cause of the failure.",
   "uc.isolated_demo_alt":
-    "Animated walkthrough: selecting the reported period on the chart, narrowing the bounds with the time range slider, then spotting an error seen five times in the patterns",
+    "Animated walkthrough: selecting the reported time range, narrowing the window with the time range slider, then spotting in the patterns the missing ingredient that made the drink fail",
 
   "nav.use_cases": "Use cases",
   "nav.faq": "FAQ",
