@@ -28,7 +28,11 @@ export const MIN_COUNT = 3;
 // vu 14 fois (×5,4) et écartait un `Function exited with runtime exit error`
 // vu 267 fois (×2,9), qui était l'incident. Un motif déjà fréquent partout ne
 // PEUT PAS atteindre un gros rapport, alors que sa hausse est la plus parlante.
-export const MIN_RATIO = 2.5;
+//
+// Arbitrage assumé à 3 : ce même `Function exited` (×2,9) reste sous la barre
+// sur un brossage réduit au sommet du pic. Sur le pic entier, qui est l'usage
+// recommandé, il remonte de toute façon dans « seulement ici ».
+export const MIN_RATIO = 3;
 
 // Le complément doit peser assez pour servir de référence. Si la sélection
 // couvre presque tout le fichier, « le reste » ne dit plus rien : mieux vaut

@@ -162,7 +162,7 @@ au reste du fichier**. Le résultat est classé en trois groupes :
 - **Seulement ici** : absents du reste du fichier, triés par nombre. C'est le
   cœur, et il n'y a pas de plancher : une seule occurrence propre à la zone peut
   être la cause.
-- **Sur-représentés ici** : présents des deux côtés, mais occupant **2,5 fois
+- **Sur-représentés ici** : présents des deux côtés, mais occupant **3 fois
   plus de lignes en proportion** dans la zone qu'en moyenne dans le reste du
   fichier, et au moins 3 occurrences. Le plancher de 3 évite qu'un rapport
   calculé sur deux lignes remonte en tête. Le facteur, lui, est volontairement
