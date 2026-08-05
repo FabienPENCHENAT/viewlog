@@ -133,9 +133,9 @@ const SPIKE = {
   rowsZone: [
     ["INFO", "Order 88214 accepted"],
     ["WARN", "Queue overflow, dropping order 88215"],
-    ["ERROR", "Grinder jammed on bean batch 7c1f9a2e"],
-    ["WARN", "Retrying order 3/5"],
-    ["FATAL", "Boiler pressure critical, halting"],
+    ["WARN", "Queue overflow, dropping order 88216"],
+    ["ERROR", "Order timed out after 30000ms"],
+    ["FATAL", "Scheduler saturated, halting intake"],
   ],
   flat: [
     ["INFO", "Espresso pulled in {n}ms", "Espresso pulled in 9400ms"],
@@ -143,10 +143,13 @@ const SPIKE = {
     ["INFO", "Steam wand purge {n}ms", "Steam wand purge 1200ms"],
     ["WARN", "Retrying order {n}/{n}", "Retrying order 3/5"],
   ],
+  // La trouvaille en premier, puis l'aggravation : la file débordait, les
+  // commandes ont fini par expirer, et l'ordonnanceur a coupé les entrées. C'est
+  // ce que « avant que la situation ne s'aggrave » veut dire.
   only: [
-    ["ERROR", "Grinder jammed on bean batch {hex}", "Grinder jammed on bean batch 7c1f9a2e"],
     ["WARN", "Queue overflow, dropping order {n}", "Queue overflow, dropping order 88215"],
-    ["FATAL", "Boiler pressure critical, halting", "Boiler pressure critical, halting"],
+    ["ERROR", "Order timed out after {n}ms", "Order timed out after 30000ms"],
+    ["FATAL", "Scheduler saturated, halting intake", "Scheduler saturated, halting intake"],
   ],
 };
 
@@ -237,7 +240,7 @@ const TXT = {
       numZone: ["204 881", "204 882", "204 883", "204 884", "204 885"],
       tsZone: ["14/03 08:02:11", "14/03 08:02:11", "14/03 08:02:12", "14/03 08:02:12", "14/03 08:02:19"],
       flatCounts: ["9 480×", "6 902×", "3 217×", "1 044×"],
-      onlyCounts: ["1 902×", "874×", "1×"],
+      onlyCounts: ["2 418×", "312×", "1×"],
     },
     en: {
       aria: "ViewLog: brushing a spike and comparing it to the rest of the log file",
@@ -256,7 +259,7 @@ const TXT = {
       numZone: ["204,881", "204,882", "204,883", "204,884", "204,885"],
       tsZone: ["03/14, 08:02:11 AM", "03/14, 08:02:11 AM", "03/14, 08:02:12 AM", "03/14, 08:02:12 AM", "03/14, 08:02:19 AM"],
       flatCounts: ["9,480×", "6,902×", "3,217×", "1,044×"],
-      onlyCounts: ["1,902×", "874×", "1×"],
+      onlyCounts: ["2,418×", "312×", "1×"],
     },
   },
   isolated: {
