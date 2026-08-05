@@ -109,12 +109,13 @@ const SPIKE_CURVES = sample(
     150 * bell(x, 21, 0.95) + 1880 * bell(x, 34.1, 2.2) + 90 * bell(x, 44.5, 1.05)
 );
 
-// Scénario 2 : une journée calme. Aucun pic : à peine un frémissement là où
-// l'erreur se produit, ce qui est justement le sujet. On ne trouve pas la zone
-// en regardant la courbe, on la connaît parce que le client a donné l'heure.
+// Scénario 2 : une journée calme. Le frémissement à l'endroit de l'erreur est
+// volontairement à la limite du perceptible, et c'est tout le sujet : on ne
+// trouve pas cette zone en regardant la courbe, on la connaît parce que
+// l'utilisateur a donné une heure approximative.
 const CALM_CURVES = sample(
-  (x) => 62 + 13 * Math.sin(x * 0.55) + 7 * Math.sin(x * 1.19 + 0.7) + 15 * bell(x, 26.4, 0.5),
-  (x) => 2 + 1.4 * Math.sin(x * 0.83 + 0.3) + 14 * bell(x, 26.4, 0.45)
+  (x) => 62 + 13 * Math.sin(x * 0.55) + 7 * Math.sin(x * 1.19 + 0.7) + 4.5 * bell(x, 26.4, 0.5),
+  (x) => 2 + 1.4 * Math.sin(x * 0.83 + 0.3) + 4 * bell(x, 26.4, 0.45)
 );
 
 /* ================= Contenu, par scénario ================= */
@@ -257,13 +258,13 @@ const TXT = {
         ["13/03 11:10 → 13/03 11:50", "· 40 min"],
         ["13/03 11:28 → 13/03 11:34", "· 6 min"],
       ],
-      counts: ["412 908 entrées", "1 204 entrées", "96 entrées", "96 entrées → 8 motifs uniques"],
+      counts: ["412 908 entrées", "17 240 entrées", "2 568 entrées", "2 568 entrées → 8 motifs uniques"],
       patternsSub: "8 uniques · les plus fréquents d'abord",
       numAll: ["9 118", "9 119", "9 120", "9 121", "9 122"],
       tsAll: ["13/03 09:41:02", "13/03 09:41:04", "13/03 09:41:20", "13/03 09:41:31", "13/03 09:41:48"],
       numZone: ["61 447", "61 448", "61 449", "61 452", "61 453"],
       tsZone: ["13/03 11:31:07", "13/03 11:31:07", "13/03 11:31:08", "13/03 11:31:22", "13/03 11:31:31"],
-      flatCounts: ["34×", "19×", "3×", "3×"],
+      flatCounts: ["1 345×", "1 208×", "3×", "3×"],
     },
     en: {
       aria: "ViewLog: narrowing the window down to the time a user reported, then spotting in the patterns the missing ingredient that made the drink fail",
@@ -272,13 +273,13 @@ const TXT = {
         ["03/13, 11:10 AM → 03/13, 11:50 AM", "· 40 min"],
         ["03/13, 11:28 AM → 03/13, 11:34 AM", "· 6 min"],
       ],
-      counts: ["412,908 entries", "1,204 entries", "96 entries", "96 entries → 8 unique patterns"],
+      counts: ["412,908 entries", "17,240 entries", "2,568 entries", "2,568 entries → 8 unique patterns"],
       patternsSub: "8 unique · most frequent first",
       numAll: ["9,118", "9,119", "9,120", "9,121", "9,122"],
       tsAll: ["03/13, 09:41:02 AM", "03/13, 09:41:04 AM", "03/13, 09:41:20 AM", "03/13, 09:41:31 AM", "03/13, 09:41:48 AM"],
       numZone: ["61,447", "61,448", "61,449", "61,452", "61,453"],
       tsZone: ["03/13, 11:31:07 AM", "03/13, 11:31:07 AM", "03/13, 11:31:08 AM", "03/13, 11:31:22 AM", "03/13, 11:31:31 AM"],
-      flatCounts: ["34×", "19×", "3×", "3×"],
+      flatCounts: ["1,345×", "1,208×", "3×", "3×"],
     },
   },
 };
