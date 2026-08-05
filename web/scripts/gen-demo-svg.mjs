@@ -98,8 +98,13 @@ function sample(totalAt, errAt) {
   return { lineT: poly(tot), lineE: poly(er), areaT: area(tot), areaE: area(er) };
 }
 
-// Scénario 1 : une ruée. Le total explose, l'erreur culmine au même endroit et
-// nettement plus bas.
+// Scénario 1 : une ruée. Le total explose, mais la courbe rouge reste basse, et
+// ce n'est pas un oubli : le graphe de l'app ne trace que `total` et `ERROR`
+// (voir components/Timeline.jsx), or ce pic est fait de WARN. Sur les 24 106
+// lignes de la zone, seules 313 sont des erreurs, les délais dépassés et le
+// FATAL final, soit 1,3 % : la cloche des erreurs vaut donc 1,3 % de celle du
+// total. C'est même l'argument du cas d'usage, l'incident ne se lit sur aucune
+// des deux courbes, seul le volume alerte.
 const SPIKE_CURVES = sample(
   (x) =>
     52 + 16 * Math.sin(x * 0.62) + 9 * Math.sin(x * 1.31 + 1.2) +
@@ -107,7 +112,7 @@ const SPIKE_CURVES = sample(
     260 * bell(x, 44.5, 1.1),
   (x) =>
     13 + 6 * Math.sin(x * 0.71 + 0.4) + 120 * bell(x, 7.5, 0.85) +
-    150 * bell(x, 21, 0.95) + 1880 * bell(x, 34.1, 2.2) + 90 * bell(x, 44.5, 1.05)
+    150 * bell(x, 21, 0.95) + 45 * bell(x, 34.1, 2.2) + 90 * bell(x, 44.5, 1.05)
 );
 
 // Scénario 2 : une journée calme. Le frémissement à l'endroit de l'erreur est
