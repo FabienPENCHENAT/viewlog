@@ -187,9 +187,9 @@ export default {
 
   "uc.isolated_title": "Comment retrouver la cause d'un échec signalé par un utilisateur",
   "uc.isolated_desc":
-    "Un utilisateur vous indique qu'il n'a pas pu commander un Caramel Latte en fin de matinée. L'application affiche simplement que la préparation a échoué, sans autre explication.\n\nVous connaissez uniquement une plage horaire approximative. Pendant ce temps, des centaines d'autres boissons ont été préparées avec succès. L'erreur est noyée dans les logs et le graphique ne montre aucune anomalie particulière.\n\nAvec ViewLog, sélectionnez simplement la période concernée. Affinez progressivement la fenêtre d'analyse jusqu'à isoler quelques minutes, puis explorez uniquement les événements qui se sont produits pendant cet intervalle.\n\nEn quelques clics, les tentatives de préparation du Caramel Latte apparaissent aux côtés de l'erreur responsable de l'échec :\n\n`ERROR Ingredient unavailable: caramel_syrup`\n\nLa cause devient immédiatement évidente, même si elle n'a jamais été affichée à l'utilisateur.",
+    "Un utilisateur vous signale qu'il n'a pas pu commander un Caramel Latte, mais vous ne connaissez qu'une plage horaire approximative.\n\nRécupérez les logs de la journée, ouvrez-les dans ViewLog, puis sélectionnez la période concernée pour vous concentrer immédiatement sur les événements pertinents.\n\nEn quelques clics, ViewLog fait ressortir la véritable cause de l'échec :\n\n`ERROR Ingredient unavailable: caramel_syrup`",
   "uc.isolated_steps":
-    "Sélectionnez la plage horaire indiquée par l'utilisateur.\nAffinez progressivement la fenêtre d'analyse grâce à la barre temporelle.\nConsultez les événements ou les motifs de cette période.\nOuvrez les lignes concernées pour comprendre la cause de l'échec.",
+    "Sélectionnez la plage horaire indiquée par l'utilisateur.\nAffinez progressivement la fenêtre d'analyse grâce à la barre temporelle.\nConsultez les motifs de cette période.\nOuvrez les lignes concernées pour comprendre la cause de l'échec.",
   "uc.isolated_demo_alt":
     "Démonstration animée : sélectionner la plage horaire indiquée, resserrer la fenêtre à la barre temporelle, repérer dans les motifs l'ingrédient manquant, puis ouvrir ses trois occurrences dans le journal",
 

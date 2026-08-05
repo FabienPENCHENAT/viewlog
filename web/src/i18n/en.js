@@ -182,9 +182,9 @@ export default {
 
   "uc.isolated_title": "How to trace the cause of a failure a user reported",
   "uc.isolated_desc":
-    "A user tells you they could not order a Caramel Latte in the late morning. The app simply says the drink failed, with no further explanation.\n\nAll you know is a rough time range. During that time, hundreds of other drinks were served just fine. The error is buried in the logs, and the chart shows nothing unusual.\n\nWith ViewLog, just select the period in question. Narrow the analysis window step by step down to a few minutes, then look only at the events that happened in that interval.\n\nWithin a few clicks, the Caramel Latte attempts show up next to the error behind the failure:\n\n`ERROR Ingredient unavailable: caramel_syrup`\n\nThe cause becomes obvious at once, even though it was never shown to the user.",
+    "A user tells you they could not order a Caramel Latte, but all you have is a rough time range.\n\nGrab the day's logs, open them in ViewLog, then select the period in question to focus straight away on the events that matter.\n\nWithin a few clicks, ViewLog surfaces the real cause of the failure:\n\n`ERROR Ingredient unavailable: caramel_syrup`",
   "uc.isolated_steps":
-    "Select the time range the user reported.\nNarrow the analysis window step by step with the time range slider.\nReview the events or the patterns for that period.\nOpen the lines involved to understand the cause of the failure.",
+    "Select the time range the user reported.\nNarrow the analysis window step by step with the time range slider.\nReview the patterns for that period.\nOpen the lines involved to understand the cause of the failure.",
   "uc.isolated_demo_alt":
     "Animated walkthrough: selecting the reported time range, narrowing the window with the time range slider, spotting the missing ingredient in the patterns, then opening its three occurrences in the journal",
 
