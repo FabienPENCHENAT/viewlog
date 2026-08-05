@@ -6,6 +6,7 @@ import App from "./App.jsx";
 import Home from "./pages/Home.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Faq from "./pages/Faq.jsx";
+import UseCases from "./pages/UseCases.jsx";
 import Legal from "./pages/Legal.jsx";
 import Changelog from "./pages/Changelog.jsx";
 import Stats from "./pages/Stats.jsx";
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "dashboard/:id", element: <Dashboard /> },
+      { path: "cas-usage", element: <UseCases /> },
       { path: "faq", element: <Faq /> },
       { path: "mentions-legales", element: <Legal /> },
       { path: "changelog", element: <Changelog /> },

@@ -29,6 +29,7 @@ const LABELS = {
   import: "Imports",
   open: "Réouvertures",
   home: "Accueil",
+  use_cases: "Cas d'usage",
   faq: "FAQ",
   changelog: "Nouveautés",
   legal: "Mentions légales",

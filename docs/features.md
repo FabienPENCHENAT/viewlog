@@ -206,6 +206,31 @@ Fichiers de plusieurs dizaines de Mo / centaines de milliers de lignes pris en
 charge. Le traitement porte sur le **premier million de lignes** ; l'affichage
 reste fluide grâce à la virtualisation.
 
+## Page « cas d'usage »
+
+`/cas-usage` pose quatre situations concrètes, formulées comme l'utilisateur se
+les pose, et donne le geste qui y répond. La valeur de ViewLog est en effet
+**invisible sur une capture d'écran** : elle est dans le geste, pas dans un
+tableau de logs que tout le monde a déjà vu.
+
+Chaque cas se déplie sur un exposé du problème, ce que l'outil apporte, et **les
+fonctionnalités accessoires qu'on croise au passage**, ce qui donne à la page son
+second rôle : servir de mode d'emploi, là où la FAQ n'explique que la
+confidentialité.
+
+Le premier cas, la comparaison d'un pic au reste du fichier, est illustré par une
+**démonstration animée**. Ce n'est pas un enregistrement d'écran mais une
+reconstruction en SVG, pour trois raisons : un enregistrement montrerait de vrais
+logs, ce qui est intenable ici ; les libellés d'un GIF ne sont pas traduisibles,
+alors que les deux versions sortent du même générateur
+(`web/scripts/gen-demo-svg.mjs`) ; et le fichier pèse 6 Ko compressé au lieu de
+plusieurs Mo, en restant net à toutes les tailles. Le mouvement respecte
+`prefers-reduced-motion` en se figeant sur l'image du résultat.
+
+Une seule démonstration existe, volontairement : une reconstruction peut vieillir
+en silence quand l'interface bouge, et une démonstration fausse est pire que pas
+de démonstration.
+
 ## Langues
 
 Interface **français / anglais**, bascule manuelle, préférence mémorisée

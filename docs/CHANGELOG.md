@@ -6,6 +6,7 @@ so each entry is filed under the day it went live.
 ## 2026-08-05
 ### Added
 - Select a period, then compare that zone to the rest of the file: the patterns view tells you which ones exist only there, which ones are denser than elsewhere, and which ones have stopped. When nothing stands out, it says so.
+- A "Use cases" page: four real situations, the gesture that answers each one, and an animated walkthrough of the spike comparison
 ### Changed
 - Grouping by pattern now masks a number stuck to its unit (`30000ms`, `512kB`), so one message no longer splits into as many patterns as it has values
 

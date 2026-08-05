@@ -25,7 +25,7 @@ const OUTCOMES = new Set(["success", "fail"]);
 // d'un onglet à l'autre sans repasser par l'accueil.
 const SOURCES = new Set(["drop", "picker", "paste", "tab_add", "folder", "recent", "direct", "tab"]);
 const SIZES = new Set(["s", "m", "l", "xl"]);
-const PAGES = new Set(["home", "faq", "changelog", "legal"]);
+const PAGES = new Set(["home", "use_cases", "faq", "changelog", "legal"]);
 // Toute feature ajoutée au front doit être déclarée ici, sinon elle est
 // enregistrée sans nom (et remontée en "inconnu" dans le dashboard privé).
 const FEATURES = new Set([

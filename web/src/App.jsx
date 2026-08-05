@@ -8,6 +8,7 @@ import OfflineSwitch from "./components/OfflineSwitch.jsx";
 // events import/open, pas ici.
 const PAGE_BY_PATH = {
   "/": "home",
+  "/cas-usage": "use_cases",
   "/faq": "faq",
   "/changelog": "changelog",
   "/mentions-legales": "legal",
@@ -46,6 +47,12 @@ function TopNav() {
   return (
     <nav className="topnav">
       <NavLink
+        to="/cas-usage"
+        className={({ isActive }) => `nav-link ${isActive ? "nav-link--on" : ""}`}
+      >
+        {t("nav.use_cases")}
+      </NavLink>
+      <NavLink
         to="/faq"
         className={({ isActive }) => `nav-link ${isActive ? "nav-link--on" : ""}`}
       >
@@ -63,6 +70,7 @@ function Footer() {
       <div className="footer-inner">
         <span className="footer-brand">ViewLog · © {year}</span>
         <nav className="footer-links">
+          <Link to="/cas-usage">{t("nav.use_cases")}</Link>
           <Link to="/faq">{t("nav.faq")}</Link>
           <Link to="/changelog">{t("footer.changelog")}</Link>
           <Link to="/mentions-legales">{t("footer.legal")}</Link>
