@@ -147,9 +147,14 @@ qu'il a de valeurs.
 
 Trié par fréquence, un pic ne révèle rien : il multiplie tout par le même
 facteur, donc le **bruit déjà présent reste en tête** et la cause, souvent peu
-fréquente, reste invisible. D'où la comparaison, qui raisonne en **taux et non
-en comptes** : un motif à 5 % des lignes dedans et 5 % dehors est du bruit même
-s'il passe de 12 à 3 400 occurrences.
+fréquente, reste invisible. D'où la comparaison, qui raisonne en **part des
+lignes et non en nombre d'occurrences** : un motif à 5 % des lignes dedans et
+5 % dehors est du bruit même s'il passe de 12 à 3 400 occurrences.
+
+La conséquence tient en une phrase : **un motif qui grossit au même rythme que
+le reste de la zone ne remonte jamais**, quels que soient les chiffres. C'est le
+pic d'utilisation, et il est écarté par construction. Ne remonte que ce qui
+grossit plus vite que le reste, donc ce qui a changé le mélange.
 
 Dès qu'une période est sélectionnée, la vue Motifs propose de **comparer la zone
 au reste du fichier**. Le résultat est classé en trois groupes :
@@ -157,10 +162,13 @@ au reste du fichier**. Le résultat est classé en trois groupes :
 - **Seulement ici** : absents du reste du fichier, triés par nombre. C'est le
   cœur, et il n'y a pas de plancher : une seule occurrence propre à la zone peut
   être la cause.
-- **Sur-représentés ici** : présents des deux côtés, triés par rapport des taux,
-  à partir de 3 occurrences et d'un facteur 2. Sans ce plancher, la longue
-  traîne de lignes uniques monterait en tête avec un rapport calculé sur deux
-  lignes.
+- **Sur-représentés ici** : présents des deux côtés, mais occupant **2,5 fois
+  plus de lignes en proportion** dans la zone qu'en moyenne dans le reste du
+  fichier, et au moins 3 occurrences. Le plancher de 3 évite qu'un rapport
+  calculé sur deux lignes remonte en tête. Le facteur, lui, est volontairement
+  bas : un motif déjà fréquent partout ne peut pas atteindre un gros rapport,
+  alors que sa hausse est souvent la plus parlante. Monter la barre écarte donc
+  les incidents les plus francs avant les dérives molles.
 - **Absents ici** : présents partout ailleurs, disparus dans la zone. Le
   battement de cœur qui s'arrête, qu'aucun défilement ne montre.
 
@@ -173,6 +181,11 @@ liste vide : **« même mélange, en plus dense »** quand aucun motif n'est pro
 la zone, ce qui désigne une surcharge et non un nouveau comportement, et **« le
 reste du fichier est trop mince »** quand la sélection couvre presque tout le
 fichier et qu'il ne reste rien à quoi la comparer.
+
+Une conséquence à connaître : la référence étant le reste du fichier, **il faut
+brosser l'incident en entier, pas seulement son sommet**. Une zone réduite à la
+tranche la plus haute laisse le reste de l'incident dans la référence, et les
+motifs qui lui sont propres cessent d'être « seulement ici ».
 
 Les filtres de niveau et la recherche restent appliqués **des deux côtés** ;
 seule la période est inversée. Sans cela, avec un filtre ERROR actif, le reste

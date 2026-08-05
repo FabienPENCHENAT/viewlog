@@ -111,7 +111,7 @@ export default {
   "patterns.only_here": "Seulement ici",
   "patterns.only_here_sub": "absents du reste du fichier",
   "patterns.over": "Sur-représentés ici",
-  "patterns.over_sub": "rapport des taux",
+  "patterns.over_sub": "{ratio} fois plus présents ici qu'en moyenne ailleurs",
   "patterns.absent": "Absents ici",
   "patterns.absent_sub": "présents partout ailleurs",
   "patterns.group_count": "{count} motifs",

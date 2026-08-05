@@ -17,8 +17,18 @@ import { groupPatterns } from "./patterns.js";
 // deux ou trois lignes, et le haut de la liste devient une poubelle.
 export const MIN_COUNT = 3;
 
-// En dessous, « plus dense ici » ne se distingue pas du hasard.
-export const MIN_RATIO = 2;
+// Un motif présent des deux côtés fait partie du comportement normal : il faut
+// des preuves avant de déranger avec lui. Le rapport porte sur la PART des
+// lignes et pas sur le nombre, donc un motif qui grossit au même rythme que le
+// reste de la zone garde sa part et ne remonte jamais, quels que soient les
+// chiffres. C'est le pic d'utilisation, écarté par construction.
+//
+// Réglé sur un vrai fichier (pic de 90 min dans 73 h de logs), et non au doigt
+// mouillé. Le facteur 5 essayé d'abord était trop haut : il gardait un warning
+// vu 14 fois (×5,4) et écartait un `Function exited with runtime exit error`
+// vu 267 fois (×2,9), qui était l'incident. Un motif déjà fréquent partout ne
+// PEUT PAS atteindre un gros rapport, alors que sa hausse est la plus parlante.
+export const MIN_RATIO = 2.5;
 
 // Le complément doit peser assez pour servir de référence. Si la sélection
 // couvre presque tout le fichier, « le reste » ne dit plus rien : mieux vaut

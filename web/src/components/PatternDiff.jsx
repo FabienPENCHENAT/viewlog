@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import PatternRow from "./PatternRow.jsx";
-import { formatRatio, formatRate } from "../lib/pattern-diff.js";
+import { formatRatio, formatRate, MIN_RATIO } from "../lib/pattern-diff.js";
 import { useI18n } from "../i18n/index.jsx";
 
 // Même esprit que MAX_PATTERNS : on borne l'affichage, pas le calcul.
@@ -79,7 +79,9 @@ export default function PatternDiff({ diff, onPick }) {
         <span>
           {t("patterns.group_count", { count: g.items.length.toLocaleString(locale) })}
           {" · "}
-          {t(`patterns.${g.id}_sub`)}
+          {/* Le seuil vient de la constante : le libellé ne peut pas mentir sur
+              la règle appliquée si elle est réajustée. */}
+          {t(`patterns.${g.id}_sub`, { ratio: MIN_RATIO.toLocaleString(locale) })}
         </span>
       </div>
       {g.items.slice(0, MAX_ROWS).map((item) => (
