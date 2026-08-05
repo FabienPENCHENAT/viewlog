@@ -1,4 +1,4 @@
-// Génère la démonstration animée de la page « cas d'usage », en FR et en EN.
+// Génère les démonstrations animées de la page « cas d'usage », en FR et en EN.
 //
 // Pourquoi un SVG et pas un GIF ou un MP4 :
 //  - un enregistrement d'écran montrerait de VRAIS logs, ce qui est intenable
@@ -11,6 +11,9 @@
 // Contraintes d'un SVG embarqué en <img> : aucun script, aucune police externe,
 // pas de foreignObject. Tout est donc du texte placé à la main et des @keyframes
 // CSS, avec un cycle unique partagé par tous les éléments pour rester synchrone.
+//
+// Deux scénarios partagent le même châssis (cartes, barre d'outils, période,
+// liste) et ne diffèrent que par les courbes, la zone, le déroulé et le contenu.
 //
 // Régénérer :  node scripts/gen-demo-svg.mjs
 
@@ -39,11 +42,6 @@ const MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
 /* ================= Le cycle ================= */
 const CYCLE = 15; // secondes
 const P = (t) => +((t / CYCLE) * 100).toFixed(2);
-const T = {
-  cursorIn: 0.6, brush: 1.3, brushEnd: 2.1, toPatterns: 2.8, clickPatterns: 3.4,
-  cmpShows: 4.8, toCmp: 5.5, clickCmp: 6.1, highlight: 6.7, scroll: 8.8,
-  foldHl: 9.5, out: 13.2,
-};
 const EASE = "cubic-bezier(.4,0,.2,1)";
 
 /* ================= Géométrie ================= */
@@ -54,40 +52,14 @@ const H = JO.y + JO.h + 2;
 const PLOT = { x: 18, y: CH.y + 42, w: 924, h: 216 };
 const LIST = { x: 18, y: JO.y + 236, w: 924, h: 180 };
 
-const fa = 28.6 / 48, fb = 38.4 / 48;
-const selX = PLOT.x + fa * PLOT.w;
-const selW = (fb - fa) * PLOT.w;
 const cursorY = PLOT.y + PLOT.h * 0.52;
-
-/* ================= Les courbes =================
-   Fond ondulant plus cloches gaussiennes, échantillonné finement : les courbes
-   sont lisses par construction, sans spline qui déborderait sous la ligne de
-   base. Le pic est très haut sur le total, l'erreur culmine au même endroit et
-   nettement plus bas. */
-const bell = (x, mu, s) => Math.exp(-((x - mu) ** 2) / (2 * s * s));
-const totalAt = (x) =>
-  52 + 16 * Math.sin(x * 0.62) + 9 * Math.sin(x * 1.31 + 1.2) +
-  300 * bell(x, 7.5, 0.9) + 420 * bell(x, 21, 1) + 3320 * bell(x, 33.5, 2.5) +
-  260 * bell(x, 44.5, 1.1);
-const errAt = (x) =>
-  13 + 6 * Math.sin(x * 0.71 + 0.4) + 120 * bell(x, 7.5, 0.85) +
-  150 * bell(x, 21, 0.95) + 1880 * bell(x, 34.1, 2.2) + 90 * bell(x, 44.5, 1.05);
-
-const NS = 150;
-const xs = Array.from({ length: NS }, (_, i) => (i / (NS - 1)) * 48);
-const tot = xs.map(totalAt);
-const er = xs.map(errAt);
-const peak = Math.max(...tot);
-const gx = (x) => +(PLOT.x + (x / 48) * PLOT.w).toFixed(1);
-const gy = (v) => +(PLOT.y + PLOT.h - (v / peak) * (PLOT.h - 10)).toFixed(1);
-const poly = (arr) => arr.map((v, i) => `${i ? "L" : "M"}${gx(xs[i])},${gy(v)}`).join("");
-const area = (arr) => `${poly(arr)}L${gx(48)},${PLOT.y + PLOT.h}L${gx(0)},${PLOT.y + PLOT.h}Z`;
+const zoneX = (f) => PLOT.x + f * PLOT.w;
 
 /* ================= Helpers ================= */
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 // Largeur approchée d'une chaîne : suffit à placer un cadre ou un soulignement,
-// et évite d'avoir des positions en dur qui ne tiendraient pas d'une langue à
-// l'autre (le français est plus long).
+// et évite des positions en dur qui ne tiendraient pas d'une langue à l'autre
+// (le français est plus long).
 const est = (s, size, mono = false) => s.length * size * (mono ? 0.6 : 0.53);
 const rect = (x, y, w, h, fill, o = {}) =>
   `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"` +
@@ -100,96 +72,211 @@ const text = (x, y, s, o = {}) =>
   `${o.anchor ? ` text-anchor="${o.anchor}"` : ""}${o.cls ? ` class="${o.cls}"` : ""}` +
   `${o.ls ? ` letter-spacing="${o.ls}"` : ""}>${esc(s)}</text>`;
 
-/* ================= Contenu ================= */
-// Un robot barista : une promotion fait déborder la file, le moulin se bloque,
-// la chaudière finit en FATAL. Les messages restent en anglais dans les deux
-// langues, comme de vrais logs.
-const ROWS_ALL = [
-  ["DEBUG", "Bean hopper at 82%"],
-  ["INFO", "Espresso pulled in 9400ms"],
-  ["INFO", "Cup detected on tray 3"],
-  ["INFO", "Order 41927 completed"],
-  ["INFO", "Idle standby entered"],
-];
-const ROWS_ZONE = [
-  ["INFO", "Order 88214 accepted"],
-  ["WARN", "Queue overflow, dropping order 88215"],
-  ["ERROR", "Grinder jammed on bean batch 7c1f9a2e"],
-  ["WARN", "Retrying order 3/5"],
-  ["FATAL", "Boiler pressure critical, halting"],
-];
-const FLAT = [
-  ["INFO", "Espresso pulled in {n}ms", "Espresso pulled in 9400ms"],
-  ["INFO", "Cup detected on tray {n}", "Cup detected on tray 3"],
-  ["INFO", "Steam wand purge {n}ms", "Steam wand purge 1200ms"],
-  ["WARN", "Retrying order {n}/{n}", "Retrying order 3/5"],
-];
-const ONLY = [
-  ["ERROR", "Grinder jammed on bean batch {hex}", "Grinder jammed on bean batch 7c1f9a2e"],
-  ["WARN", "Queue overflow, dropping order {n}", "Queue overflow, dropping order 88215"],
-  ["FATAL", "Boiler pressure critical, halting", "Boiler pressure critical, halting"],
-];
 const LVC = { DEBUG: K.debug, INFO: K.info, WARN: K.warn, ERROR: K.err, FATAL: K.fatal };
 
-/* ================= Les deux langues ================= */
+/* ================= Courbes =================
+   Fond ondulant plus cloches gaussiennes, échantillonné finement : les courbes
+   sont lisses par construction, sans spline qui déborderait sous la ligne de
+   base. */
+const bell = (x, mu, s) => Math.exp(-((x - mu) ** 2) / (2 * s * s));
+const NS = 150;
+const xs = Array.from({ length: NS }, (_, i) => (i / (NS - 1)) * 48);
+
+function sample(totalAt, errAt) {
+  const tot = xs.map(totalAt);
+  const er = xs.map(errAt);
+  const peak = Math.max(...tot);
+  const gx = (x) => +(PLOT.x + (x / 48) * PLOT.w).toFixed(1);
+  const gy = (v) => +(PLOT.y + PLOT.h - (v / peak) * (PLOT.h - 10)).toFixed(1);
+  const poly = (arr) => arr.map((v, i) => `${i ? "L" : "M"}${gx(xs[i])},${gy(v)}`).join("");
+  const area = (arr) => `${poly(arr)}L${gx(48)},${PLOT.y + PLOT.h}L${gx(0)},${PLOT.y + PLOT.h}Z`;
+  return { lineT: poly(tot), lineE: poly(er), areaT: area(tot), areaE: area(er) };
+}
+
+// Scénario 1 : une ruée. Le total explose, l'erreur culmine au même endroit et
+// nettement plus bas.
+const SPIKE_CURVES = sample(
+  (x) =>
+    52 + 16 * Math.sin(x * 0.62) + 9 * Math.sin(x * 1.31 + 1.2) +
+    300 * bell(x, 7.5, 0.9) + 420 * bell(x, 21, 1) + 3320 * bell(x, 33.5, 2.5) +
+    260 * bell(x, 44.5, 1.1),
+  (x) =>
+    13 + 6 * Math.sin(x * 0.71 + 0.4) + 120 * bell(x, 7.5, 0.85) +
+    150 * bell(x, 21, 0.95) + 1880 * bell(x, 34.1, 2.2) + 90 * bell(x, 44.5, 1.05)
+);
+
+// Scénario 2 : une journée calme. Aucun pic : à peine un frémissement là où
+// l'erreur se produit, ce qui est justement le sujet. On ne trouve pas la zone
+// en regardant la courbe, on la connaît parce que le client a donné l'heure.
+const CALM_CURVES = sample(
+  (x) => 62 + 13 * Math.sin(x * 0.55) + 7 * Math.sin(x * 1.19 + 0.7) + 15 * bell(x, 26.4, 0.5),
+  (x) => 2 + 1.4 * Math.sin(x * 0.83 + 0.3) + 14 * bell(x, 26.4, 0.45)
+);
+
+/* ================= Contenu, par scénario ================= */
+// Un robot barista. Les messages restent en anglais dans les deux langues,
+// comme de vrais logs.
+const SPIKE = {
+  rowsAll: [
+    ["DEBUG", "Bean hopper at 82%"],
+    ["INFO", "Espresso pulled in 9400ms"],
+    ["INFO", "Cup detected on tray 3"],
+    ["INFO", "Order 41927 completed"],
+    ["INFO", "Idle standby entered"],
+  ],
+  rowsZone: [
+    ["INFO", "Order 88214 accepted"],
+    ["WARN", "Queue overflow, dropping order 88215"],
+    ["ERROR", "Grinder jammed on bean batch 7c1f9a2e"],
+    ["WARN", "Retrying order 3/5"],
+    ["FATAL", "Boiler pressure critical, halting"],
+  ],
+  flat: [
+    ["INFO", "Espresso pulled in {n}ms", "Espresso pulled in 9400ms"],
+    ["INFO", "Cup detected on tray {n}", "Cup detected on tray 3"],
+    ["INFO", "Steam wand purge {n}ms", "Steam wand purge 1200ms"],
+    ["WARN", "Retrying order {n}/{n}", "Retrying order 3/5"],
+  ],
+  only: [
+    ["ERROR", "Grinder jammed on bean batch {hex}", "Grinder jammed on bean batch 7c1f9a2e"],
+    ["WARN", "Queue overflow, dropping order {n}", "Queue overflow, dropping order 88215"],
+    ["FATAL", "Boiler pressure critical, halting", "Boiler pressure critical, halting"],
+  ],
+};
+
+// La machine n'a plus de grains et ne le sait pas. Le client réessaie cinq fois,
+// donc l'erreur apparaît cinq fois : invisible dans le fichier entier, évidente
+// dès que la fenêtre se resserre.
+const ISOLATED = {
+  rowsAll: [
+    ["INFO", "Order 5480 completed"],
+    ["INFO", "Espresso pulled in 9200ms"],
+    ["DEBUG", "Bean hopper at 6%"],
+    ["INFO", "Cup detected on tray 2"],
+    ["INFO", "Order 5481 completed"],
+  ],
+  rowsZone: [
+    ["INFO", "Order 5512 accepted"],
+    ["ERROR", "Bean hopper empty, cannot grind"],
+    ["WARN", "Retrying order 5512 (2/5)"],
+    ["ERROR", "Bean hopper empty, cannot grind"],
+    ["WARN", "Retrying order 5512 (3/5)"],
+  ],
+  // Trié par fréquence : l'erreur cherchée est en troisième position, donc
+  // visible sans défiler. C'est ce que le resserrage de la fenêtre a rendu
+  // possible, une liste assez courte pour qu'un motif à cinq occurrences se voie.
+  flat: [
+    ["INFO", "Order {n} completed", "Order 5512 completed"],
+    ["INFO", "Espresso pulled in {n}ms", "Espresso pulled in 9200ms"],
+    ["ERROR", "Bean hopper empty, cannot grind", "Bean hopper empty, cannot grind"],
+    ["WARN", "Retrying order {n} ({n}/{n})", "Retrying order 5512 (2/5)"],
+  ],
+  hlRow: 2, // la ligne mise en évidence dans la liste des motifs
+};
+
+/* ================= Libellés partagés ================= */
 const L = {
   fr: {
-    aria: "ViewLog : sélectionner un pic et le comparer au reste du fichier",
     volume: "Volume dans le temps", journal: "Journal",
     vJournal: "Journal", vPatterns: "Motifs",
     search: "Rechercher dans les logs…",
     total: "Total", errors: "Erreurs",
     period: "Période", all: "Tout",
-    perA: "12/03 08:14 → 14/03 18:02", durA: "· 2 j 9 h",
-    perB: "14/03 07:48 → 14/03 09:21", durB: "· 1 h 33 min",
-    cntA: "412 908 entrées", cntB: "24 106 entrées",
-    cntC: "24 106 entrées → 41 motifs uniques",
-    cmp: "· Comparer au reste du fichier",
-    cmpLabel: "Comparer au reste du fichier",
-    banner: "Zone comparée au reste du fichier",
     colTs: "Horodatage", colLevel: "Niveau", colMsg: "Message",
-    patternsHead: "MOTIFS", patternsSub: "41 uniques · les plus fréquents d'abord",
-    onlyHead: "SEULEMENT ICI", onlySub: "3 motifs · absents du reste du fichier",
-    fold: "3 sur-représentés, 5 absents ici",
+    patternsHead: "MOTIFS",
     eg: "ex. ",
     chips: [["DEBUG", "41 308"], ["INFO", "327 144"], ["WARN", "32 905"], ["ERROR", "11 468"], ["FATAL", "83"]],
-    numAll: ["18 204", "18 205", "18 206", "18 207", "18 208"],
-    tsAll: ["13/03 02:11:04", "13/03 02:11:06", "13/03 02:11:09", "13/03 02:11:22", "13/03 02:12:31"],
-    numZone: ["204 881", "204 882", "204 883", "204 884", "204 885"],
-    tsZone: ["14/03 08:02:11", "14/03 08:02:11", "14/03 08:02:12", "14/03 08:02:12", "14/03 08:02:19"],
-    counts: ["9 480×", "6 902×", "3 217×", "1 044×"],
-    onlyCounts: ["1 902×", "874×", "1×"],
   },
   en: {
-    aria: "ViewLog: brushing a spike and comparing it to the rest of the log file",
     volume: "Volume over time", journal: "Journal",
     vJournal: "Journal", vPatterns: "Patterns",
     search: "Search the logs…",
     total: "Total", errors: "Errors",
     period: "Period", all: "All",
-    perA: "03/12, 08:14 AM → 03/14, 06:02 PM", durA: "· 2 d 9 h",
-    perB: "03/14, 07:48 AM → 03/14, 09:21 AM", durB: "· 1 h 33 min",
-    cntA: "412,908 entries", cntB: "24,106 entries",
-    cntC: "24,106 entries → 41 unique patterns",
-    cmp: "· Compare to the rest of the file",
-    cmpLabel: "Compare to the rest of the file",
-    banner: "Zone compared to the rest of the file",
     colTs: "Timestamp", colLevel: "Level", colMsg: "Message",
-    patternsHead: "PATTERNS", patternsSub: "41 unique · most frequent first",
-    onlyHead: "ONLY HERE", onlySub: "3 patterns · absent from the rest of the file",
-    fold: "3 over-represented, 5 absent here",
+    patternsHead: "PATTERNS",
     eg: "e.g. ",
     chips: [["DEBUG", "41,308"], ["INFO", "327,144"], ["WARN", "32,905"], ["ERROR", "11,468"], ["FATAL", "83"]],
-    numAll: ["18,204", "18,205", "18,206", "18,207", "18,208"],
-    tsAll: ["03/13, 02:11:04 AM", "03/13, 02:11:06 AM", "03/13, 02:11:09 AM", "03/13, 02:11:22 AM", "03/13, 02:12:31 AM"],
-    numZone: ["204,881", "204,882", "204,883", "204,884", "204,885"],
-    tsZone: ["03/14, 08:02:11 AM", "03/14, 08:02:11 AM", "03/14, 08:02:12 AM", "03/14, 08:02:12 AM", "03/14, 08:02:19 AM"],
-    counts: ["9,480×", "6,902×", "3,217×", "1,044×"],
-    onlyCounts: ["1,902×", "874×", "1×"],
   },
 };
 
-/* ================= Animations (indépendantes de la langue) ================= */
+/* ================= Textes par scénario et par langue ================= */
+const TXT = {
+  spike: {
+    fr: {
+      aria: "ViewLog : sélectionner un pic et le comparer au reste du fichier",
+      periods: [
+        ["12/03 08:14 → 14/03 18:02", "· 2 j 9 h"],
+        ["14/03 07:48 → 14/03 09:21", "· 1 h 33 min"],
+      ],
+      counts: ["412 908 entrées", "24 106 entrées", "24 106 entrées → 41 motifs uniques"],
+      cmp: "· Comparer au reste du fichier",
+      banner: "Zone comparée au reste du fichier",
+      patternsSub: "41 uniques · les plus fréquents d'abord",
+      onlyHead: "SEULEMENT ICI", onlySub: "3 motifs · absents du reste du fichier",
+      fold: "3 sur-représentés, 5 absents ici",
+      numAll: ["18 204", "18 205", "18 206", "18 207", "18 208"],
+      tsAll: ["13/03 02:11:04", "13/03 02:11:06", "13/03 02:11:09", "13/03 02:11:22", "13/03 02:12:31"],
+      numZone: ["204 881", "204 882", "204 883", "204 884", "204 885"],
+      tsZone: ["14/03 08:02:11", "14/03 08:02:11", "14/03 08:02:12", "14/03 08:02:12", "14/03 08:02:19"],
+      flatCounts: ["9 480×", "6 902×", "3 217×", "1 044×"],
+      onlyCounts: ["1 902×", "874×", "1×"],
+    },
+    en: {
+      aria: "ViewLog: brushing a spike and comparing it to the rest of the log file",
+      periods: [
+        ["03/12, 08:14 AM → 03/14, 06:02 PM", "· 2 d 9 h"],
+        ["03/14, 07:48 AM → 03/14, 09:21 AM", "· 1 h 33 min"],
+      ],
+      counts: ["412,908 entries", "24,106 entries", "24,106 entries → 41 unique patterns"],
+      cmp: "· Compare to the rest of the file",
+      banner: "Zone compared to the rest of the file",
+      patternsSub: "41 unique · most frequent first",
+      onlyHead: "ONLY HERE", onlySub: "3 patterns · absent from the rest of the file",
+      fold: "3 over-represented, 5 absent here",
+      numAll: ["18,204", "18,205", "18,206", "18,207", "18,208"],
+      tsAll: ["03/13, 02:11:04 AM", "03/13, 02:11:06 AM", "03/13, 02:11:09 AM", "03/13, 02:11:22 AM", "03/13, 02:12:31 AM"],
+      numZone: ["204,881", "204,882", "204,883", "204,884", "204,885"],
+      tsZone: ["03/14, 08:02:11 AM", "03/14, 08:02:11 AM", "03/14, 08:02:12 AM", "03/14, 08:02:12 AM", "03/14, 08:02:19 AM"],
+      flatCounts: ["9,480×", "6,902×", "3,217×", "1,044×"],
+      onlyCounts: ["1,902×", "874×", "1×"],
+    },
+  },
+  isolated: {
+    fr: {
+      aria: "ViewLog : resserrer la fenêtre sur l'heure signalée par un client, puis repérer dans les motifs une erreur vue cinq fois",
+      periods: [
+        ["12/03 08:14 → 14/03 18:02", "· 2 j 9 h"],
+        ["13/03 13:40 → 13/03 14:20", "· 40 min"],
+        ["13/03 14:02 → 13/03 14:10", "· 8 min"],
+      ],
+      counts: ["412 908 entrées", "1 204 entrées", "148 entrées", "148 entrées → 9 motifs uniques"],
+      patternsSub: "9 uniques · les plus fréquents d'abord",
+      numAll: ["9 118", "9 119", "9 120", "9 121", "9 122"],
+      tsAll: ["13/03 09:41:02", "13/03 09:41:04", "13/03 09:41:20", "13/03 09:41:31", "13/03 09:41:48"],
+      numZone: ["61 447", "61 448", "61 449", "61 452", "61 453"],
+      tsZone: ["13/03 14:03:12", "13/03 14:03:12", "13/03 14:03:19", "13/03 14:03:41", "13/03 14:03:47"],
+      flatCounts: ["58×", "46×", "5×", "4×"],
+    },
+    en: {
+      aria: "ViewLog: narrowing the window down to the time a customer reported, then spotting an error seen five times in the patterns",
+      periods: [
+        ["03/12, 08:14 AM → 03/14, 06:02 PM", "· 2 d 9 h"],
+        ["03/13, 01:40 PM → 03/13, 02:20 PM", "· 40 min"],
+        ["03/13, 02:02 PM → 03/13, 02:10 PM", "· 8 min"],
+      ],
+      counts: ["412,908 entries", "1,204 entries", "148 entries", "148 entries → 9 unique patterns"],
+      patternsSub: "9 unique · most frequent first",
+      numAll: ["9,118", "9,119", "9,120", "9,121", "9,122"],
+      tsAll: ["03/13, 09:41:02 AM", "03/13, 09:41:04 AM", "03/13, 09:41:20 AM", "03/13, 09:41:31 AM", "03/13, 09:41:48 AM"],
+      numZone: ["61,447", "61,448", "61,449", "61,452", "61,453"],
+      tsZone: ["03/13, 02:03:12 PM", "03/13, 02:03:12 PM", "03/13, 02:03:19 PM", "03/13, 02:03:41 PM", "03/13, 02:03:47 PM"],
+      flatCounts: ["58×", "46×", "5×", "4×"],
+    },
+  },
+};
+
+/* ================= Animations ================= */
 function kf(name, frames) {
   return `@keyframes ${name}{${frames.map(([p, d]) => `${p}%{${d}}`).join("")}}`;
 }
@@ -205,125 +292,285 @@ function fade(name, inAt, outAt) {
   return kf(name, f);
 }
 
-const anims = [];
-const rules = [];
-const A = (sel, name) => rules.push(`${sel}{animation-name:${name}}`);
+// Barre de période : `left` et `width` doivent bouger ensemble, sinon le bord
+// gauche saute à la zone pendant que la largeur vaut encore 100 % et la barre
+// déborde la piste. Un seul transform s'en charge.
+const barTo = (x, w) => `translateX(${(x - 18).toFixed(1)}px) scaleX(${(w / 924).toFixed(4)})`;
+const thumbTo = (x, from) => `translateX(${(x - from).toFixed(1)}px)`;
 
-anims.push(kf("cur", [
-  [0, `transform:translate(${selX.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:0`],
-  [P(T.cursorIn) - 0.5, `transform:translate(${selX.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:0`],
-  [P(T.cursorIn), `transform:translate(${selX.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1`],
-  [P(T.brush), `transform:translate(${selX.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1;animation-timing-function:${EASE}`],
-  [P(T.brushEnd), `transform:translate(${(selX + selW).toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1`],
-  [P(T.toPatterns), `transform:translate(${(selX + selW).toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1;animation-timing-function:${EASE}`],
-  [P(T.clickPatterns) - 1.2, `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:1`],
-  [P(T.toCmp), `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:1;animation-timing-function:${EASE}`],
-  [P(T.clickCmp) - 1.2, `transform:translate(360px,${(JO.y + 222).toFixed(1)}px);opacity:1`],
-  [P(T.clickCmp), `transform:translate(360px,${(JO.y + 222).toFixed(1)}px);opacity:1`],
-  [P(T.clickCmp) + 1, `transform:translate(360px,${(JO.y + 222).toFixed(1)}px);opacity:0`],
-  [100, `transform:translate(360px,${(JO.y + 222).toFixed(1)}px);opacity:0`],
-]));
-A(".cursor", "cur");
+/* --- Scénario 1 : brosser le pic, puis comparer au reste du fichier --- */
+function compareScript(z) {
+  const T = {
+    cursorIn: 0.6, brush: 1.3, brushEnd: 2.1, toPatterns: 2.8, clickPatterns: 3.4,
+    cmpShows: 4.8, toCmp: 5.5, clickCmp: 6.1, highlight: 6.7, scroll: 8.8,
+    foldHl: 9.5, out: 13.2,
+  };
+  const anims = [];
+  const rules = [];
+  const A = (sel, name) => rules.push(`${sel}{animation-name:${name}}`);
+  const { a, b } = z;
 
-anims.push(kf("press", [
-  [0, "opacity:0"],
-  [P(T.brush) - 0.2, "opacity:0"], [P(T.brush), "opacity:1"],
-  [P(T.brushEnd), "opacity:1"], [P(T.brushEnd) + 0.3, "opacity:0"],
-  [P(T.clickPatterns) - 0.2, "opacity:0"], [P(T.clickPatterns), "opacity:1"],
-  [P(T.clickPatterns) + 0.9, "opacity:1"], [P(T.clickPatterns) + 1.2, "opacity:0"],
-  [P(T.clickCmp) - 0.2, "opacity:0"], [P(T.clickCmp), "opacity:1"],
-  [P(T.clickCmp) + 0.9, "opacity:1"], [P(T.clickCmp) + 1.2, "opacity:0"],
-  [100, "opacity:0"],
-]));
-A(".press", "press");
-
-anims.push(kf("selGrow", [
-  [0, "transform:scaleX(0);opacity:0"],
-  [P(T.brush) - 0.2, "transform:scaleX(0);opacity:0"],
-  [P(T.brush), `transform:scaleX(0);opacity:1;animation-timing-function:${EASE}`],
-  [P(T.brushEnd), "transform:scaleX(1);opacity:1"],
-  [P(T.out), "transform:scaleX(1);opacity:1"],
-  [P(T.out) + 1.5, "transform:scaleX(1);opacity:0"],
-  [100, "transform:scaleX(0);opacity:0"],
-]));
-A(".chartSel", "selGrow");
-
-// Barre de période : `left` et `width` doivent partager la même courbe, sinon le
-// bord gauche saute à la zone pendant que la largeur vaut encore 100 % et la
-// barre déborde la piste. Ici un seul transform s'en charge.
-const sc = (selW / 924).toFixed(4);
-const tx = (selX - 18).toFixed(1);
-const txB = (selX + selW - 942).toFixed(1);
-for (const [cls, name, to] of [[".tsel", "perBar", `translateX(${tx}px) scaleX(${sc})`],
-                               [".thA", "thumbA", `translateX(${tx}px)`],
-                               [".thB", "thumbB", `translateX(${txB}px)`]]) {
-  const from = cls === ".tsel" ? "translateX(0) scaleX(1)" : "translateX(0)";
-  anims.push(kf(name, [
-    [0, `transform:${from}`],
-    [P(T.brush), `transform:${from};animation-timing-function:${EASE}`],
-    [P(T.brushEnd), `transform:${to}`],
-    [P(T.out), `transform:${to}`],
-    [100, `transform:${from}`],
+  anims.push(kf("cur", [
+    [0, `transform:translate(${a.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:0`],
+    [P(T.cursorIn) - 0.5, `transform:translate(${a.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:0`],
+    [P(T.cursorIn), `transform:translate(${a.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1`],
+    [P(T.brush), `transform:translate(${a.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.brushEnd), `transform:translate(${b.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1`],
+    [P(T.toPatterns), `transform:translate(${b.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.clickPatterns) - 1.2, `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:1`],
+    [P(T.toCmp), `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.clickCmp) - 1.2, `transform:translate(360px,${(JO.y + 222).toFixed(1)}px);opacity:1`],
+    [P(T.clickCmp), `transform:translate(360px,${(JO.y + 222).toFixed(1)}px);opacity:1`],
+    [P(T.clickCmp) + 1, `transform:translate(360px,${(JO.y + 222).toFixed(1)}px);opacity:0`],
+    [100, `transform:translate(360px,${(JO.y + 222).toFixed(1)}px);opacity:0`],
   ]));
-  A(cls, name);
+  A(".cursor", "cur");
+
+  anims.push(kf("press", [
+    [0, "opacity:0"],
+    [P(T.brush) - 0.2, "opacity:0"], [P(T.brush), "opacity:1"],
+    [P(T.brushEnd), "opacity:1"], [P(T.brushEnd) + 0.3, "opacity:0"],
+    [P(T.clickPatterns) - 0.2, "opacity:0"], [P(T.clickPatterns), "opacity:1"],
+    [P(T.clickPatterns) + 0.9, "opacity:1"], [P(T.clickPatterns) + 1.2, "opacity:0"],
+    [P(T.clickCmp) - 0.2, "opacity:0"], [P(T.clickCmp), "opacity:1"],
+    [P(T.clickCmp) + 0.9, "opacity:1"], [P(T.clickCmp) + 1.2, "opacity:0"],
+    [100, "opacity:0"],
+  ]));
+  A(".press", "press");
+
+  anims.push(kf("selGrow", [
+    [0, "transform:scaleX(0);opacity:0"],
+    [P(T.brush) - 0.2, "transform:scaleX(0);opacity:0"],
+    [P(T.brush), `transform:scaleX(0);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.brushEnd), "transform:scaleX(1);opacity:1"],
+    [P(T.out), "transform:scaleX(1);opacity:1"],
+    [P(T.out) + 1.5, "transform:scaleX(1);opacity:0"],
+    [100, "transform:scaleX(0);opacity:0"],
+  ]));
+  A(".chartSel", "selGrow");
+
+  for (const [cls, name, to] of [
+    [".tsel", "perBar", barTo(a, b - a)],
+    [".thA", "thumbA", thumbTo(a, 18)],
+    [".thB", "thumbB", thumbTo(b, 942)],
+  ]) {
+    const from = cls === ".tsel" ? "translateX(0) scaleX(1)" : "translateX(0)";
+    anims.push(kf(name, [
+      [0, `transform:${from}`],
+      [P(T.brush), `transform:${from};animation-timing-function:${EASE}`],
+      [P(T.brushEnd), `transform:${to}`],
+      [P(T.out), `transform:${to}`],
+      [100, `transform:${from}`],
+    ]));
+    A(cls, name);
+  }
+
+  anims.push(fade("fJA", 0, T.brushEnd)); A(".journalAll", "fJA");
+  anims.push(fade("fJZ", T.brushEnd, T.clickPatterns)); A(".journalZone", "fJZ");
+  anims.push(fade("fFL", T.clickPatterns, T.clickCmp)); A(".flat", "fFL");
+  anims.push(fade("fDF", T.clickCmp, T.out + 1.5)); A(".diff", "fDF");
+  anims.push(fade("fBan", T.clickCmp, T.out + 1.5)); A(".banner", "fBan");
+  anims.push(fade("fAll", T.brushEnd, T.out + 1.5)); A(".allBtn", "fAll");
+  anims.push(fade("fPerA", 0, T.brushEnd)); A(".perA", "fPerA");
+  anims.push(fade("fPerB", T.brushEnd, T.out + 1.5)); A(".perB", "fPerB");
+  anims.push(fade("fCntA", 0, T.brushEnd)); A(".cntA", "fCntA");
+  anims.push(fade("fCntB", T.brushEnd, T.clickPatterns)); A(".cntB", "fCntB");
+  anims.push(fade("fCntC", T.clickPatterns, T.out + 1.5)); A(".cntC", "fCntC");
+  anims.push(fade("fCmp", T.cmpShows, T.clickCmp)); A(".cmp", "fCmp");
+  anims.push(fade("fPillJ", 0, T.clickPatterns)); A(".pillJ", "fPillJ");
+  anims.push(fade("fLabJon", 0, T.clickPatterns)); A(".labJon", "fLabJon");
+  anims.push(fade("fPillP", T.clickPatterns, T.out + 1.5)); A(".pillP", "fPillP");
+  anims.push(fade("fLabPon", T.clickPatterns, T.out + 1.5)); A(".labPon", "fLabPon");
+  anims.push(fade("fLabJoff", T.clickPatterns, T.out + 1.5)); A(".labJoff", "fLabJoff");
+  anims.push(fade("fLabPoff", 0, T.clickPatterns)); A(".labPoff", "fLabPoff");
+  anims.push(fade("fHl1", T.highlight, T.out + 1.5)); A(".hl1", "fHl1");
+  anims.push(fade("fHl2", T.foldHl, T.out + 1.5)); A(".hl2", "fHl2");
+
+  // Le fond ET le texte du surlignage changent ensemble : un cadre qui se voit
+  // autour d'une phrase restée grise ne désigne rien.
+  for (const [cls, name, at, from] of [
+    [".hlTxt", "hlTxt", T.highlight, K.muted],
+    [".hlTxt2", "hlTxt2", T.foldHl, K.ink2],
+  ]) {
+    anims.push(kf(name, [
+      [0, `fill:${from};font-weight:400`],
+      [P(at) - 0.5, `fill:${from};font-weight:400`],
+      [P(at), "fill:#fff;font-weight:600"],
+      [P(T.out), "fill:#fff;font-weight:600"],
+      [100, `fill:${from};font-weight:400`],
+    ]));
+    A(cls, name);
+  }
+
+  anims.push(kf("scrollUp", [
+    [0, "transform:translateY(0)"],
+    [P(T.scroll), `transform:translateY(0);animation-timing-function:${EASE}`],
+    [P(T.scroll) + 3, "transform:translateY(-34px)"],
+    [P(T.out), "transform:translateY(-34px)"],
+    [100, "transform:translateY(0)"],
+  ]));
+  A(".diffBody", "scrollUp");
+
+  const animated = [
+    ".cursor", ".press", ".chartSel", ".tsel", ".thA", ".thB", ".journalAll", ".journalZone",
+    ".flat", ".diff", ".diffBody", ".banner", ".allBtn", ".perA", ".perB", ".cntA", ".cntB",
+    ".cntC", ".cmp", ".pillJ", ".pillP", ".labJon", ".labJoff", ".labPon", ".labPoff",
+    ".hl1", ".hlTxt", ".hl2", ".hlTxt2",
+  ].join(",");
+
+  return { anims, rules, animated, freeze: T.highlight + 0.6 };
 }
 
-anims.push(fade("fJA", 0, T.brushEnd)); A(".journalAll", "fJA");
-anims.push(fade("fJZ", T.brushEnd, T.clickPatterns)); A(".journalZone", "fJZ");
-anims.push(fade("fFL", T.clickPatterns, T.clickCmp)); A(".flat", "fFL");
-anims.push(fade("fDF", T.clickCmp, T.out + 1.5)); A(".diff", "fDF");
-anims.push(fade("fBan", T.clickCmp, T.out + 1.5)); A(".banner", "fBan");
-anims.push(fade("fAll", T.brushEnd, T.out + 1.5)); A(".allBtn", "fAll");
-anims.push(fade("fPerA", 0, T.brushEnd)); A(".perA", "fPerA");
-anims.push(fade("fPerB", T.brushEnd, T.out + 1.5)); A(".perB", "fPerB");
-anims.push(fade("fCntA", 0, T.brushEnd)); A(".cntA", "fCntA");
-anims.push(fade("fCntB", T.brushEnd, T.clickPatterns)); A(".cntB", "fCntB");
-anims.push(fade("fCntC", T.clickPatterns, T.out + 1.5)); A(".cntC", "fCntC");
-anims.push(fade("fCmp", T.cmpShows, T.clickCmp)); A(".cmp", "fCmp");
-anims.push(fade("fPillJ", 0, T.clickPatterns)); A(".pillJ", "fPillJ");
-anims.push(fade("fLabJon", 0, T.clickPatterns)); A(".labJon", "fLabJon");
-anims.push(fade("fPillP", T.clickPatterns, T.out + 1.5)); A(".pillP", "fPillP");
-anims.push(fade("fLabPon", T.clickPatterns, T.out + 1.5)); A(".labPon", "fLabPon");
-anims.push(fade("fLabJoff", T.clickPatterns, T.out + 1.5)); A(".labJoff", "fLabJoff");
-anims.push(fade("fLabPoff", 0, T.clickPatterns)); A(".labPoff", "fLabPoff");
-anims.push(fade("fHl1", T.highlight, T.out + 1.5)); A(".hl1", "fHl1");
-anims.push(fade("fHl2", T.foldHl, T.out + 1.5)); A(".hl2", "fHl2");
+/* --- Scénario 2 : brosser large, resserrer au curseur, lire les motifs --- */
+function narrowScript(z) {
+  const T = {
+    cursorIn: 0.6, brush: 1.3, brushEnd: 2.2, toThumb: 3.1, drag: 4.0,
+    dragEnd: 5.0, toPatterns: 5.9, clickPatterns: 6.6, highlight: 7.6, out: 12.6,
+  };
+  const anims = [];
+  const rules = [];
+  const A = (sel, name) => rules.push(`${sel}{animation-name:${name}}`);
+  const { a, b, a2 } = z;
+  const thumbY = JO.y + 156; // la poignée gauche de la barre temporelle
 
-// Le fond ET le texte du surlignage changent ensemble : un cadre qui se voit
-// autour d'une phrase restée grise ne désigne rien.
-for (const [cls, name, at, from] of [[".hlTxt", "hlTxt", T.highlight, K.muted],
-                                     [".hlTxt2", "hlTxt2", T.foldHl, K.ink2]]) {
-  anims.push(kf(name, [
-    [0, `fill:${from};font-weight:400`],
-    [P(at) - 0.5, `fill:${from};font-weight:400`],
-    [P(at), "fill:#fff;font-weight:600"],
+  anims.push(kf("cur", [
+    [0, `transform:translate(${a.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:0`],
+    [P(T.cursorIn) - 0.5, `transform:translate(${a.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:0`],
+    [P(T.cursorIn), `transform:translate(${a.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1`],
+    [P(T.brush), `transform:translate(${a.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.brushEnd), `transform:translate(${b.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1`],
+    // Le curseur descend sur la poignée gauche : c'est le geste de resserrage.
+    [P(T.toThumb) - 0.6, `transform:translate(${b.toFixed(1)}px,${cursorY.toFixed(1)}px);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.drag), `transform:translate(${a.toFixed(1)}px,${thumbY}px);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.dragEnd), `transform:translate(${a2.toFixed(1)}px,${thumbY}px);opacity:1`],
+    [P(T.toPatterns), `transform:translate(${a2.toFixed(1)}px,${thumbY}px);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.clickPatterns) - 1, `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:1`],
+    [P(T.clickPatterns) + 1, `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:0`],
+    [100, `transform:translate(120px,${(JO.y + 65).toFixed(1)}px);opacity:0`],
+  ]));
+  A(".cursor", "cur");
+
+  anims.push(kf("press", [
+    [0, "opacity:0"],
+    [P(T.brush) - 0.2, "opacity:0"], [P(T.brush), "opacity:1"],
+    [P(T.brushEnd), "opacity:1"], [P(T.brushEnd) + 0.3, "opacity:0"],
+    [P(T.drag) - 0.2, "opacity:0"], [P(T.drag), "opacity:1"],
+    [P(T.dragEnd), "opacity:1"], [P(T.dragEnd) + 0.3, "opacity:0"],
+    [P(T.clickPatterns) - 0.2, "opacity:0"], [P(T.clickPatterns), "opacity:1"],
+    [P(T.clickPatterns) + 0.9, "opacity:1"], [P(T.clickPatterns) + 1.2, "opacity:0"],
+    [100, "opacity:0"],
+  ]));
+  A(".press", "press");
+
+  // La sélection du graphe croît d'abord vers la zone large, puis son bord gauche
+  // avance : c'est la même forme qui se resserre, pas une nouvelle sélection.
+  anims.push(kf("selGrow", [
+    [0, "transform:scaleX(0);opacity:0"],
+    [P(T.brush) - 0.2, "transform:scaleX(0);opacity:0"],
+    [P(T.brush), `transform:scaleX(0);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.brushEnd), "transform:scaleX(1);opacity:1"],
+    [P(T.drag), `transform:scaleX(1);opacity:1;animation-timing-function:${EASE}`],
+    [P(T.dragEnd), `transform:translateX(${(a2 - a).toFixed(1)}px) scaleX(${((b - a2) / (b - a)).toFixed(4)});opacity:1`],
+    [P(T.out), `transform:translateX(${(a2 - a).toFixed(1)}px) scaleX(${((b - a2) / (b - a)).toFixed(4)});opacity:1`],
+    [P(T.out) + 1.5, `transform:translateX(${(a2 - a).toFixed(1)}px) scaleX(${((b - a2) / (b - a)).toFixed(4)});opacity:0`],
+    [100, "transform:scaleX(0);opacity:0"],
+  ]));
+  A(".chartSel", "selGrow");
+
+  for (const [cls, name, mid, to] of [
+    [".tsel", "perBar", barTo(a, b - a), barTo(a2, b - a2)],
+    [".thA", "thumbA", thumbTo(a, 18), thumbTo(a2, 18)],
+    [".thB", "thumbB", thumbTo(b, 942), thumbTo(b, 942)],
+  ]) {
+    const from = cls === ".tsel" ? "translateX(0) scaleX(1)" : "translateX(0)";
+    anims.push(kf(name, [
+      [0, `transform:${from}`],
+      [P(T.brush), `transform:${from};animation-timing-function:${EASE}`],
+      [P(T.brushEnd), `transform:${mid}`],
+      [P(T.drag), `transform:${mid};animation-timing-function:${EASE}`],
+      [P(T.dragEnd), `transform:${to}`],
+      [P(T.out), `transform:${to}`],
+      [100, `transform:${from}`],
+    ]));
+    A(cls, name);
+  }
+
+  anims.push(fade("fJA", 0, T.brushEnd)); A(".journalAll", "fJA");
+  anims.push(fade("fJZ", T.brushEnd, T.clickPatterns)); A(".journalZone", "fJZ");
+  anims.push(fade("fFL", T.clickPatterns, T.out + 1.5)); A(".flat", "fFL");
+  anims.push(fade("fAll", T.brushEnd, T.out + 1.5)); A(".allBtn", "fAll");
+  anims.push(fade("fPerA", 0, T.brushEnd)); A(".perA", "fPerA");
+  anims.push(fade("fPerB", T.brushEnd, T.dragEnd)); A(".perB", "fPerB");
+  anims.push(fade("fPerC", T.dragEnd, T.out + 1.5)); A(".perC", "fPerC");
+  anims.push(fade("fCntA", 0, T.brushEnd)); A(".cntA", "fCntA");
+  anims.push(fade("fCntB", T.brushEnd, T.dragEnd)); A(".cntB", "fCntB");
+  anims.push(fade("fCntC", T.dragEnd, T.clickPatterns)); A(".cntC", "fCntC");
+  anims.push(fade("fCntD", T.clickPatterns, T.out + 1.5)); A(".cntD", "fCntD");
+  anims.push(fade("fPillJ", 0, T.clickPatterns)); A(".pillJ", "fPillJ");
+  anims.push(fade("fLabJon", 0, T.clickPatterns)); A(".labJon", "fLabJon");
+  anims.push(fade("fPillP", T.clickPatterns, T.out + 1.5)); A(".pillP", "fPillP");
+  anims.push(fade("fLabPon", T.clickPatterns, T.out + 1.5)); A(".labPon", "fLabPon");
+  anims.push(fade("fLabJoff", T.clickPatterns, T.out + 1.5)); A(".labJoff", "fLabJoff");
+  anims.push(fade("fLabPoff", 0, T.clickPatterns)); A(".labPoff", "fLabPoff");
+  anims.push(fade("fHl2", T.highlight, T.out + 1.5)); A(".hl2", "fHl2");
+
+  anims.push(kf("hlTxt2", [
+    [0, `fill:${K.ink2};font-weight:400`],
+    [P(T.highlight) - 0.5, `fill:${K.ink2};font-weight:400`],
+    [P(T.highlight), "fill:#fff;font-weight:600"],
     [P(T.out), "fill:#fff;font-weight:600"],
-    [100, `fill:${from};font-weight:400`],
+    [100, `fill:${K.ink2};font-weight:400`],
   ]));
-  A(cls, name);
+  A(".hlTxt2", "hlTxt2");
+
+  const animated = [
+    ".cursor", ".press", ".chartSel", ".tsel", ".thA", ".thB", ".journalAll", ".journalZone",
+    ".flat", ".allBtn", ".perA", ".perB", ".perC", ".cntA", ".cntB", ".cntC", ".cntD",
+    ".pillJ", ".pillP", ".labJon", ".labJoff", ".labPon", ".labPoff", ".hl2", ".hlTxt2",
+  ].join(",");
+
+  return { anims, rules, animated, freeze: T.highlight + 0.6 };
 }
 
-anims.push(kf("scrollUp", [
-  [0, "transform:translateY(0)"],
-  [P(T.scroll), `transform:translateY(0);animation-timing-function:${EASE}`],
-  [P(T.scroll) + 3, "transform:translateY(-34px)"],
-  [P(T.out), "transform:translateY(-34px)"],
-  [100, "transform:translateY(0)"],
-]));
-A(".diffBody", "scrollUp");
-
-const ANIMATED = [
-  ".cursor", ".press", ".chartSel", ".tsel", ".thA", ".thB", ".journalAll", ".journalZone",
-  ".flat", ".diff", ".diffBody", ".banner", ".allBtn", ".perA", ".perB", ".cntA", ".cntB",
-  ".cntC", ".cmp", ".pillJ", ".pillP", ".labJon", ".labJoff", ".labPon", ".labPoff",
-  ".hl1", ".hlTxt", ".hl2", ".hlTxt2",
-].join(",");
+/* ================= Les scénarios ================= */
+const SCENARIOS = {
+  spike: {
+    file: "demo-spike",
+    curves: SPIKE_CURVES,
+    zone: { a: zoneX(28.6 / 48), b: zoneX(38.4 / 48) },
+    content: SPIKE,
+    script: compareScript,
+    banner: true,
+    compare: true,
+    diff: true,
+  },
+  isolated: {
+    file: "demo-isolated",
+    curves: CALM_CURVES,
+    // Large d'abord, parce que le client a dit « vers 14 h » et pas mieux ;
+    // resserrée ensuite à la barre temporelle.
+    zone: { a: zoneX(24 / 48), b: zoneX(29 / 48), a2: zoneX(26 / 48) },
+    content: ISOLATED,
+    script: narrowScript,
+    banner: false,
+    compare: false,
+    diff: false,
+  },
+};
 
 /* ================= Construction ================= */
-function build(l) {
-  const tag = (x, y, lvl) =>
-    rect(x, y - 11, lvl.length * 7.2 + 12, 17, LVC[lvl], { rx: 5, opacity: 0.16 }) +
-    text(x + 6, y + 1, lvl, { size: 11, weight: 700, fill: LVC[lvl] });
+function build(name, lang) {
+  const s = SCENARIOS[name];
+  const l = L[lang];
+  const x = TXT[name][lang];
+  const c = s.content;
+  const { anims, rules, animated, freeze } = s.script(s.zone);
+  const selA = s.zone.a;
+  const selW = s.zone.b - s.zone.a;
+
+  const tag = (tx, ty, lvl) =>
+    rect(tx, ty - 11, lvl.length * 7.2 + 12, 17, LVC[lvl], { rx: 5, opacity: 0.16 }) +
+    text(tx + 6, ty + 1, lvl, { size: 11, weight: 700, fill: LVC[lvl] });
 
   const hline = (y) =>
     `<line x1="${LIST.x}" y1="${y}" x2="${LIST.x + LIST.w}" y2="${y}" stroke="${K.grid}"/>`;
@@ -347,26 +594,32 @@ function build(l) {
     return out;
   };
 
-  const patRow = (y, count, lvl, tpl, ex) =>
-    text(LIST.x + 74, y + 16, count, { size: 13, weight: 700, anchor: "end" }) +
+  // `hl` met la ligne en évidence : c'est la trouvaille du scénario 2, une erreur
+  // vue cinq fois au milieu du trafic normal.
+  const patRow = (y, count, lvl, tpl, ex, hl) =>
+    (hl
+      ? rect(LIST.x + 6, y + 3, LIST.w - 12, 41, K.hl, { rx: 5, opacity: 0.26, cls: "hl2" }) +
+        `<rect x="${LIST.x + 6}" y="${y + 3}" width="${LIST.w - 12}" height="41" rx="5" fill="none" stroke="${K.hl}" stroke-opacity="0.65" class="hl2"/>`
+      : "") +
+    text(LIST.x + 74, y + 16, count, { size: 13, weight: 700, anchor: "end", cls: hl ? "hlTxt2" : undefined }) +
     tag(LIST.x + 86, y + 16, lvl) +
-    text(LIST.x + 166, y + 14, tpl, { size: 12.5, mono: true }) +
+    text(LIST.x + 166, y + 14, tpl, { size: 12.5, mono: true, cls: hl ? "hlTxt2" : undefined }) +
     text(LIST.x + 166, y + 32, l.eg + ex, { size: 12, fill: K.muted }) +
     hline(y + 47);
 
   // L'en-tête de liste n'est pas décoratif : sans lui, passer du journal aux
-  // motifs fait disparaître la ligne de titre puis la fait revenir à la
-  // comparaison, et ce clignotement se lit comme un bug.
+  // motifs fait disparaître la ligne de titre puis la fait revenir, et ce
+  // clignotement se lit comme un bug.
   const listHead = (label, sub, hl) => {
     const y = LIST.y;
     const w = est(sub, 12) + 16;
-    const x = LIST.x + LIST.w - 12 - est(sub, 12) - 8;
+    const hx = LIST.x + LIST.w - 12 - est(sub, 12) - 8;
     return (
       rect(LIST.x, y, LIST.w, 30, K.page) +
       text(LIST.x + 12, y + 20, label, { size: 11.5, weight: 700, fill: K.ink2, ls: "0.6" }) +
       (hl
-        ? rect(x, y + 4, w, 22, K.hl, { rx: 5, opacity: 0.3, cls: "hl1" }) +
-          `<rect x="${x.toFixed(1)}" y="${y + 4}" width="${w.toFixed(1)}" height="22" rx="5" fill="none" stroke="${K.hl}" stroke-opacity="0.7" class="hl1"/>`
+        ? rect(hx, y + 4, w, 22, K.hl, { rx: 5, opacity: 0.3, cls: "hl1" }) +
+          `<rect x="${hx.toFixed(1)}" y="${y + 4}" width="${w.toFixed(1)}" height="22" rx="5" fill="none" stroke="${K.hl}" stroke-opacity="0.7" class="hl1"/>`
         : "") +
       text(LIST.x + LIST.w - 12, y + 20, sub, {
         size: 12, fill: K.muted, anchor: "end", cls: hl ? "hlTxt" : undefined,
@@ -376,18 +629,27 @@ function build(l) {
   };
 
   const flat =
-    FLAT.map(([lvl, tpl, ex], i) => patRow(LIST.y + 30 + i * 47, l.counts[i], lvl, tpl, ex)).join("") +
-    listHead(l.patternsHead, l.patternsSub, false);
+    c.flat.map(([lvl, tpl, ex], i) =>
+      patRow(LIST.y + 30 + i * 47, x.flatCounts[i], lvl, tpl, ex, c.hlRow === i)).join("") +
+    listHead(l.patternsHead, x.patternsSub, false);
 
-  const rowsTop = LIST.y + 30;
-  let diffBody = ONLY.map(([lvl, tpl, ex], i) =>
-    patRow(rowsTop + i * 47, l.onlyCounts[i], lvl, tpl, ex)).join("");
-  const fy = rowsTop + ONLY.length * 47;
-  diffBody +=
-    rect(LIST.x + 6, fy + 4, LIST.w - 12, 30, K.hl, { rx: 5, opacity: 0.26, cls: "hl2" }) +
-    `<rect x="${LIST.x + 6}" y="${fy + 4}" width="${LIST.w - 12}" height="30" rx="5" fill="none" stroke="${K.hl}" stroke-opacity="0.65" class="hl2"/>` +
-    text(LIST.x + 16, fy + 24, "▸", { size: 12, fill: K.muted, cls: "hlTxt2" }) +
-    text(LIST.x + 34, fy + 24, l.fold, { size: 13, fill: K.ink2, cls: "hlTxt2" });
+  let diff = "";
+  if (s.diff) {
+    const rowsTop = LIST.y + 30;
+    let diffBody = c.only.map(([lvl, tpl, ex], i) =>
+      patRow(rowsTop + i * 47, x.onlyCounts[i], lvl, tpl, ex)).join("");
+    const fy = rowsTop + c.only.length * 47;
+    diffBody +=
+      rect(LIST.x + 6, fy + 4, LIST.w - 12, 30, K.hl, { rx: 5, opacity: 0.26, cls: "hl2" }) +
+      `<rect x="${LIST.x + 6}" y="${fy + 4}" width="${LIST.w - 12}" height="30" rx="5" fill="none" stroke="${K.hl}" stroke-opacity="0.65" class="hl2"/>` +
+      text(LIST.x + 16, fy + 24, "▸", { size: 12, fill: K.muted, cls: "hlTxt2" }) +
+      text(LIST.x + 34, fy + 24, x.fold, { size: 13, fill: K.ink2, cls: "hlTxt2" });
+    diff =
+      `  <g class="diff">\n` +
+      `    <g clip-path="url(#clipBody)"><g class="diffBody">${diffBody}</g></g>\n` +
+      `    ${listHead(x.onlyHead, x.onlySub, true)}\n` +
+      `  </g>\n`;
+  }
 
   // Barre d'outils : bascule de vue, recherche, bouton regex, puces de niveau.
   const ty = JO.y + 46;
@@ -406,24 +668,24 @@ function build(l) {
 
   let cx = 18;
   const cy = ty + 40;
-  for (const [name, n] of l.chips) {
-    const w = est(name, 12) + est(n, 12) + 42;
+  for (const [name2, n] of l.chips) {
+    const w = est(name2, 12) + est(n, 12) + 42;
     toolbar +=
-      rect(cx.toFixed(1), cy, w.toFixed(1), 26, K.surface, { rx: 13, stroke: LVC[name], sw: 1 }) +
-      `<circle cx="${(cx + 15).toFixed(1)}" cy="${cy + 13}" r="4.5" fill="${LVC[name]}"/>` +
-      text(cx + 25, cy + 18, name, { size: 12, weight: 600, fill: K.ink2 }) +
-      text(cx + 25 + est(name, 12) + 8, cy + 18, n, { size: 12, fill: K.muted });
+      rect(cx.toFixed(1), cy, w.toFixed(1), 26, K.surface, { rx: 13, stroke: LVC[name2], sw: 1 }) +
+      `<circle cx="${(cx + 15).toFixed(1)}" cy="${cy + 13}" r="4.5" fill="${LVC[name2]}"/>` +
+      text(cx + 25, cy + 18, name2, { size: 12, weight: 600, fill: K.ink2 }) +
+      text(cx + 25 + est(name2, 12) + 8, cy + 18, n, { size: 12, fill: K.muted });
     cx += w + 6;
   }
 
-  // Période
+  // Période : un état de texte par étape du scénario.
   const py = JO.y + 130;
+  const perCls = ["perA", "perB", "perC"];
   const period =
     text(18, py, l.period, { size: 13, weight: 600, fill: K.ink2 }) +
-    text(74, py, l.perA, { size: 13, cls: "perA" }) +
-    text(74, py, l.perB, { size: 13, cls: "perB" }) +
-    text(74 + est(l.perA, 13) + 10, py, l.durA, { size: 13, fill: K.muted, cls: "perA" }) +
-    text(74 + est(l.perB, 13) + 10, py, l.durB, { size: 13, fill: K.muted, cls: "perB" }) +
+    x.periods.map(([per], i) => text(74, py, per, { size: 13, cls: perCls[i] })).join("") +
+    x.periods.map(([per, dur], i) =>
+      text(74 + est(per, 13) + 10, py, dur, { size: 13, fill: K.muted, cls: perCls[i] })).join("") +
     rect(942 - est(l.all, 12) - 20, py - 14, est(l.all, 12) + 20, 22, "none", { rx: 6, stroke: K.accent, sw: 1, cls: "allBtn" }) +
     text(942 - 10, py + 1, l.all, { size: 12, weight: 600, fill: K.accent, anchor: "end", cls: "allBtn" }) +
     rect(18, py + 24, 924, 4, K.line, { rx: 2 }) +
@@ -431,36 +693,38 @@ function build(l) {
     `<circle class="thA" cx="18" cy="${py + 26}" r="7" fill="${K.accent}" stroke="${K.page}" stroke-width="2"/>` +
     `<circle class="thB" cx="942" cy="${py + 26}" r="7" fill="${K.accent}" stroke="${K.page}" stroke-width="2"/>`;
 
-  // Bandeau
   const by = JO.y + 176;
-  const banner =
-    `<g class="banner">` +
-    rect(18, by, 924, 32, K.accent, { rx: 8, opacity: 0.12 }) +
-    `<rect x="18" y="${by}" width="924" height="32" rx="8" fill="none" stroke="${K.accent}" stroke-opacity="0.3"/>` +
-    text(30, by + 21, l.banner, { size: 13 }) +
-    text(926, by + 21, "✕", { size: 14, fill: K.ink2, anchor: "end" }) +
-    `</g>`;
+  const banner = s.banner
+    ? `<g class="banner">` +
+      rect(18, by, 924, 32, K.accent, { rx: 8, opacity: 0.12 }) +
+      `<rect x="18" y="${by}" width="924" height="32" rx="8" fill="none" stroke="${K.accent}" stroke-opacity="0.3"/>` +
+      text(30, by + 21, x.banner, { size: 13 }) +
+      text(926, by + 21, "✕", { size: 14, fill: K.ink2, anchor: "end" }) +
+      `</g>`
+    : "";
 
-  // Ligne de compte, avec l'action au bout : aucun contrôle ajouté à la barre.
+  // Ligne de compte : un état par étape, et l'action au bout quand le scénario
+  // l'utilise. Aucun contrôle n'est ajouté à la barre d'outils.
   const ny = JO.y + 226;
-  const cmpX = 18 + est(l.cntC, 13) + 14;
-  const count =
-    text(18, ny, l.cntA, { size: 13, fill: K.muted, cls: "cntA" }) +
-    text(18, ny, l.cntB, { size: 13, fill: K.muted, cls: "cntB" }) +
-    text(18, ny, l.cntC, { size: 13, fill: K.muted, cls: "cntC" }) +
-    text(cmpX, ny, l.cmp, { size: 13, weight: 600, fill: K.accent, cls: "cmp" }) +
-    `<line class="cmp" x1="${(cmpX + est("· ", 13)).toFixed(1)}" y1="${ny + 4}" x2="${(cmpX + est(l.cmp, 13)).toFixed(1)}" y2="${ny + 4}" stroke="${K.accent}" stroke-opacity="0.5"/>`;
+  const cntCls = ["cntA", "cntB", "cntC", "cntD"];
+  let count = x.counts.map((s2, i) => text(18, ny, s2, { size: 13, fill: K.muted, cls: cntCls[i] })).join("");
+  if (s.compare) {
+    const cmpX = 18 + est(x.counts[x.counts.length - 1], 13) + 14;
+    count +=
+      text(cmpX, ny, x.cmp, { size: 13, weight: 600, fill: K.accent, cls: "cmp" }) +
+      `<line class="cmp" x1="${(cmpX + est("· ", 13)).toFixed(1)}" y1="${ny + 4}" x2="${(cmpX + est(x.cmp, 13)).toFixed(1)}" y2="${ny + 4}" stroke="${K.accent}" stroke-opacity="0.5"/>`;
+  }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(l.aria)}">
-<title>${esc(l.aria)}</title>
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(x.aria)}">
+<title>${esc(x.aria)}</title>
 <style>
   .chartSel,.tsel{transform-box:fill-box;transform-origin:left center}
   ${rules.join("\n  ")}
-  ${ANIMATED}{animation-duration:${CYCLE}s;animation-iteration-count:infinite;animation-timing-function:linear;animation-fill-mode:both}
+  ${animated}{animation-duration:${CYCLE}s;animation-iteration-count:infinite;animation-timing-function:linear;animation-fill-mode:both}
   /* Mouvement réduit : on gèle sur l'image qui porte l'information, grâce à un
      retard négatif combiné à une animation en pause. */
   @media (prefers-reduced-motion:reduce){
-    ${ANIMATED}{animation-delay:-${(T.highlight + 0.6).toFixed(1)}s;animation-play-state:paused}
+    ${animated}{animation-delay:-${freeze.toFixed(1)}s;animation-play-state:paused}
   }
   ${anims.join("\n  ")}
 </style>
@@ -476,14 +740,14 @@ function build(l) {
 ${rect(CH.x, CH.y, CH.w, CH.h, K.surface, { rx: 12, stroke: "rgba(255,255,255,0.08)", sw: 1 })}
 ${text(18, CH.y + 26, l.volume, { size: 15, weight: 650 })}
 <g stroke="${K.grid}">${[0.2, 0.4, 0.6, 0.8, 1].map((f) => `<line x1="${PLOT.x}" y1="${(PLOT.y + PLOT.h * f).toFixed(1)}" x2="${PLOT.x + PLOT.w}" y2="${(PLOT.y + PLOT.h * f).toFixed(1)}"/>`).join("")}</g>
-<path d="${area(tot)}" fill="url(#gT)"/>
-<path d="${area(er)}" fill="url(#gE)"/>
-<path d="${poly(tot)}" fill="none" stroke="${K.blue}" stroke-width="2.2" stroke-linejoin="round"/>
-<path d="${poly(er)}" fill="none" stroke="${K.error}" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="${s.curves.areaT}" fill="url(#gT)"/>
+<path d="${s.curves.areaE}" fill="url(#gE)"/>
+<path d="${s.curves.lineT}" fill="none" stroke="${K.blue}" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="${s.curves.lineE}" fill="none" stroke="${K.error}" stroke-width="2.2" stroke-linejoin="round"/>
 <g class="chartSel">
-  ${rect(selX.toFixed(1), PLOT.y - 6, selW.toFixed(1), PLOT.h + 6, K.accent, { opacity: 0.13 })}
-  <line x1="${selX.toFixed(1)}" y1="${PLOT.y - 6}" x2="${selX.toFixed(1)}" y2="${PLOT.y + PLOT.h}" stroke="${K.accent}"/>
-  <line x1="${(selX + selW).toFixed(1)}" y1="${PLOT.y - 6}" x2="${(selX + selW).toFixed(1)}" y2="${PLOT.y + PLOT.h}" stroke="${K.accent}"/>
+  ${rect(selA.toFixed(1), PLOT.y - 6, selW.toFixed(1), PLOT.h + 6, K.accent, { opacity: 0.13 })}
+  <line x1="${selA.toFixed(1)}" y1="${PLOT.y - 6}" x2="${selA.toFixed(1)}" y2="${PLOT.y + PLOT.h}" stroke="${K.accent}"/>
+  <line x1="${(selA + selW).toFixed(1)}" y1="${PLOT.y - 6}" x2="${(selA + selW).toFixed(1)}" y2="${PLOT.y + PLOT.h}" stroke="${K.accent}"/>
 </g>
 <line x1="${W / 2 - 96}" y1="${CH.y + CH.h - 18}" x2="${W / 2 - 85}" y2="${CH.y + CH.h - 18}" stroke="${K.blue}" stroke-width="2"/>
 ${text(W / 2 - 79, CH.y + CH.h - 14, l.total, { size: 11.5, fill: K.muted, mono: true })}
@@ -499,14 +763,10 @@ ${count}
 
 ${rect(LIST.x, LIST.y, LIST.w, LIST.h, "none", { rx: 10, stroke: "rgba(255,255,255,0.08)", sw: 1 })}
 <g clip-path="url(#clipList)">
-  <g class="journalAll">${journal(ROWS_ALL, l.numAll, l.tsAll)}</g>
-  <g class="journalZone">${journal(ROWS_ZONE, l.numZone, l.tsZone)}</g>
+  <g class="journalAll">${journal(c.rowsAll, x.numAll, x.tsAll)}</g>
+  <g class="journalZone">${journal(c.rowsZone, x.numZone, x.tsZone)}</g>
   <g class="flat">${flat}</g>
-  <g class="diff">
-    <g clip-path="url(#clipBody)"><g class="diffBody">${diffBody}</g></g>
-    ${listHead(l.onlyHead, l.onlySub, true)}
-  </g>
-</g>
+${diff}</g>
 
 <g class="cursor">
   <circle class="press" r="15" fill="${K.accent}" fill-opacity="0.22"/>
@@ -517,9 +777,11 @@ ${rect(LIST.x, LIST.y, LIST.w, LIST.h, "none", { rx: 10, stroke: "rgba(255,255,2
 `;
 }
 
-for (const lang of ["fr", "en"]) {
-  const svg = build(L[lang]);
-  const file = join(OUT, `demo-spike.${lang}.svg`);
-  writeFileSync(file, svg);
-  console.log(`${file.split("/").slice(-1)[0]} : ${(svg.length / 1024).toFixed(1)} Ko`);
+for (const name of Object.keys(SCENARIOS)) {
+  for (const lang of ["fr", "en"]) {
+    const svg = build(name, lang);
+    const file = join(OUT, `${SCENARIOS[name].file}.${lang}.svg`);
+    writeFileSync(file, svg);
+    console.log(`${SCENARIOS[name].file}.${lang}.svg : ${(svg.length / 1024).toFixed(1)} Ko`);
+  }
 }

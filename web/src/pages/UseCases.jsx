@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../i18n/index.jsx";
-import demoFr from "../assets/demo-spike.fr.svg";
-import demoEn from "../assets/demo-spike.en.svg";
+import spikeFr from "../assets/demo-spike.fr.svg";
+import spikeEn from "../assets/demo-spike.en.svg";
+import isolatedFr from "../assets/demo-isolated.fr.svg";
+import isolatedEn from "../assets/demo-isolated.en.svg";
+
+// Une démonstration par cas et par langue, générée par scripts/gen-demo-svg.mjs.
+const DEMOS = {
+  spike: { fr: spikeFr, en: spikeEn },
+  isolated: { fr: isolatedFr, en: isolatedEn },
+};
 
 // Les cas d'usage. Le contenu vit dans l'i18n (FR/EN) : ici, la structure seule.
 //
@@ -10,7 +18,10 @@ import demoEn from "../assets/demo-spike.en.svg";
 // peut vieillir en silence quand l'interface bouge, et une démonstration fausse
 // est pire que pas de démonstration : mieux vaut deux ou trois cas soignés qu'un
 // catalogue.
-const CASES = [{ id: "spike", demo: true }];
+const CASES = [
+  { id: "spike", demo: "spike" },
+  { id: "isolated", demo: "isolated" },
+];
 
 // Les capacités de l'outil, regroupées par intention plutôt qu'égrenées en
 // liste. Elles ne dépendent d'aucun cas d'usage : ce sont celles qu'on emploie
@@ -78,7 +89,11 @@ export default function UseCases() {
                           lecteur, quelques kilo-octets, net à toutes les tailles.
                           Une version par langue, générée par
                           scripts/gen-demo-svg.mjs. */}
-                      <img src={lang === "fr" ? demoFr : demoEn} alt={t("uc.demo_alt")} />
+                      <img
+                        src={DEMOS[c.demo][lang] || DEMOS[c.demo].en}
+                        alt={t(`uc.${c.id}_demo_alt`)}
+                        loading="lazy"
+                      />
                     </div>
                   )}
 

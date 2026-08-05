@@ -175,7 +175,7 @@ export default {
   "uc.cap_analyse": "Analyser",
   "uc.cap_analyse_items":
     "Comparez une période au reste du fichier.\nParcourez des centaines de milliers de lignes sans ralentissement.",
-  "uc.demo_alt":
+  "uc.spike_demo_alt":
     "Démonstration animée : sélectionner le pic sur le graphe, comparer la zone au reste du fichier, puis lire les trois groupes de motifs",
   "uc.cta": "Ouvrir un log",
 
@@ -184,6 +184,14 @@ export default {
     "Lorsqu'un pic apparaît sur le graphique, il est rarement utile de parcourir des milliers de lignes de logs. L'objectif est d'identifier rapidement ce qui rend cette période différente du reste de votre fichier.\n\nAvec ViewLog, sélectionnez simplement la zone du pic. L'application compare automatiquement cette période au reste des logs et met en évidence les motifs qui apparaissent, disparaissent ou deviennent anormalement fréquents.",
   "uc.spike_steps":
     "Sélectionnez le pic sur le graphique.\nViewLog compare cette période au reste du fichier.\nConsultez les motifs nouveaux, sur-représentés ou absents.\nOuvrez les lignes concernées pour remonter à la cause du pic.",
+
+  "uc.isolated_title": "Comment retrouver la cause d'une erreur signalée par un client",
+  "uc.isolated_desc":
+    "Un client signale qu'une commande a échoué vers 14 h. Le graphique ne montre aucun pic, et pour une bonne raison : l'erreur n'est apparue que cinq fois, parce qu'il a réessayé cinq fois. Cherchée dans le fichier entier, elle est noyée dans le trafic normal.\n\nAvec ViewLog, resserrez la fenêtre autour de l'heure annoncée, puis regardez les motifs de cette seule période. La liste devient assez courte pour qu'une erreur vue cinq fois se remarque immédiatement.",
+  "uc.isolated_steps":
+    "Sélectionnez sur le graphique la période annoncée par le client.\nAffinez les bornes à la barre temporelle, jusqu'à ne garder que quelques minutes.\nPassez en vue Motifs : la liste ne contient plus que ce qui s'est produit là.\nRepérez l'erreur vue quelques fois, et ouvrez ses lignes.",
+  "uc.isolated_demo_alt":
+    "Démonstration animée : sélectionner sur le graphique la période annoncée, resserrer les bornes à la barre temporelle, puis repérer dans les motifs une erreur vue cinq fois",
 
   "nav.use_cases": "Cas d'usage",
   "nav.faq": "FAQ",

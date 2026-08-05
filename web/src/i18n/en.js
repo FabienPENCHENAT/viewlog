@@ -170,7 +170,7 @@ export default {
   "uc.cap_analyse": "Analyse",
   "uc.cap_analyse_items":
     "Compare a period to the rest of the file.\nScroll hundreds of thousands of lines without a stutter.",
-  "uc.demo_alt":
+  "uc.spike_demo_alt":
     "Animated walkthrough: brushing the spike on the chart, comparing the zone to the rest of the file, then reading the three pattern groups",
   "uc.cta": "Open a log",
 
@@ -179,6 +179,14 @@ export default {
     "When a spike shows up on the chart, scrolling through thousands of log lines is rarely worth it. What you want is to find out quickly what makes that period different from the rest of your file.\n\nWith ViewLog, just select the spike. The app compares that period to the rest of the logs and highlights the patterns that appear, disappear, or become unusually frequent.",
   "uc.spike_steps":
     "Select the spike on the chart.\nViewLog compares that period to the rest of the file.\nReview the new, over-represented and absent patterns.\nOpen the lines involved to trace the cause of the spike.",
+
+  "uc.isolated_title": "How to trace an error a customer reported",
+  "uc.isolated_desc":
+    "A customer tells you an order failed around 2 PM. The chart shows no spike, and for good reason: the error only appeared five times, because they retried five times. Searched across the whole file, it is buried in normal traffic.\n\nWith ViewLog, narrow the window around the time you were given, then look at the patterns for that period alone. The list gets short enough for an error seen five times to stand out at once.",
+  "uc.isolated_steps":
+    "Select the period the customer reported on the chart.\nFine-tune the bounds with the time range slider, down to a few minutes.\nSwitch to the Patterns view: the list now holds only what happened there.\nSpot the error seen a few times, and open its lines.",
+  "uc.isolated_demo_alt":
+    "Animated walkthrough: selecting the reported period on the chart, narrowing the bounds with the time range slider, then spotting an error seen five times in the patterns",
 
   "nav.use_cases": "Use cases",
   "nav.faq": "FAQ",

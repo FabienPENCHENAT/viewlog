@@ -218,18 +218,27 @@ fonctionnalités accessoires qu'on croise au passage**, ce qui donne à la page 
 second rôle : servir de mode d'emploi, là où la FAQ n'explique que la
 confidentialité.
 
-Le premier cas, la comparaison d'un pic au reste du fichier, est illustré par une
-**démonstration animée**. Ce n'est pas un enregistrement d'écran mais une
-reconstruction en SVG, pour trois raisons : un enregistrement montrerait de vrais
-logs, ce qui est intenable ici ; les libellés d'un GIF ne sont pas traduisibles,
-alors que les deux versions sortent du même générateur
-(`web/scripts/gen-demo-svg.mjs`) ; et le fichier pèse 6 Ko compressé au lieu de
-plusieurs Mo, en restant net à toutes les tailles. Le mouvement respecte
+Chaque cas est illustré par une **démonstration animée**. Ce n'est pas un
+enregistrement d'écran mais une reconstruction en SVG, pour trois raisons : un
+enregistrement montrerait de vrais logs, ce qui est intenable ici ; les libellés
+d'un GIF ne sont pas traduisibles, alors que toutes les versions sortent du même
+générateur (`web/scripts/gen-demo-svg.mjs`) ; et le fichier pèse 6 Ko compressé au
+lieu de plusieurs Mo, en restant net à toutes les tailles. Le mouvement respecte
 `prefers-reduced-motion` en se figeant sur l'image du résultat.
 
-Une seule démonstration existe, volontairement : une reconstruction peut vieillir
-en silence quand l'interface bouge, et une démonstration fausse est pire que pas
-de démonstration.
+**Deux cas, et deux gestes distincts**, pour ne pas raconter deux fois la même
+chose :
+
+- **Le pic** vend la comparaison d'une zone au reste du fichier.
+- **L'erreur signalée par un client** vend le resserrage de la fenêtre. Il n'y a
+  pas de pic : l'erreur n'apparaît que cinq fois, parce que le client a réessayé
+  cinq fois. Elle est noyée dans le fichier entier, et devient évidente dès que la
+  période se réduit à quelques minutes, parce que la liste des motifs est alors
+  assez courte pour qu'un motif rare s'y voie.
+
+Le nombre de démonstrations reste volontairement petit : une reconstruction peut
+vieillir en silence quand l'interface bouge, et une démonstration fausse est pire
+que pas de démonstration.
 
 ## Langues
 
