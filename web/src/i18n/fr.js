@@ -168,7 +168,7 @@ export default {
   "uc.caps_title": "Tout ce qu'il vous faut pour analyser vos logs",
   "uc.cap_explore": "Explorer",
   "uc.cap_explore_items":
-    "Alternez entre les vues Journal et Motifs.\nSélectionnez une période directement sur le graphique.\nNaviguez librement entre le graphique et les logs.",
+    "Alternez entre les vues Journal et Motifs.\nSélectionnez une période directement sur le graphique.\nAffinez votre période d'analyse grâce à la barre temporelle.",
   "uc.cap_search": "Rechercher",
   "uc.cap_search_items":
     "Recherchez en texte libre ou avec une expression régulière.\nFiltrez les événements par niveau de gravité.",

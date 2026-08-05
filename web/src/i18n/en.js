@@ -163,7 +163,7 @@ export default {
   "uc.caps_title": "Everything you need to analyse your logs",
   "uc.cap_explore": "Explore",
   "uc.cap_explore_items":
-    "Switch between the Journal and Patterns views.\nSelect a period straight from the chart.\nMove freely between the chart and the logs.",
+    "Switch between the Journal and Patterns views.\nSelect a period straight from the chart.\nFine-tune your analysis window with the time range slider.",
   "uc.cap_search": "Search",
   "uc.cap_search_items":
     "Search as free text or with a regular expression.\nFilter events by severity level.",
