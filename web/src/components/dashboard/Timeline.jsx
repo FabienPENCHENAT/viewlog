@@ -17,7 +17,10 @@ import { useI18n } from "../../i18n/index.jsx";
 // `marks` : zones signalées par la détection, dessinées en pointillés pour ne
 // pas se confondre avec le plein de la sélection. Elles n'apparaissent que si
 // l'utilisateur a demandé à les voir.
-export default function Timeline({ timeline, bounds, range, marks, onRangeChange }) {
+// `children` : rendu DANS la ligne d'invitation sous le graphe, pas en dessous.
+// Un accès secondaire doit tenir sur la même ligne que l'invitation existante,
+// sinon il devient un bloc à lui seul et cesse d'être secondaire.
+export default function Timeline({ timeline, bounds, range, marks, onRangeChange, children }) {
   const { t, locale } = useI18n();
   // Glisser en cours : bornes brutes (a = point de départ, b = point courant).
   const [drag, setDrag] = useState(null);
@@ -185,7 +188,12 @@ export default function Timeline({ timeline, bounds, range, marks, onRangeChange
           )}
         </AreaChart>
       </ResponsiveContainer>
-      {selectable && <p className="chart-hint muted">{t("chart.select_hint")}</p>}
+      {selectable && (
+        <p className="chart-hint muted">
+          {t("chart.select_hint")}
+          {children}
+        </p>
+      )}
     </div>
   );
 }

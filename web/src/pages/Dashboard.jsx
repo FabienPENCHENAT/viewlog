@@ -6,7 +6,7 @@ import LevelChart from "../components/dashboard/LevelChart.jsx";
 import Timeline from "../components/dashboard/Timeline.jsx";
 import LogTable from "../components/dashboard/LogTable.jsx";
 import TabBar from "../components/dashboard/TabBar.jsx";
-import PeakHint from "../components/dashboard/PeakHint.jsx";
+import PeakZones, { PeakToggle } from "../components/dashboard/Peaks.jsx";
 import { getLog, listLogs, deleteLog, renameLog, reorderLogs, MAX_FILES } from "../lib/api.js";
 import ImportManager from "../components/shared/ImportManager.jsx";
 import { labelTabs } from "../lib/tab-label.js";
@@ -246,12 +246,20 @@ export default function Dashboard() {
             range={range}
             marks={showPeaks ? data.peaks : null}
             onRangeChange={(r) => selectRange(r, "timeline_select")}
-          />
-          <PeakHint
+          >
+            {/* L'accès aux zones vit DANS l'invitation à glisser, pas en dessous :
+                un accès secondaire qui forme son propre bloc cesse d'être
+                secondaire. */}
+            <PeakToggle
+              count={(data.peaks || []).length}
+              shown={showPeaks}
+              onToggle={togglePeaks}
+            />
+          </Timeline>
+          <PeakZones
             peaks={data.peaks || []}
             entries={entries}
             shown={showPeaks}
-            onToggle={togglePeaks}
             onPick={pickPeak}
           />
         </section>

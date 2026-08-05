@@ -1141,50 +1141,53 @@ body {
 
 /* --- Zones à surveiller (détection expérimentale) ---
    Volontairement discret : une heuristique qui peut se tromper n'a pas sa place
-   en évidence. Au repos, une seule ligne sous le graphe, au même endroit que
-   l'invitation à glisser. */
-.peak-hint {
-  margin-top: 4px;
-  text-align: center;
-}
-
+   en évidence. L'accès est un lien DANS la ligne d'invitation sous le graphe, et
+   la liste est dense, parce qu'un accès secondaire qui forme son propre bloc
+   cesse d'être secondaire. */
 .peak-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 8px;
+  display: inline;
+  margin-left: 10px;
+  padding: 0;
   font: inherit;
-  font-size: 12px;
-  color: var(--ink-2);
+  color: var(--accent);
   background: transparent;
   border: 0;
-  border-radius: var(--radius);
+  border-bottom: 1px dotted currentColor;
   cursor: pointer;
+  /* L'invitation est longue : sur une carte étroite l'ensemble passe à la ligne.
+     Le lien doit alors basculer d'un bloc, pas se couper en deux. */
+  white-space: nowrap;
 }
 
 .peak-toggle:hover {
-  color: var(--ink);
-  background: var(--row-hover);
+  border-bottom-style: solid;
 }
 
-/* Le statut expérimental est porté par le bouton lui-même : on ne peut pas
-   ouvrir la liste sans l'avoir lu. */
+/* Le statut expérimental est porté par le lien lui-même : on ne peut pas ouvrir
+   la liste sans l'avoir lu. */
 .peak-tag {
-  font-size: 9.5px;
-  letter-spacing: 0.08em;
+  margin-left: 6px;
+  font-size: 9px;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--error);
-  border: 1px solid var(--error-border);
+  color: var(--muted);
+  border: 1px solid var(--border);
   border-radius: 3px;
-  padding: 1px 4px;
+  padding: 0 3px;
   white-space: nowrap;
+  vertical-align: 1px;
+}
+
+.peaks {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
 }
 
 .peak-list {
   list-style: none;
-  margin: 8px 0 0;
+  margin: 0;
   padding: 0;
-  text-align: left;
 }
 
 .peak-list li + li {
@@ -1193,10 +1196,10 @@ body {
 
 .peak-zone {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 12px;
+  grid-template-columns: auto 1fr auto;
+  gap: 1px 8px;
   width: 100%;
-  padding: 9px 10px;
+  padding: 7px 6px;
   font: inherit;
   text-align: left;
   background: transparent;
@@ -1209,54 +1212,67 @@ body {
   background: var(--row-hover);
 }
 
+.peak-caret {
+  font-style: normal;
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
 .peak-when {
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--ink);
 }
 
-.peak-when i {
+.peak-when em {
   font-style: normal;
   font-weight: 400;
+  font-size: 11.5px;
   color: var(--muted);
-  margin-left: 8px;
+  margin-left: 7px;
 }
 
 .peak-stat {
-  font-size: 11.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
   color: var(--error);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-.peak-find {
-  grid-column: 1 / -1;
-  font-size: 12.5px;
-  color: var(--ink-2);
-}
-
+.peak-find,
 .peak-pat {
-  grid-column: 1 / -1;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 11.5px;
-  color: var(--muted);
+  grid-column: 2 / -1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.peak-find {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.peak-pat {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
 .peak-pat b {
   color: var(--error);
+  font-weight: 600;
 }
 
 .peak-caveat {
   margin: 8px 0 0;
-  padding-left: 10px;
+  padding-left: 9px;
   border-left: 2px solid var(--line);
-  font-size: 11.5px;
+  font-size: 11px;
   font-style: italic;
+  line-height: 1.45;
   color: var(--muted);
-  text-align: left;
 }
 
 /* --- Cas d'usage ---
