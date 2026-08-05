@@ -162,14 +162,16 @@ export default {
   "uc.steps": "The steps",
   "uc.caps_title": "Features visible in this walkthrough",
   "uc.cap_explore": "Explore",
-  "uc.cap_explore_items":
-    "Switch between the Journal and Patterns views.\nSelect a period straight from the chart.\nFine-tune your analysis window with the time range slider.\nSee every occurrence of a pattern in one click.",
   "uc.cap_search": "Search",
-  "uc.cap_search_items":
-    "Search as free text or with a regular expression.\nFilter events by severity level.",
   "uc.cap_analyse": "Analyse",
-  "uc.cap_analyse_items":
-    "Compare a period to the rest of the file.\nScroll hundreds of thousands of lines without a stutter.",
+  "uc.feat_views": "Switch between the Journal and Patterns views.",
+  "uc.feat_period": "Select a period straight from the chart.",
+  "uc.feat_finetune": "Fine-tune your analysis window with the time range slider.",
+  "uc.feat_hits": "See every occurrence of a pattern in one click.",
+  "uc.feat_query": "Search as free text or with a regular expression.",
+  "uc.feat_levels": "Filter events by severity level.",
+  "uc.feat_compare": "Compare a period to the rest of the file.",
+  "uc.feat_virtual": "Scroll hundreds of thousands of lines without a stutter.",
   "uc.spike_demo_alt":
     "Animated walkthrough: brushing the spike on the chart, comparing the zone to the rest of the file, then reading the three pattern groups",
   "uc.cta": "Open a log",

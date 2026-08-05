@@ -22,10 +22,25 @@ const CASES = [
   { id: "isolated", demo: "isolated" },
 ];
 
-// Les capacités de l'outil, regroupées par intention plutôt qu'égrenées en
-// liste. Elles ne dépendent d'aucun cas d'usage : ce sont celles qu'on emploie
-// quel que soit ce qu'on cherche, d'où un bloc défini une seule fois.
-const CAPS = ["explore", "search", "analyse"];
+const CAP_GROUPS = ["explore", "search", "analyse"];
+
+// Ce que chaque démonstration montre RÉELLEMENT. Le bloc s'annonce comme les
+// fonctionnalités visibles dans cette démonstration, il ne peut donc pas être le
+// même d'un cas à l'autre : le pic compare une zone au reste du fichier et ne
+// resserre aucune fenêtre, l'échec signalé fait exactement l'inverse et ouvre en
+// plus les occurrences d'un motif. Les textes, eux, ne sont écrits qu'une fois.
+const CAPS = {
+  spike: {
+    explore: ["views", "period"],
+    search: ["query", "levels"],
+    analyse: ["compare", "virtual"],
+  },
+  isolated: {
+    explore: ["views", "period", "finetune", "hits"],
+    search: ["query", "levels"],
+    analyse: ["virtual"],
+  },
+};
 
 const LEVELS = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"];
 
@@ -129,12 +144,12 @@ export default function UseCases() {
           <div className="uc-caps">
             <h3 className="uc-caps-title">{t("uc.caps_title")}</h3>
             <div className="uc-caps-grid">
-              {CAPS.map((cap) => (
-                <div key={cap} className="uc-cap">
-                  <h4 className="uc-cap-title">{t(`uc.cap_${cap}`)}</h4>
+              {CAP_GROUPS.map((group) => (
+                <div key={group} className="uc-cap">
+                  <h4 className="uc-cap-title">{t(`uc.cap_${group}`)}</h4>
                   <ul className="uc-cap-items">
-                    {lines(`uc.cap_${cap}_items`).map((s, k) => (
-                      <li key={k}>{s}</li>
+                    {CAPS[active.id][group].map((feat) => (
+                      <li key={feat}>{t(`uc.feat_${feat}`)}</li>
                     ))}
                   </ul>
                 </div>

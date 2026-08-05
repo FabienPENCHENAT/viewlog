@@ -167,14 +167,16 @@ export default {
   "uc.steps": "Les étapes",
   "uc.caps_title": "Fonctionnalités visibles dans cette démonstration",
   "uc.cap_explore": "Explorer",
-  "uc.cap_explore_items":
-    "Alternez entre les vues Journal et Motifs.\nSélectionnez une période directement sur le graphique.\nAffinez votre période d'analyse grâce à la barre temporelle.\nConsultez toutes les occurrences d'un motif en un clic.",
   "uc.cap_search": "Rechercher",
-  "uc.cap_search_items":
-    "Recherchez en texte libre ou avec une expression régulière.\nFiltrez les événements par niveau de gravité.",
   "uc.cap_analyse": "Analyser",
-  "uc.cap_analyse_items":
-    "Comparez une période au reste du fichier.\nParcourez des centaines de milliers de lignes sans ralentissement.",
+  "uc.feat_views": "Alternez entre les vues Journal et Motifs.",
+  "uc.feat_period": "Sélectionnez une période directement sur le graphique.",
+  "uc.feat_finetune": "Affinez votre période d'analyse grâce à la barre temporelle.",
+  "uc.feat_hits": "Consultez toutes les occurrences d'un motif en un clic.",
+  "uc.feat_query": "Recherchez en texte libre ou avec une expression régulière.",
+  "uc.feat_levels": "Filtrez les événements par niveau de gravité.",
+  "uc.feat_compare": "Comparez une période au reste du fichier.",
+  "uc.feat_virtual": "Parcourez des centaines de milliers de lignes sans ralentissement.",
   "uc.spike_demo_alt":
     "Démonstration animée : sélectionner le pic sur le graphe, comparer la zone au reste du fichier, puis lire les trois groupes de motifs",
   "uc.cta": "Ouvrir un log",
