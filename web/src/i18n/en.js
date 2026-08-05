@@ -172,7 +172,6 @@ export default {
     "Compare a period to the rest of the file.\nScroll hundreds of thousands of lines without a stutter.",
   "uc.demo_alt":
     "Animated walkthrough: brushing the spike on the chart, comparing the zone to the rest of the file, then reading the three pattern groups",
-  "uc.cta_lead": "Nothing to install, nothing to upload.",
   "uc.cta": "Open a log",
 
   "uc.spike_title": "How to analyse a spike in your logs",

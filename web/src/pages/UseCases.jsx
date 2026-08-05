@@ -108,7 +108,6 @@ export default function UseCases() {
       </div>
 
       <div className="uc-cta">
-        <p>{t("uc.cta_lead")}</p>
         <Link to="/" className="uc-cta-btn">{t("uc.cta")}</Link>
       </div>
     </div>

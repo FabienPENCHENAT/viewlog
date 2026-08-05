@@ -177,7 +177,6 @@ export default {
     "Comparez une période au reste du fichier.\nParcourez des centaines de milliers de lignes sans ralentissement.",
   "uc.demo_alt":
     "Démonstration animée : sélectionner le pic sur le graphe, comparer la zone au reste du fichier, puis lire les trois groupes de motifs",
-  "uc.cta_lead": "Rien à installer, rien à envoyer.",
   "uc.cta": "Ouvrir un log",
 
   "uc.spike_title": "Comment analyser un pic dans vos logs",

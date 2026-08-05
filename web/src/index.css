@@ -1147,7 +1147,10 @@ body {
    défiler de l'un à l'autre. */
 .uc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  /* `auto-fit` et non `auto-fill` : les colonnes vides sont supprimées, donc une
+     carte seule occupe toute la largeur et son titre tient sur une ligne. Avec
+     `auto-fill`, elle resterait coincée dans un tiers de la grille. */
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 14px;
   align-items: start;
   margin-top: 18px;
@@ -1356,16 +1359,9 @@ body {
 .uc-cta {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
   margin-top: 26px;
   padding-top: 20px;
   border-top: 1px solid var(--grid);
-}
-
-.uc-cta p {
-  margin: 0;
-  color: var(--ink-2);
 }
 
 .uc-cta-btn {
