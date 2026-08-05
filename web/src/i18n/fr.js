@@ -165,7 +165,7 @@ export default {
 
   "uc.title": "Cas d'usage",
   "uc.steps": "Les étapes",
-  "uc.caps_title": "Tout ce qu'il vous faut pour analyser vos logs",
+  "uc.caps_title": "Fonctionnalités visibles dans cette démonstration",
   "uc.cap_explore": "Explorer",
   "uc.cap_explore_items":
     "Alternez entre les vues Journal et Motifs.\nSélectionnez une période directement sur le graphique.\nAffinez votre période d'analyse grâce à la barre temporelle.",
