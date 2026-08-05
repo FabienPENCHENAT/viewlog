@@ -1289,17 +1289,24 @@ body {
 
 .uc-steps li {
   counter-increment: uc-step;
-  position: relative;
-  padding-left: 34px;
+  /* Une grille plutôt qu'un positionnement absolu : la pastille occupe sa propre
+     colonne, donc l'écart avec le texte est déclaré une fois et les lignes
+     suivantes s'alignent d'elles-mêmes sur la première. */
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
   font-size: 14px;
-  min-height: 22px;
+  line-height: 1.45;
 }
 
 .uc-steps li::before {
   content: counter(uc-step);
-  position: absolute;
-  left: 0;
-  top: -1px;
+  /* Centrée sur la PREMIÈRE ligne du texte, par calcul et non par un décalage en
+     dur : changer la hauteur de ligne déplacerait sinon la pastille. La première
+     déclaration sert de repli là où l'unité `lh` manque. */
+  margin-top: 0;
+  margin-top: calc((1lh - 22px) / 2);
   width: 22px;
   height: 22px;
   display: flex;
@@ -1307,6 +1314,7 @@ body {
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   color: var(--accent);
   background: var(--accent-soft);
