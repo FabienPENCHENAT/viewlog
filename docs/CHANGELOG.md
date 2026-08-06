@@ -9,6 +9,7 @@ so each entry is filed under the day it went live.
 - The level breakdown separates `FATAL` from `ERROR`, which the "Errors" figure used to merge, and tells you whether the errors are one burst or a steady background
 ### Added
 - Under "Volume over time", show the zones worth a look: they are drawn on the chart with what was found in each, and a click opens one already compared to the rest of the file. Marked experimental.
+- A zone is found either on its concentration of errors or on an unusual volume of lines, so a burst your app filed as warnings instead of errors still surfaces, and each zone says which of the two brought it out.
 
 ## 2026-08-05
 ### Added

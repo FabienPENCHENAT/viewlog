@@ -11,7 +11,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { findPeaks, MIN_ERRORS, MIN_SCORE, MIN_LIFT, MAX_ZONES } from "../src/lib/peaks.js";
+import {
+  findPeaks, MIN_ERRORS, MIN_SCORE, MIN_LIFT, MAX_ZONES,
+  VOLUME_MIN_LIFT, VOLUME_MIN_EXCLUSIVE_SHARE,
+} from "../src/lib/peaks.js";
 import { parse } from "../src/parser/index.js";
 
 let pass = 0;
@@ -143,6 +146,103 @@ const BASE = T("2026-03-02T00:00:00");
     ok(`des durées très différentes (${durations.map((d) => d.toFixed(0)).join(" et ")} min)`,
       durations[0] < 10 && durations[1] > 30);
   }
+}
+
+// --------------------------------- 2 bis. le volume, et son contre-poison
+//
+// Le signal volume existe pour UN cas : une application qui range ses incidents
+// ailleurs qu'en ERROR. Il ne doit rien détecter d'autre, et les tests qui le
+// prouvent sont ceux du silence.
+
+// Un pic qui dit des choses NOUVELLES : c'est l'incident mal classé.
+function storm(fromMs, minutes, perMin) {
+  const out = [];
+  for (let m = 0; m < minutes; m++) {
+    for (let k = 0; k < perMin; k++) {
+      const t = fromMs + m * MIN + k * (MIN / perMin);
+      const bad = k % 4 === 0;
+      out.push(at(t, bad ? "ERROR" : "WARN",
+        bad ? "circuit breaker open for shard 7" : "retrying upstream call"));
+    }
+  }
+  return out;
+}
+// Un pic qui dit les MÊMES choses, en plus grand nombre : c'est du trafic.
+function rush(fromMs, minutes, errEvery, times) {
+  const out = [];
+  for (const e of traffic(fromMs, minutes, errEvery)) {
+    const t = new Date(e.ts).getTime();
+    for (let k = 0; k < times; k++) out.push(at(t + k * 1000, e.level, e.message));
+  }
+  return out;
+}
+
+{
+  // Le cas d'origine : le fond du fichier a 33 % d'erreurs, le pic seulement
+  // 25 %. Son taux d'erreur BAISSE, donc le premier signal est aveugle.
+  const evs = [
+    ...traffic(BASE, 300, 3),
+    ...storm(BASE + 150 * MIN, 60, 300),
+    ...traffic(BASE + 300 * MIN, 300, 3),
+  ];
+  const z = findPeaks(evs);
+  eq("un incident rangé en WARN est trouvé", z.length, 1);
+  if (z[0]) {
+    eq("il est trouvé sur le volume", z[0].kind, "volume");
+    ok(`son taux d'erreur est plus BAS que le reste (${(z[0].rate * 100).toFixed(0)} % contre ${(z[0].rateOutside * 100).toFixed(0)} %)`,
+      z[0].rate < z[0].rateOutside);
+    ok(`son débit explose (×${z[0].volumeLift.toFixed(0)})`, z[0].volumeLift >= VOLUME_MIN_LIFT);
+    ok("il porte des motifs exclusifs", z[0].exclusive > 0);
+  }
+}
+
+{
+  // Le contre-test qui donne sa valeur au précédent : même forme de pic, mêmes
+  // proportions, mais rien de neuf dedans.
+  const evs = [
+    ...traffic(BASE, 300, 3),
+    ...rush(BASE + 150 * MIN, 60, 3, 5),
+    ...traffic(BASE + 300 * MIN, 300, 3),
+  ];
+  eq("un pic de trafic pur ne propose rien", findPeaks(evs).length, 0);
+}
+
+{
+  // Une poignée de lignes uniques ne fait pas une zone : sans le plancher de
+  // part, le moindre gros fichier en trouverait partout.
+  const noise = [];
+  for (let i = 0; i < 40; i++) noise.push(at(BASE + 150 * MIN + i * 1000, "INFO", `one-off ${i}`));
+  const evs = [
+    ...traffic(BASE, 300, 3),
+    ...rush(BASE + 150 * MIN, 60, 3, 5),
+    ...noise,
+    ...traffic(BASE + 300 * MIN, 300, 3),
+  ];
+  ok(`quelques lignes uniques dans un pic ne suffisent pas (seuil ${VOLUME_MIN_EXCLUSIVE_SHARE * 100} %)`,
+    findPeaks(evs).length === 0);
+}
+
+{
+  // Un pic gros mais court : sous le plancher de lignes, on ne dérange pas.
+  const evs = [
+    ...traffic(BASE, 300, 3),
+    ...storm(BASE + 150 * MIN, 1, 60),
+    ...traffic(BASE + 300 * MIN, 300, 3),
+  ];
+  eq("un pic de moins de 200 lignes ne propose rien", findPeaks(evs).length, 0);
+}
+
+{
+  // Quand les deux signaux voient la même chose, c'est le taux d'erreur qui
+  // parle : il est plus spécifique, et deux zones superposées n'apprendraient
+  // rien de plus.
+  const evs = [
+    ...traffic(BASE, 600, 120),
+    ...burst(BASE + 150 * MIN, 20, 60),
+  ];
+  const z = findPeaks(evs);
+  eq("un incident vu par les deux signaux ne sort qu'une fois", z.length, 1);
+  if (z[0]) eq("et c'est la zone d'erreurs qui est gardée", z[0].kind, "rate");
 }
 
 // ------------------------------------------- 3. vérité terrain du fichier type

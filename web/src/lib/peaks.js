@@ -6,13 +6,29 @@
 // est donc exposé derrière un geste explicite, et l'écran le dit.
 //
 // ------------------------------------------------------------------------
-// CE QU'ON DÉTECTE : le taux d'erreur, jamais le volume
+// DEUX SIGNAUX, PAS UN : le taux d'erreur, et le volume confirmé par le contenu
 //
-// Chercher « une augmentation du nombre de messages » est le premier réflexe et
-// c'est le mauvais : dans un fichier de bureau, le volume monte cinq fois par
-// semaine à la pause café. Un pic de volume, c'est du trafic. On raisonne donc
-// sur la PART des lignes qui sont des erreurs. Mesuré : les cinq pauses café du
-// fichier type ne déclenchent jamais.
+// 1. LE TAUX D'ERREUR. Chercher « une augmentation du nombre de messages » est
+//    le premier réflexe et c'est le mauvais : dans un fichier de bureau, le
+//    volume monte cinq fois par semaine à la pause café. Un pic de volume, c'est
+//    du trafic. On raisonne donc sur la PART des lignes qui sont des erreurs.
+//    Mesuré : les cinq pauses café du fichier type ne déclenchent jamais.
+//
+// 2. LE VOLUME, MAIS JAMAIS SEUL. Le point aveugle du signal précédent : une
+//    application qui range ses incidents en WARN (ou en INFO) produit un pic
+//    ÉNORME dont le taux d'erreur ne bouge pas, voire BAISSE, parce que le pic
+//    dilue le fond d'erreurs habituel. Vu sur un fichier réel : un pic à environ
+//    2 900 lignes par tranche contre une cinquantaine d'habitude, dont 27 %
+//    d'erreurs seulement, quand le reste du fichier en compte une part bien plus
+//    forte. Aucun seuil sur le taux ne rattrape ça, et c'est précisément le
+//    moment où l'utilisateur a besoin d'aide.
+//
+//    Ce qui distingue ce pic d'une pause café n'est pas sa taille, c'est son
+//    CONTENU : la pause café dit les mêmes choses en plus grand nombre, un
+//    incident dit des choses qu'on ne lit nulle part ailleurs. Une zone de
+//    volume n'est donc proposée que si elle contient des motifs ABSENTS du reste
+//    du fichier, en quantité. Le volume énumère les candidates, le contenu
+//    tranche. Mesuré sur le fichier type : les pauses café restent muettes.
 //
 // ------------------------------------------------------------------------
 // DEUX APPROCHES QUI NE MARCHENT PAS, et pourquoi (elles ont été codées)
@@ -47,6 +63,15 @@
 // par sommes cumulées. Aucun seuil ne s'appuie sur lui, donc la rareté des
 // erreurs ne le fait plus dégénérer, et le résultat est identique de 256 à
 // 8 192 tranches (mesuré).
+//
+// La même méthode sert aux deux signaux, seule la population change : pour le
+// taux d'erreur, on compare des erreurs à des LIGNES (loi de Bernoulli) ; pour
+// le volume, on compare des lignes à du TEMPS (loi de Poisson). Le second n'a
+// pas de seuil de score utile, et c'est assumé : un pic de trafic banal marque
+// des milliers de nats, parce que des lignes il y en a beaucoup. Le score y sert
+// à CLASSER les candidates, la confirmation par le contenu à les écarter.
+
+import { patternKey } from "./patterns.js";
 
 // Nombre d'erreurs minimal dans une zone. Silence par défaut : en dessous, on
 // ne dérange pas, quelle que soit la statistique.
@@ -81,6 +106,44 @@ export const MAX_ZONES = 3;
 // un huitième du fichier se voit sur le graphe sans aide.
 const MAX_SPAN_FRACTION = 1 / 8;
 
+// ----------------------------------------------------- seuils du signal volume
+
+// Le débit de la zone doit au moins quadrupler celui du reste. Plus haut que le
+// garde-fou du taux d'erreur, et volontairement : un pic de trafic ordinaire
+// triple sans rien avoir à dire (mesuré, les dix pauses café du fichier type
+// sont à ×3,2 du reste de leur journée), alors qu'un incident qui inonde le
+// fichier se compte en dizaines.
+//
+// Ce garde-fou ne fait qu'écrémer, il ne tranche pas, et il ne faut pas lui
+// demander plus : mesurée contre sa nuit, une journée de bureau ordinaire est à
+// ×11, très au-dessus de ce seuil. Ce qui la fait taire, c'est le contenu.
+export const VOLUME_MIN_LIFT = 4;
+
+// Lignes minimales dans la zone. Un « pic » de quarante lignes ne mérite pas
+// qu'on dérange, même s'il multiplie par vingt le débit d'un fichier calme.
+export const VOLUME_MIN_LINES = 200;
+
+// La confirmation par le contenu, le seuil qui compte vraiment.
+//
+// Un motif est dit exclusif quand il n'apparaît NULLE PART ailleurs dans le
+// fichier. On en exige plusieurs, et surtout qu'ils pèsent : une poignée de
+// lignes uniques se trouve dans n'importe quelle tranche d'un gros fichier
+// (identifiants non masqués, traces tronquées), donc compter les motifs ne
+// suffit pas, il faut la PART des lignes de la zone qu'ils occupent.
+//
+// Mesuré sur le fichier type : les deux incidents connus couvrent 28,6 % et
+// 40,1 % de leurs lignes avec 3 motifs exclusifs chacun, quand les cinq pauses
+// café, les cinq creux d'après-midi et les cinq nuits sont TOUS à 0,00 % et zéro
+// motif. La séparation est totale, donc n'importe quel seuil entre les deux
+// donne le même résultat : celui-ci n'est pas éprouvé par le bas, il est posé
+// bas exprès. Un fichier synthétique a des fenêtres normales parfaitement
+// propres, un vrai fichier non, et c'est là qu'il faudra le remesurer.
+export const VOLUME_MIN_EXCLUSIVE_SHARE = 0.05;
+
+// Un motif exclusif isolé ne fait pas une zone : il faut qu'il se répète, sinon
+// c'est une ligne unique et pas un comportement.
+export const VOLUME_MIN_EXCLUSIVE_COUNT = 5;
+
 const TARGET_BINS = 2048;
 const MIN_BIN_MS = 1000;
 const MIN_LINES_IN = 20;
@@ -92,12 +155,17 @@ function isError(level) {
 
 /**
  * @param {Array} entries entrées parsées (avec `ts` et `level`)
- * @returns {{from:number,to:number,errors:number,lines:number,lift:number,score:number}[]}
+ * @returns {{kind:"rate"|"volume",from:number,to:number,errors:number,lines:number,
+ *   rate:number,rateOutside:number,lift:number,perMin:number,perMinOutside:number,
+ *   volumeLift:number,exclusive:number,score:number}[]}
  *   zones classées du plus tôt au plus tard, au maximum MAX_ZONES
  */
 export function findPeaks(entries) {
-  // Une seule passe : on paye l'analyse des dates une fois, pas deux.
+  // Une seule passe : on paye l'analyse des dates une fois, pas deux. On garde
+  // les entrées datées à côté de leurs dates, parce que la confirmation par le
+  // contenu devra relire ces mêmes lignes sans re-analyser une seule date.
   const times = [];
+  const dated = [];
   const errorTimes = [];
   let lo = Infinity;
   let hi = -Infinity;
@@ -106,11 +174,12 @@ export function findPeaks(entries) {
     const t = new Date(e.ts).getTime();
     if (Number.isNaN(t)) continue;
     times.push(t);
+    dated.push(e);
     if (isError(e.level)) errorTimes.push(t);
     if (t < lo) lo = t;
     if (t > hi) hi = t;
   }
-  if (errorTimes.length < MIN_ERRORS || !(hi > lo)) return [];
+  if (!times.length || !(hi > lo)) return [];
 
   const binMs = Math.max(MIN_BIN_MS, (hi - lo) / TARGET_BINS);
   const bins = Math.max(8, Math.ceil((hi - lo) / binMs));
@@ -129,7 +198,6 @@ export function findPeaks(entries) {
   const totalLines = lines[bins];
   const totalErrors = errors[bins];
   const rate = totalErrors / totalLines;
-  if (!(rate > 0) || rate >= 1) return [];
 
   // Un côté de la vraisemblance : « ce côté a son propre taux ».
   const side = (n, len) => {
@@ -140,8 +208,18 @@ export function findPeaks(entries) {
     return s;
   };
 
+  // Le même écart de vraisemblance, mais où la population est le TEMPS : la
+  // référence n'est plus une part de lignes, c'est un débit. Les termes
+  // linéaires s'annulent puisque les deux côtés totalisent tout le fichier, il
+  // ne reste que ce log de rapport.
+  const density = totalLines / bins;
+  const densitySide = (n, len) => (n > 0 && len > 0 ? n * Math.log(n / len / density) : 0);
+
   // Les chiffres d'une fenêtre, sans jugement : sert aussi à réévaluer une zone
-  // après fusion, pour que les nombres affichés décrivent la zone finale.
+  // après fusion, pour que les nombres affichés décrivent la zone finale. Les
+  // deux familles de chiffres sont calculées pour toute zone, quel que soit le
+  // signal qui l'a trouvée : une zone d'erreurs a un débit, une zone de volume a
+  // un taux d'erreur, et les deux méritent d'être lisibles.
   function measure(a, b) {
     const len = lines[b] - lines[a];
     const n = errors[b] - errors[a];
@@ -149,6 +227,10 @@ export function findPeaks(entries) {
     const nOut = totalErrors - n;
     const inside = len > 0 ? n / len : 0;
     const outside = lenOut > 0 ? nOut / lenOut : 0;
+    const spanMin = ((b - a) * binMs) / 60000;
+    const spanOutMin = ((bins - (b - a)) * binMs) / 60000;
+    const perMin = spanMin > 0 ? len / spanMin : 0;
+    const perMinOutside = spanOutMin > 0 ? lenOut / spanOutMin : 0;
     return {
       a, b, errors: n, lines: len,
       // Les deux taux bruts, et pas seulement leur rapport : un « ×8,7 » affiché
@@ -157,89 +239,180 @@ export function findPeaks(entries) {
       rate: inside,
       rateOutside: outside,
       lift: outside > 0 ? inside / outside : Infinity,
+      perMin,
+      perMinOutside,
+      volumeLift: perMinOutside > 0 ? perMin / perMinOutside : Infinity,
       score: side(n, len) + side(nOut, lenOut),
-      lenOut,
+      volumeScore: densitySide(len, b - a) + densitySide(lenOut, bins - (b - a)),
     };
   }
 
-  function evaluate(a, b) {
-    const len = lines[b] - lines[a];
-    const n = errors[b] - errors[a];
-    const lenOut = totalLines - len;
-    const nOut = totalErrors - n;
-    if (n < MIN_ERRORS || len < MIN_LINES_IN || lenOut < MIN_LINES_OUT) return null;
-    const inside = n / len;
-    const outside = nOut / lenOut;
-    // La référence est le RESTE, jamais le fichier entier. Sinon un incident qui
-    // pèse un quart du fichier gonfle sa propre référence et se masque lui-même :
-    // mesuré, samedi seul ne détectait rien. Même piège que la médiane, une
-    // couche plus haut, et même correctif que pour la comparaison de motifs.
-    if (!(inside > outside) || inside < outside * MIN_LIFT) return null;
-    const score = side(n, len) + side(nOut, lenOut);
-    if (score < MIN_SCORE) return null;
-    return { a, b, errors: n, lines: len, lift: inside / outside, score };
-  }
-
   const maxWidth = Math.max(1, Math.floor(bins * MAX_SPAN_FRACTION));
-  const found = [];
-  for (let width = 1; width <= maxWidth; width *= 2) {
-    const step = Math.max(1, width >> 1);
-    for (let a = 0; a + width <= bins; a += step) {
-      const c = evaluate(a, a + width);
-      if (c) found.push(c);
-    }
-  }
-  if (!found.length) return [];
 
-  // Les meilleures qui ne se chevauchent pas. On en prend plus que nécessaire,
-  // parce que la fusion qui suit va en recoller certaines.
-  found.sort((x, y) => y.score - x.score);
-  const picked = [];
-  for (const c of found) {
-    if (picked.some((k) => c.a < k.b && k.a < c.b)) continue;
-    picked.push(c);
-    if (picked.length === MAX_ZONES * 3) break;
-  }
-
-  // Fusion des zones contiguës, sans quoi UN incident se présente en DEUX : les
-  // candidates étant énumérées à des largeurs qui doublent, le reliquat de bord
-  // d'un incident forme une fenêtre voisine qui ne chevauche pas la retenue et
-  // passe elle aussi le seuil. Mesuré : un incident isolé ressortait en 2 zones,
-  // deux incidents en 3.
-  //
-  // La tolérance est relative à la plus petite des deux zones : un reliquat de
-  // bord est collé à sa zone, alors que deux vrais incidents sont séparés par
-  // des heures de calme.
-  picked.sort((x, y) => x.a - y.a);
-  const merged = [];
-  for (const c of picked) {
-    const last = merged[merged.length - 1];
-    if (last) {
-      const smallest = Math.min(last.b - last.a, c.b - c.a);
-      const tolerance = Math.max(2, Math.floor(smallest * 0.25));
-      if (c.a - last.b <= tolerance) {
-        last.b = Math.max(last.b, c.b);
-        continue;
+  // Énumération commune aux deux signaux : toutes les largeurs, les meilleures
+  // qui ne se chevauchent pas, puis fusion des voisines. Seul `evaluate` change.
+  function collect(evaluate) {
+    const found = [];
+    for (let width = 1; width <= maxWidth; width *= 2) {
+      const step = Math.max(1, width >> 1);
+      for (let a = 0; a + width <= bins; a += step) {
+        const c = evaluate(a, a + width);
+        if (c) found.push(c);
       }
     }
-    merged.push({ a: c.a, b: c.b });
+    if (!found.length) return [];
+
+    // On en prend plus que nécessaire, parce que la fusion qui suit va en
+    // recoller certaines.
+    found.sort((x, y) => y.score - x.score);
+    const picked = [];
+    for (const c of found) {
+      if (picked.some((k) => c.a < k.b && k.a < c.b)) continue;
+      picked.push(c);
+      if (picked.length === MAX_ZONES * 3) break;
+    }
+
+    // Fusion des zones contiguës, sans quoi UN incident se présente en DEUX :
+    // les candidates étant énumérées à des largeurs qui doublent, le reliquat de
+    // bord d'un incident forme une fenêtre voisine qui ne chevauche pas la
+    // retenue et passe elle aussi le seuil. Mesuré : un incident isolé
+    // ressortait en 2 zones, deux incidents en 3.
+    //
+    // La tolérance est relative à la plus petite des deux zones : un reliquat de
+    // bord est collé à sa zone, alors que deux vrais incidents sont séparés par
+    // des heures de calme.
+    picked.sort((x, y) => x.a - y.a);
+    const merged = [];
+    for (const c of picked) {
+      const last = merged[merged.length - 1];
+      if (last) {
+        const smallest = Math.min(last.b - last.a, c.b - c.a);
+        const tolerance = Math.max(2, Math.floor(smallest * 0.25));
+        if (c.a - last.b <= tolerance) {
+          last.b = Math.max(last.b, c.b);
+          continue;
+        }
+      }
+      merged.push({ a: c.a, b: c.b });
+    }
+    return merged;
   }
 
-  const kept = merged
-    .map((m) => measure(m.a, m.b))
-    .sort((x, y) => y.score - x.score)
-    .slice(0, MAX_ZONES);
+  // ------------------------------------------------ signal 1 : le taux d'erreur
 
-  // Bornes recalées sur les vraies erreurs de la zone : une zone proposée doit
-  // commencer et finir sur un événement, pas sur un bord de quadrillage.
+  const rateUsable = errorTimes.length >= MIN_ERRORS && rate > 0 && rate < 1;
+  const rateZones = !rateUsable
+    ? []
+    : collect((a, b) => {
+        const len = lines[b] - lines[a];
+        const n = errors[b] - errors[a];
+        const lenOut = totalLines - len;
+        const nOut = totalErrors - n;
+        if (n < MIN_ERRORS || len < MIN_LINES_IN || lenOut < MIN_LINES_OUT) return null;
+        const inside = n / len;
+        const outside = nOut / lenOut;
+        // La référence est le RESTE, jamais le fichier entier. Sinon un incident
+        // qui pèse un quart du fichier gonfle sa propre référence et se masque
+        // lui-même : mesuré, samedi seul ne détectait rien. Même piège que la
+        // médiane, une couche plus haut, et même correctif que pour la
+        // comparaison de motifs.
+        if (!(inside > outside) || inside < outside * MIN_LIFT) return null;
+        const score = side(n, len) + side(nOut, lenOut);
+        if (score < MIN_SCORE) return null;
+        return { a, b, score };
+      })
+      .map((m) => ({ ...measure(m.a, m.b), kind: "rate", exclusive: 0 }));
+
+  // ----------------------------------------------------- signal 2 : le volume
+
+  const volumeCandidates = collect((a, b) => {
+    const len = lines[b] - lines[a];
+    const lenOut = totalLines - len;
+    const span = b - a;
+    const spanOut = bins - span;
+    if (len < VOLUME_MIN_LINES || lenOut < MIN_LINES_OUT || spanOut <= 0) return null;
+    const inside = len / span;
+    const outside = lenOut / spanOut;
+    if (!(inside > outside) || inside < outside * VOLUME_MIN_LIFT) return null;
+    return { a, b, score: densitySide(len, span) + densitySide(lenOut, spanOut) };
+  })
+    // Une zone de volume qui recouvre déjà une zone d'erreurs n'apprend rien de
+    // plus : le taux est le signal le plus spécifique des deux, il garde la main.
+    .filter((m) => !rateZones.some((z) => m.a < z.b && z.a < m.b));
+
+  // La confirmation par le contenu, faite ICI et pas à l'affichage : une zone
+  // qu'on ne saurait pas expliquer ne doit pas être proposée du tout.
+  const volumeZones = confirm(volumeCandidates)
+    .map((m) => ({ ...measure(m.a, m.b), kind: "volume", exclusive: m.exclusive }))
+    .sort((x, y) => y.volumeScore - x.volumeScore);
+
+  /**
+   * Ne garde que les fenêtres dont le contenu sort de l'ordinaire : au moins un
+   * motif répété qu'on ne lit nulle part ailleurs dans le fichier, et assez de
+   * lignes concernées pour que ça pèse.
+   *
+   * Un seul parcours du fichier quel que soit le nombre de candidates, et zéro
+   * coût quand il n'y en a aucune, ce qui est le cas courant. Mesuré sur
+   * 430 000 lignes : 53 ms sans candidate, 229 ms avec. C'est le prix de la
+   * normalisation des messages, et il se paye dans le worker au parsing, pas au
+   * clic.
+   */
+  function confirm(ranges) {
+    if (!ranges.length) return [];
+    const totals = new Map();
+    const insides = ranges.map(() => new Map());
+    for (let i = 0; i < times.length; i++) {
+      const s = slot(times[i]);
+      const key = patternKey(dated[i]);
+      totals.set(key, (totals.get(key) || 0) + 1);
+      for (let r = 0; r < ranges.length; r++) {
+        if (s < ranges[r].a || s >= ranges[r].b) continue;
+        const m = insides[r];
+        m.set(key, (m.get(key) || 0) + 1);
+      }
+    }
+    const out = [];
+    for (let r = 0; r < ranges.length; r++) {
+      let exclusiveLines = 0;
+      let exclusive = 0;
+      let total = 0;
+      for (const [key, count] of insides[r]) {
+        total += count;
+        if (count < VOLUME_MIN_EXCLUSIVE_COUNT || totals.get(key) !== count) continue;
+        exclusive += 1;
+        exclusiveLines += count;
+      }
+      if (!exclusive || total <= 0) continue;
+      if (exclusiveLines / total < VOLUME_MIN_EXCLUSIVE_SHARE) continue;
+      out.push({ ...ranges[r], exclusive });
+    }
+    return out;
+  }
+
+  // ---------------------------------------------------------------- assemblage
+
+  // Les zones d'erreurs d'abord : à nombre de places limité, une concentration
+  // d'erreurs se défend mieux qu'une hausse de trafic, aussi grosse soit-elle.
+  const kept = [
+    ...rateZones.sort((x, y) => y.score - x.score),
+    ...volumeZones,
+  ].slice(0, MAX_ZONES);
+
+  // Bornes recalées sur les vrais événements de la zone : une zone proposée doit
+  // commencer et finir sur une ligne, pas sur un bord de quadrillage. Sur quoi
+  // on recale dépend du signal : une zone d'erreurs se cale sur ses erreurs,
+  // alors qu'une zone de volume se cale sur ses lignes, dont on ne sait
+  // justement pas si le niveau veut dire quelque chose.
   errorTimes.sort((x, y) => x - y);
+  const sortedTimes = times.slice().sort((x, y) => x - y);
   return kept
     .map((c) => {
       const rawFrom = lo + c.a * binMs;
       const rawTo = lo + c.b * binMs;
+      const anchors = c.kind === "rate" ? errorTimes : sortedTimes;
       let from = rawTo;
       let to = rawFrom;
-      for (const t of errorTimes) {
+      for (const t of anchors) {
         if (t < rawFrom || t > rawTo) continue;
         if (t < from) from = t;
         if (t > to) to = t;
@@ -248,20 +421,24 @@ export function findPeaks(entries) {
         from = rawFrom;
         to = rawTo;
       }
-      // Compromis assumé : les bornes tombent sur la première et la dernière
-      // ERREUR, donc elles rognent légèrement les épaules de l'incident. Les
-      // avertissements qui l'annoncent arrivent quelques secondes avant, et une
-      // seule occurrence laissée dehors suffit à faire perdre à un motif son
-      // statut de « seulement ici » : mesuré, 2 motifs exclusifs au lieu de 3
-      // sur le fichier type. Rendre une marge a été essayé et écarté, parce que
-      // toute valeur défendable sur un fichier l'est mal sur un autre (une marge
-      // d'une tranche vaut 5 min sur une semaine et avale trop). Le motif perdu
-      // ressort de toute façon en « sur-représenté », avec un rapport énorme.
+      // Compromis assumé : les bornes d'une zone d'erreurs tombent sur la
+      // première et la dernière ERREUR, donc elles rognent légèrement les épaules
+      // de l'incident. Les avertissements qui l'annoncent arrivent quelques
+      // secondes avant, et une seule occurrence laissée dehors suffit à faire
+      // perdre à un motif son statut de « seulement ici » : mesuré, 2 motifs
+      // exclusifs au lieu de 3 sur le fichier type. Rendre une marge a été essayé
+      // et écarté, parce que toute valeur défendable sur un fichier l'est mal sur
+      // un autre (une marge d'une tranche vaut 5 min sur une semaine et avale
+      // trop). Le motif perdu ressort de toute façon en « sur-représenté », avec
+      // un rapport énorme.
       return {
+        kind: c.kind,
         from, to,
         errors: c.errors, lines: c.lines,
-        rate: c.rate, rateOutside: c.rateOutside,
-        lift: c.lift, score: c.score,
+        rate: c.rate, rateOutside: c.rateOutside, lift: c.lift,
+        perMin: c.perMin, perMinOutside: c.perMinOutside, volumeLift: c.volumeLift,
+        exclusive: c.exclusive,
+        score: c.kind === "rate" ? c.score : c.volumeScore,
       };
     })
     .sort((x, y) => x.from - y.from);

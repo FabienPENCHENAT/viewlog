@@ -264,19 +264,39 @@ en évidence sur le tableau de bord, parce que ce qu'on voit sans l'avoir demand
 on le prend pour un fait. Le statut expérimental est donc écrit sur le bouton
 d'accès et rappelé sous la liste.
 
-Ce qui est détecté est le **taux d'erreur**, jamais le volume : un pic de volume,
-c'est du trafic. Cinq pauses café d'une semaine de bureau ne déclenchent rien.
+Deux signaux, jamais un seul.
+
+Le premier est le **taux d'erreur**, et il ignore délibérément le volume : un pic
+de volume, c'est du trafic. Cinq pauses café d'une semaine de bureau ne
+déclenchent rien.
+
+Le second est le **volume, mais confirmé par le contenu**. Il existe pour le point
+aveugle du premier : une application qui range ses incidents en warning produit un
+pic énorme dont le taux d'erreur ne bouge pas, et **baisse** même, puisque le pic
+dilue le fond d'erreurs habituel. Aucun seuil sur le taux ne rattrape ça. Ce qui
+distingue alors un incident d'une pause café n'est pas sa taille, c'est ce qu'il
+dit : la pause café répète les mêmes messages en plus grand nombre, l'incident en
+produit qu'on ne lit nulle part ailleurs. Une zone de volume n'est donc proposée
+que si elle contient des **motifs absents du reste du fichier**, en quantité
+suffisante pour peser. Un pic de trafic pur, aussi haut soit-il, reste muet.
 
 Chaque zone tient sur deux lignes : quand et combien d'abord, puis ce qu'on y a
 trouvé. Rien n'y est posé sans être nommé. La plage est donnée par **ses deux
 bornes** (« samedi 14:05 → 15:19 »), donc la durée entre parenthèses ne fait que
-confirmer au lieu de laisser deviner de quoi elle est la durée. Et le taux
-d'erreur est donné **des deux côtés** (« 28 % des lignes ici, 3,2 % ailleurs »),
-plutôt qu'en rapport, qu'aucun élément de l'écran ne permettrait de décoder.
+confirmer au lieu de laisser deviner de quoi elle est la durée. Et la mesure qui
+justifie la zone est donnée **des deux côtés** plutôt qu'en rapport, qu'aucun
+élément de l'écran ne permettrait de décoder : « 28 % des lignes ici, 3,2 %
+ailleurs » pour un taux d'erreur, « 246 lignes/min ici, 6 ailleurs » pour un
+débit.
 
-Une seule touche de couleur par ligne, sur le nombre d'erreurs : le reste se
-hiérarchise au contraste, la trouvaille étant en encre pleine puisque c'est pour
-elle qu'on cliquerait.
+**Une zone dit sur quoi elle a été trouvée**, parce que les deux signaux ne se
+racontent pas pareil. Une zone d'erreurs met en avant son nombre d'erreurs, en
+rouge, et son taux. Une zone de volume met en avant son nombre de lignes, dans la
+teinte des avertissements, son débit, et porte la mention « volume inhabituel » :
+sans elle, une zone dont le taux d'erreur n'a pas bougé passerait pour un faux
+positif. Le pointillé sur le graphe suit la même couleur. Une seule touche de
+couleur par ligne dans les deux cas : le reste se hiérarchise au contraste, la
+trouvaille étant en encre pleine puisque c'est pour elle qu'on cliquerait.
 
 Une zone n'est pas annoncée parce qu'elle est haute, mais **parce que la
 comparaison y a trouvé quelque chose** : un pic se voit déjà sur le graphe, ce qui
@@ -286,6 +306,10 @@ trouvaille. Une zone où rien ne ressort le dit aussi (« même mélange, en plu
 dense »), ce qui est un diagnostic de surcharge et pas un échec.
 
 Trois zones au maximum, classées, jamais une liste qui défile.
+
+Quand les deux signaux voient la même chose, c'est la zone d'erreurs qui est
+gardée : elle est plus spécifique, et deux zones superposées n'apprendraient rien
+de plus.
 
 Détails de la méthode et de ses limites connues dans `lib/peaks.js` : ce qui a été
 essayé et écarté y est gardé, parce que les deux approches évidentes (découper en

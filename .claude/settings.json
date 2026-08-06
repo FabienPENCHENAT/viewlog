@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git merge *)",
+      "Bash(git branch *)",
+      "Bash(grep -n \"{tabs.map\\(\\(tab, index\\) => {\" components/TabBar.jsx)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(python3 - /Users/fabien.penchenat/.claude/projects/-Users-fabien-penchenat-Documents-projets-viewlog/a2be4a52-d4cb-4b5f-aa6a-eb4b18f2506b/tool-results/artifact-0bb5a4fe-1785786383-6956.html /private/tmp/claude-503/-Users-fabien-penchenat-Documents-projets-viewlog/a2be4a52-d4cb-4b5f-aa6a-eb4b18f2506b/scratchpad/viewlog-backlog.html)",
+      "WebFetch(domain:claude.ai)",
+      "Bash(node check-diff.mjs)",
+      "Bash(awk '/^<script>/{f=1;next} /^<\\\\/script>/{f=0} f' viewlog-features.html)",
+      "Bash(node --check /tmp/wf-check.js)",
+      "Bash(ls -lt ~/Downloads 2>/dev/null | head -12; echo \"=== projet ===\"; find /Users/fabien.penchenat/Documents/projets/viewlog -maxdepth 2 -type f \\\\\\( -name \"*.log\" -o -name \"*.txt\" -o -name \"*.csv\" -o -name \"*.zip\" -o -name \"*.gz\" \\\\\\) -not -path \"*/node_modules/*\" 2>/dev/null | head)",
+      "Read(//Users/fabien.penchenat/Downloads/**)",
+      "Bash(node analyse-pic.mjs ~/Downloads/cf311f771b6b4649a56f7fbc693ed9a6.csv)",
+      "Bash(node analyse-pic.mjs ~/Downloads/cf311f771b6b4649a56f7fbc693ed9a6.csv 0.9)",
+      "Bash(node --check /tmp/wf2.js)",
+      "Bash(node -e 'console.log\\(\"0.03/0.01 =\", 0.03/0.01\\)')",
+      "Bash(awk '/^<script>/{f=1;next} /^<\\\\/script>/{f=0} f' use-case-pic.html)",
+      "Bash(node --check /tmp/uc2.js)"
+    ]
+  }
+}

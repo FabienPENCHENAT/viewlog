@@ -165,18 +165,25 @@ export default function Timeline({ timeline, bounds, range, marks, onRangeChange
           />
           {/* Avant la sélection, pour que celle-ci reste au-dessus si les deux
               se recouvrent : c'est le geste de l'utilisateur qui prime. */}
-          {(marks || []).map((m) => (
-            <ReferenceArea
-              key={m.from}
-              x1={m.from}
-              x2={m.to}
-              fill={LEVEL_COLORS.ERROR}
-              fillOpacity={0.1}
-              stroke={LEVEL_COLORS.ERROR}
-              strokeOpacity={0.7}
-              strokeDasharray="3 2"
-            />
-          ))}
+          {(marks || []).map((m) => {
+            // La couleur dit sur QUOI la zone a été trouvée, et elle doit dire
+            // vrai : marquer en rouge une zone dont le taux d'erreur n'a pas
+            // bougé pousserait à chercher des erreurs qui ne sont pas là. Une
+            // zone de volume prend donc la teinte des avertissements.
+            const color = m.kind === "volume" ? LEVEL_COLORS.WARN : LEVEL_COLORS.ERROR;
+            return (
+              <ReferenceArea
+                key={m.from}
+                x1={m.from}
+                x2={m.to}
+                fill={color}
+                fillOpacity={0.1}
+                stroke={color}
+                strokeOpacity={0.7}
+                strokeDasharray="3 2"
+              />
+            );
+          })}
           {zone && (
             <ReferenceArea
               x1={zone.from}

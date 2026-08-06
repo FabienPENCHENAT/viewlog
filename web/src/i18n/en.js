@@ -138,6 +138,13 @@ export default {
   "peaks.errors": "{count} errors",
   // Both rates spelled out: a bare "×8.7" cannot be decoded on screen.
   "peaks.density": "{inside} of lines here, {outside} elsewhere",
+  // Zone found on volume: the figure that justifies it is the rate of lines, and
+  // the error share is precisely not what brought it out.
+  "peaks.lines": "{count} lines",
+  "peaks.rhythm": "{inside} lines/min here, {outside} elsewhere",
+  "peaks.why_volume": "Unusual volume",
+  "peaks.why_volume_hint":
+    "Found on throughput, not on the level of the lines: an incident filed as a warning still shows up here.",
   "peaks.only_here_one": "1 pattern exists nowhere else",
   "peaks.only_here_many": "{count} patterns exist nowhere else",
   "peaks.over_one": "1 pattern far more present than elsewhere",

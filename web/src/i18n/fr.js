@@ -142,6 +142,13 @@ export default {
   "peaks.errors": "{count} erreurs",
   // Les deux taux en clair : un rapport « ×8,7 » ne se décode pas à l'écran.
   "peaks.density": "{inside} des lignes ici, {outside} ailleurs",
+  // Zone trouvée sur le volume : le chiffre qui la justifie est le débit, et le
+  // taux d'erreur n'est justement pas ce qui l'a fait sortir.
+  "peaks.lines": "{count} lignes",
+  "peaks.rhythm": "{inside} lignes/min ici, {outside} ailleurs",
+  "peaks.why_volume": "Volume inhabituel",
+  "peaks.why_volume_hint":
+    "Trouvée sur le débit et non sur le niveau des lignes : un incident rangé en warning se voit ici quand même.",
   "peaks.only_here_one": "1 motif n'existe nulle part ailleurs",
   "peaks.only_here_many": "{count} motifs n'existent nulle part ailleurs",
   "peaks.over_one": "1 motif bien plus présent qu'ailleurs",

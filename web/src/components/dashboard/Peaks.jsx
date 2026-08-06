@@ -15,6 +15,13 @@
 //    avant d'être décrite. Une zone où rien ne ressort s'affiche quand même, avec
 //    le verdict de surcharge : c'est un résultat, pas un échec.
 //
+// 3. UNE ZONE DIT CE QUI L'A FAIT SORTIR. Il y a deux signaux (voir `lib/peaks.js`)
+//    et ils ne se racontent pas pareil. Une zone d'erreurs met en avant ses
+//    erreurs et leur taux ; une zone de volume met en avant ses lignes et son
+//    débit, et porte en plus la mention « volume inhabituel ». Sans elle, une
+//    zone dont le taux d'erreur n'a pas bougé passe pour un faux positif, alors
+//    qu'elle est là parce qu'on a cessé de faire confiance au niveau des lignes.
+//
 // La comparaison n'est faite QU'AU DÉPLOIEMENT, jamais au chargement : trois
 // comparaisons coûtent ~700 ms sur 400 000 lignes, et derrière un clic une
 // demi-seconde est attendue au lieu d'être subie.
@@ -82,6 +89,14 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
   const clock = (ms) =>
     new Date(ms).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 
+  // Un débit se lit en entier quand il est gros, et à la décimale quand il est
+  // petit : « 246 lignes/min ici, 6 ailleurs » se compare d'un coup d'œil, alors
+  // que « 0 ailleurs » ferait croire à un fichier vide.
+  const rhythm = (perMin) =>
+    new Intl.NumberFormat(locale, {
+      maximumFractionDigits: perMin >= 10 ? 0 : 1,
+    }).format(perMin);
+
   const finding = (d) => {
     if (d.onlyHere > 0) {
       return t(d.onlyHere === 1 ? "peaks.only_here_one" : "peaks.only_here_many", {
@@ -99,7 +114,9 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
   return (
     <div className="peaks">
       <ul className="peak-list">
-        {described.map((d) => (
+        {described.map((d) => {
+          const volume = d.zone.kind === "volume";
+          return (
           <li key={d.zone.from}>
             <button
               type="button"
@@ -123,21 +140,44 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
                 <span className="peak-dur">
                   ({formatDuration(d.zone.to - d.zone.from, t, locale)})
                 </span>
-                {/* Le seul élément coloré de la ligne : « erreurs » est le mot
-                    qui justifie la zone, et une seule touche de rouge par ligne
-                    lui donne un point d'accroche sans bariolage. */}
-                <b className="peak-count">
-                  {t("peaks.errors", { count: d.zone.errors.toLocaleString(locale) })}
-                </b>
-                {/* Les deux taux en clair plutôt qu'un « ×8,7 » que rien à l'écran
-                    ne permet de décoder. Même formulation que la comparaison de
-                    motifs, qui dit déjà « x % ici, y % ailleurs ». */}
+                {/* Le seul élément coloré de la ligne, et il dit CE QUI A FAIT
+                    sortir la zone : les erreurs quand c'est leur concentration,
+                    les lignes quand c'est le débit. Afficher « 768 erreurs » sur
+                    une zone trouvée sur le volume ferait croire que le niveau
+                    des lignes est ce qu'on a regardé, alors que c'est justement
+                    ce dont on se méfie. Une seule touche de couleur par ligne
+                    dans les deux cas. */}
+                {volume ? (
+                  <b className="peak-count peak-count-volume">
+                    {t("peaks.lines", { count: d.zone.lines.toLocaleString(locale) })}
+                  </b>
+                ) : (
+                  <b className="peak-count">
+                    {t("peaks.errors", { count: d.zone.errors.toLocaleString(locale) })}
+                  </b>
+                )}
+                {/* Les deux mesures en clair plutôt qu'un « ×8,7 » que rien à
+                    l'écran ne permet de décoder. Même formulation que la
+                    comparaison de motifs, qui dit déjà « x % ici, y % ailleurs ». */}
                 <span className="peak-density">
-                  {t("peaks.density", {
-                    inside: formatRate(d.zone.rate, locale),
-                    outside: formatRate(d.zone.rateOutside, locale),
-                  })}
+                  {volume
+                    ? t("peaks.rhythm", {
+                        inside: rhythm(d.zone.perMin),
+                        outside: rhythm(d.zone.perMinOutside),
+                      })
+                    : t("peaks.density", {
+                        inside: formatRate(d.zone.rate, locale),
+                        outside: formatRate(d.zone.rateOutside, locale),
+                      })}
                 </span>
+                {/* Le seul cas où on explique la MÉTHODE dans la liste : une
+                    zone sans hausse du taux d'erreur n'a aucune raison évidente
+                    d'être là, et sans ce mot elle passe pour un faux positif. */}
+                {volume && (
+                  <span className="peak-why" title={t("peaks.why_volume_hint")}>
+                    {t("peaks.why_volume")}
+                  </span>
+                )}
               </span>
               <span className="peak-body">
                 <span className="peak-find">{finding(d)}</span>
@@ -153,7 +193,8 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
               </span>
             </button>
           </li>
-        ))}
+          );
+        })}
       </ul>
       {/* Le statut expérimental est écrit, pas sous-entendu : le seul vrai risque
           de cette fonctionnalité est qu'un résultat approximatif soit lu comme un

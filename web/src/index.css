@@ -1374,10 +1374,32 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Une zone trouvée sur le volume n'est pas rouge : le rouge dirait « erreurs »
+   alors que c'est justement ce qu'on n'a pas regardé pour la trouver. Elle prend
+   l'accent, qui signale « à voir » sans annoncer une panne. */
+.peak-count-volume {
+  color: var(--warn-ink);
+}
+
 .peak-density {
   font-size: 11px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+
+/* Pourquoi cette zone est là. Même gabarit que l'étiquette « expérimental » du
+   lien : c'est une glose sur la méthode, pas une donnée du fichier, et elle ne
+   doit pas peser plus que les chiffres qu'elle accompagne. */
+.peak-why {
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 3px;
+  white-space: nowrap;
+  cursor: help;
 }
 
 .peak-find {
