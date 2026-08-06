@@ -1296,52 +1296,53 @@ body {
   border-top: 1px solid var(--line);
 }
 
+/* Une pile de cartes, pas une liste de lignes séparées par un filet. Deux essais
+   plus discrets (chevron coloré, plage soulignée) n'ont pas suffi : posée en
+   texte, une zone ne se donne pas comme un objet qu'on ouvre, quel que soit le
+   détail qu'on lui ajoute. */
 .peak-list {
   list-style: none;
   margin: 0;
   padding: 0;
-}
-
-.peak-list li + li {
-  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* Une zone tient sur DEUX lignes : quand et combien, puis ce qu'on y a trouvé.
    Sur une seule ligne l'information tenait en largeur, mais demandait de lire
    cinq choses d'un coup. Le chevron occupe sa propre colonne et la grille aligne
-   les deux lignes sur la même marge. */
+   les deux lignes sur la même marge. La troisième rangée porte l'action.
+   La carte est posée sur `--surface-hover` alors que le panneau qui la contient
+   est sur `--surface` : c'est ce léger relief, avec la bordure, qui la donne
+   pour un objet et pas pour un paragraphe. */
 .peak-zone {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 3px 9px;
   width: 100%;
-  padding: 8px;
+  padding: 10px 12px;
   font: inherit;
   text-align: left;
-  background: transparent;
-  border: 0;
+  background: var(--surface-hover);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   cursor: pointer;
+  transition: border-color 0.12s ease;
 }
 
 .peak-zone:hover {
-  background: var(--row-hover);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
-/* Le chevron est le symbole d'ouverture, et il doit se voir SANS SURVOL : en gris
-   discret il ne se trouvait pas, et une zone proposée dont on ne devine pas
-   qu'elle s'ouvre est une zone qu'on ne clique jamais. Il est donc en accent au
-   repos, taille lisible, et il avance au survol. */
+/* Le chevron reste discret : c'est le bouton d'action, en bas de la carte, qui
+   porte l'accent et le mot. Deux éléments en accent sur la même carte se
+   disputeraient l'œil sans rien ajouter. */
 .peak-caret {
   font-style: normal;
   font-size: 11px;
   line-height: 1.5;
-  color: var(--accent);
-  transition: transform 0.12s ease;
-}
-
-.peak-zone:hover .peak-caret {
-  transform: translateX(2px);
+  color: var(--muted);
 }
 
 .peak-head,
@@ -1358,22 +1359,11 @@ body {
    reste se hiérarchise au contraste. La trouvaille, ligne du bas, est ce pour
    quoi on cliquerait : elle passe donc en encre pleine, et c'est l'élément le
    plus lisible de la ligne. */
-/* La plage porte l'affordance de lien, avec le même vocabulaire que le reste de
-   l'app (le lien d'accès sous le graphe) : pointillé au repos, plein au survol.
-   C'est ce qui manquait, le fond qui s'éclaire au survol ne se découvre qu'une
-   fois la souris dessus, donc trop tard. Le pointillé ne coûte aucune couleur
-   supplémentaire, la règle « une seule touche par ligne » tient toujours. */
 .peak-when {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
-  border-bottom: 1px dotted var(--line);
-}
-
-.peak-zone:hover .peak-when {
-  border-bottom-color: var(--accent);
-  border-bottom-style: solid;
 }
 
 .peak-dur {
@@ -1434,6 +1424,48 @@ body {
 .peak-zone:hover .peak-why {
   color: var(--ink-2);
   border-color: var(--line);
+}
+
+/* L'action, nommée et posée à sa place, en bas à droite de la carte.
+   C'est un `span` et non un `button` : la carte entière EST le bouton, imbriquer
+   un second bouton dedans serait invalide et créerait deux cibles de clic pour
+   un seul geste. Il ne prend donc pas le survol pour lui, il suit celui de la
+   carte, ce qui dit bien que c'est toute la carte qui répond. */
+.peak-go {
+  grid-column: 2;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  padding: 3px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+/* Au survol l'action se remplit : la carte cesse de proposer et se met à
+   attendre le clic. Le texte passe en couleur de page, comme la confirmation de
+   fermeture d'onglet, seul autre endroit de l'app où un fond plein prend l'encre
+   à contre-emploi. */
+.peak-zone:hover .peak-go {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--page);
+}
+
+.peak-go-arrow {
+  font-style: normal;
+  transition: transform 0.12s ease;
+}
+
+.peak-zone:hover .peak-go-arrow {
+  transform: translateX(2px);
 }
 
 .peak-find {

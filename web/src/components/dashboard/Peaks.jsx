@@ -118,12 +118,10 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
           const volume = d.zone.kind === "volume";
           return (
           <li key={d.zone.from}>
-            <button
-              type="button"
-              className="peak-zone"
-              onClick={() => onPick(d.zone)}
-              title={t("peaks.open")}
-            >
+            {/* Plus de `title` : l'action est écrite dans la carte, une bulle
+                qui répéterait le même mot au survol ne ferait que passer devant
+                les chiffres qu'on est en train de lire. */}
+            <button type="button" className="peak-zone" onClick={() => onPick(d.zone)}>
               <i className="peak-caret" aria-hidden="true">▸</i>
               {/* Deux lignes et non une : quand et combien, puis ce qu'on y a
                   trouvé. Tout mettre sur une seule ligne tenait en largeur, mais
@@ -194,6 +192,13 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
                     <b>{d.top.count.toLocaleString(locale)}×</b> {d.top.template}
                   </span>
                 )}
+              </span>
+              {/* L'action est écrite, pas seulement suggérée : deux tentatives
+                  d'affordance en pointillés et en chevron coloré n'ont pas suffi
+                  à dire qu'une zone s'ouvre. Un mot et une flèche le disent. */}
+              <span className="peak-go">
+                {t("peaks.open")}
+                <i className="peak-go-arrow" aria-hidden="true">→</i>
               </span>
             </button>
           </li>
