@@ -140,7 +140,8 @@ export default {
   "peaks.experimental": "expérimental",
   "peaks.open": "Analyser cette zone",
   "peaks.errors": "{count} erreurs",
-  "peaks.rate": "taux ×{lift}",
+  // Les deux taux en clair : un rapport « ×8,7 » ne se décode pas à l'écran.
+  "peaks.density": "{inside} des lignes ici, {outside} ailleurs",
   "peaks.only_here_one": "1 motif n'existe nulle part ailleurs",
   "peaks.only_here_many": "{count} motifs n'existent nulle part ailleurs",
   "peaks.over_one": "1 motif bien plus présent qu'ailleurs",

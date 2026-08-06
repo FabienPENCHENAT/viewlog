@@ -136,7 +136,8 @@ export default {
   "peaks.experimental": "experimental",
   "peaks.open": "Analyse this zone",
   "peaks.errors": "{count} errors",
-  "peaks.rate": "rate ×{lift}",
+  // Both rates spelled out: a bare "×8.7" cannot be decoded on screen.
+  "peaks.density": "{inside} of lines here, {outside} elsewhere",
   "peaks.only_here_one": "1 pattern exists nowhere else",
   "peaks.only_here_many": "{count} patterns exist nowhere else",
   "peaks.over_one": "1 pattern far more present than elsewhere",

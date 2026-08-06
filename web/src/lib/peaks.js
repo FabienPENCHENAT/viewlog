@@ -151,6 +151,11 @@ export function findPeaks(entries) {
     const outside = lenOut > 0 ? nOut / lenOut : 0;
     return {
       a, b, errors: n, lines: len,
+      // Les deux taux bruts, et pas seulement leur rapport : un « ×8,7 » affiché
+      // seul ne se devine pas, alors que « 29 % des lignes ici contre 3,3 %
+      // ailleurs » se lit sans rien connaître du calcul.
+      rate: inside,
+      rateOutside: outside,
       lift: outside > 0 ? inside / outside : Infinity,
       score: side(n, len) + side(nOut, lenOut),
       lenOut,
@@ -255,6 +260,7 @@ export function findPeaks(entries) {
       return {
         from, to,
         errors: c.errors, lines: c.lines,
+        rate: c.rate, rateOutside: c.rateOutside,
         lift: c.lift, score: c.score,
       };
     })

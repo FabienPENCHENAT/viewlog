@@ -20,7 +20,7 @@
 // demi-seconde est attendue au lieu d'être subie.
 
 import { useMemo } from "react";
-import { comparePatterns } from "../../lib/pattern-diff.js";
+import { comparePatterns, formatRate } from "../../lib/pattern-diff.js";
 import { formatDuration } from "../../lib/duration.js";
 import { useI18n } from "../../i18n/index.jsx";
 
@@ -106,29 +106,37 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
               title={t("peaks.open")}
             >
               <i className="peak-caret" aria-hidden="true">▸</i>
-              <span className="peak-when">
-                {when(d.zone.from)}
-                <em>{formatDuration(d.zone.to - d.zone.from, t, locale)}</em>
+              {/* Deux lignes et non une : quand et combien, puis ce qu'on y a
+                  trouvé. Tout mettre sur une seule ligne tenait en largeur, mais
+                  demandait de lire cinq choses d'un coup. */}
+              <span className="peak-head">
+                <span className="peak-when">{when(d.zone.from)}</span>
+                <span className="peak-dur">
+                  {formatDuration(d.zone.to - d.zone.from, t, locale)}
+                </span>
+                <span className="peak-count">
+                  {t("peaks.errors", { count: d.zone.errors.toLocaleString(locale) })}
+                </span>
+                {/* Les deux taux en clair plutôt qu'un « ×8,7 » que rien à l'écran
+                    ne permet de décoder. Même formulation que la comparaison de
+                    motifs, qui dit déjà « x % ici, y % ailleurs ». */}
+                <span className="peak-density">
+                  {t("peaks.density", {
+                    inside: formatRate(d.zone.rate, locale),
+                    outside: formatRate(d.zone.rateOutside, locale),
+                  })}
+                </span>
               </span>
-              <span className="peak-stat">
-                {t("peaks.errors", { count: d.zone.errors.toLocaleString(locale) })}
-                <em>
-                  {"×"}
-                  {d.zone.lift.toLocaleString(locale, { maximumFractionDigits: 1 })}
-                </em>
-              </span>
-              <span className="peak-find">{finding(d)}</span>
-              {/* Le motif est le seul élément élastique : c'est lui qui absorbe
-                  la largeur restante, et lui seul qu'on coupe. */}
-              {/* Pas de préfixe de niveau : le gabarit d'un log texte contient
-                  déjà le sien, et « 379× ERROR ERROR [pump] … » a l'air d'un
-                  bogue. La comparaison ouverte au clic, elle, porte la pastille
-                  de niveau là où elle a la place. */}
-              <span className="peak-pat">
+              <span className="peak-body">
+                <span className="peak-find">{finding(d)}</span>
+                {/* Pas de préfixe de niveau : le gabarit d'un log texte contient
+                    déjà le sien, et « 379× ERROR ERROR [pump] … » a l'air d'un
+                    bogue. Le motif est le seul élément élastique, donc le seul
+                    qu'on coupe. */}
                 {d.top && (
-                  <>
+                  <span className="peak-pat">
                     <b>{d.top.count.toLocaleString(locale)}×</b> {d.top.template}
-                  </>
+                  </span>
                 )}
               </span>
             </button>

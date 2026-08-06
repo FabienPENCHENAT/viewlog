@@ -1306,18 +1306,16 @@ body {
   border-top: 1px solid var(--line);
 }
 
-/* Une zone tient sur UNE ligne. La disposition précédente empilait trois lignes
-   par zone, ce qui se tenait sous un graphe en demi-largeur ; en pleine largeur
-   elle laissait un grand vide à droite et donnait un bloc mou. Les colonnes ont
-   des largeurs minimales pour s'aligner d'une zone à l'autre sans grille, et
-   c'est le motif, seul élément élastique, qui absorbe le reste et se coupe. */
+/* Une zone tient sur DEUX lignes : quand et combien, puis ce qu'on y a trouvé.
+   Sur une seule ligne l'information tenait en largeur, mais demandait de lire
+   cinq choses d'un coup. Le chevron occupe sa propre colonne et la grille aligne
+   les deux lignes sur la même marge. */
 .peak-zone {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 9px;
   width: 100%;
-  padding: 7px 8px;
+  padding: 8px;
   font: inherit;
   text-align: left;
   background: transparent;
@@ -1333,50 +1331,51 @@ body {
 .peak-caret {
   font-style: normal;
   font-size: 10px;
+  line-height: 1.6;
   color: var(--muted);
-  flex: none;
+}
+
+.peak-head,
+.peak-body {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 14px;
+  min-width: 0;
 }
 
 .peak-when {
-  flex: 0 0 auto;
-  min-width: 158px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--ink);
 }
 
-.peak-when em {
-  font-style: normal;
-  font-weight: 400;
+.peak-dur {
   font-size: 11.5px;
   color: var(--muted);
-  margin-left: 8px;
 }
 
-.peak-stat {
-  flex: 0 0 auto;
-  min-width: 118px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 11px;
+.peak-count {
+  font-size: 11.5px;
   color: var(--error);
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-.peak-stat em {
-  font-style: normal;
-  margin-left: 8px;
+.peak-density {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .peak-find {
-  flex: 0 0 auto;
-  min-width: 215px;
   font-size: 12px;
   color: var(--ink-2);
 }
 
+/* Le motif est le seul élément élastique, donc le seul qu'on coupe. */
 .peak-pat {
-  flex: 1 1 180px;
+  flex: 1 1 200px;
   min-width: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 10.5px;

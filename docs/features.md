@@ -267,6 +267,11 @@ d'accès et rappelé sous la liste.
 Ce qui est détecté est le **taux d'erreur**, jamais le volume : un pic de volume,
 c'est du trafic. Cinq pauses café d'une semaine de bureau ne déclenchent rien.
 
+Chaque zone tient sur deux lignes : quand et combien d'abord (avec le taux
+d'erreur **des deux côtés**, « 28 % des lignes ici, 3,2 % ailleurs », plutôt
+qu'un rapport que rien à l'écran ne permettrait de décoder), puis ce qu'on y a
+trouvé.
+
 Une zone n'est pas annoncée parce qu'elle est haute, mais **parce que la
 comparaison y a trouvé quelque chose** : un pic se voit déjà sur le graphe, ce qui
 ne se voit pas, c'est s'il contient quelque chose d'atypique. Chaque zone est donc
