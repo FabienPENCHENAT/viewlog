@@ -1389,7 +1389,9 @@ body {
 
 /* Pourquoi cette zone est là. Même gabarit que l'étiquette « expérimental » du
    lien : c'est une glose sur la méthode, pas une donnée du fichier, et elle ne
-   doit pas peser plus que les chiffres qu'elle accompagne. */
+   doit pas peser plus que les chiffres qu'elle accompagne.
+   Elle porte un « ⓘ » et garde la main du curseur : un `cursor: help` posé au
+   milieu d'une ligne cliquable annonçait le contraire de ce que fait le clic. */
 .peak-why {
   font-size: 9px;
   letter-spacing: 0.07em;
@@ -1399,7 +1401,25 @@ body {
   border-radius: 3px;
   padding: 0 3px;
   white-space: nowrap;
-  cursor: help;
+  cursor: inherit;
+}
+
+/* Le symbole reste à sa casse et à sa taille : passé en majuscules comme le
+   reste de l'étiquette, il se déformait. */
+.peak-why-info {
+  font-style: normal;
+  font-size: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 3px;
+  vertical-align: -0.5px;
+}
+
+/* L'étiquette suit le survol de la ligne, comme le chevron : elle cesse d'être
+   le seul élément à ne pas réagir, donc à passer pour inerte. */
+.peak-zone:hover .peak-why {
+  color: var(--ink-2);
+  border-color: var(--line);
 }
 
 .peak-find {

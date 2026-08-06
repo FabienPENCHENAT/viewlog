@@ -176,6 +176,10 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
                 {volume && (
                   <span className="peak-why" title={t("peaks.why_volume_hint")}>
                     {t("peaks.why_volume")}
+                    {/* Le « ⓘ » dit qu'il y a une explication au survol, sans
+                        laisser croire que l'étiquette prend le clic à sa charge :
+                        la ligne entière reste le geste, et elle ouvre la zone. */}
+                    <i className="peak-why-info" aria-hidden="true">ⓘ</i>
                   </span>
                 )}
               </span>
