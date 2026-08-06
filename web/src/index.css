@@ -1074,44 +1074,151 @@ body {
   }
 }
 
-.stat-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+/* --- Carte d'identité du fichier ---
+   Ce bloc informe, il ne doit pas concurrencer le graphe de volume. D'où une
+   bande basse en 20 / 80 : à gauche ce qui décrit le fichier, à droite ce qui
+   décrit son contenu. Aucun encadré interne, aucun fond teinté, aucun arrondi,
+   aucun dégradé : des filets d'un pixel et du contraste typographique. */
+.file-id {
+  display: flex;
+  align-items: stretch;
   margin-bottom: 16px;
 }
 
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px;
+.fid-file {
+  flex: 0 0 20%;
+  min-width: 158px;
+  padding-right: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
 }
 
-.stat-value {
-  font-size: 26px;
-  font-weight: 700;
+.fid-content {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-left: 22px;
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 11px;
 }
 
-.stat-label {
+.fid-kpi {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
+}
+
+.fid-kpi b {
+  font-size: 23px;
+  font-weight: 650;
+  letter-spacing: -0.022em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* L'unité en petit et en gris, collée à son chiffre : le détail qui fait qu'un
+   nombre a l'air composé et pas simplement affiché. */
+.fid-kpi i {
+  font-style: normal;
   color: var(--muted);
   font-size: 13px;
-  margin-top: 2px;
+  margin-left: -3px;
 }
 
-.stat-card--error .stat-value {
-  color: var(--error);
+.fid-kpi span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
-.stat-card--warn .stat-value {
-  color: var(--warn-ink);
+.fid-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 22px;
+  align-items: baseline;
 }
 
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
+.fid-lv {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.fid-lv-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.11em;
+}
+
+/* La hiérarchie tient au CONTRASTE : les niveaux qui signalent un problème
+   gardent l'encre pleine, les autres passent en gris. Pas de fond, pas de
+   cadre, pas de surlignage. */
+.fid-lv-n {
+  font-size: 15.5px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fid-lv-n--quiet {
+  color: var(--muted);
+  font-weight: 550;
+}
+
+.fid-lv-p {
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* La seule figure de la bande, et elle est droite : une mesure, pas un
+   ornement. */
+.fid-rail {
+  display: flex;
+  height: 5px;
+  gap: 2px;
+}
+
+.fid-rail i {
+  /* Sans ce plancher, un niveau à 0,06 % du fichier mesurerait un demi-pixel et
+     disparaîtrait. La barre cesse d'être rigoureusement proportionnelle, mais
+     elle ne peut plus effacer une information : les nombres écrits juste
+     au-dessus portent la précision. */
+  min-width: 3px;
+  flex-basis: 0;
+}
+
+.fid-verdict {
+  margin: 6px 0 0;
+  font-size: 10.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .file-id {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .fid-file {
+    flex-basis: auto;
+    padding-right: 0;
+    flex-direction: row;
+    gap: 26px;
+  }
+  .fid-content {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+  }
 }
 
 .card {
@@ -2434,15 +2541,6 @@ tbody tr:hover .row-copy,
   font-size: 14px;
 }
 
-@media (max-width: 820px) {
-  .stat-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* Petits écrans : on rogne les marges pour laisser au contenu toute la place. */
 @media (max-width: 640px) {
   :root {
@@ -2451,12 +2549,6 @@ tbody tr:hover .row-copy,
   .content {
     padding-top: 24px;
     padding-bottom: 48px;
-  }
-}
-
-@media (max-width: 460px) {
-  .stat-cards {
-    grid-template-columns: 1fr;
   }
 }
 

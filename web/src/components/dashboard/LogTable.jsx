@@ -261,7 +261,10 @@ export default function LogTable({ tabId, entries, byLevel, bounds, range, onRan
   }, [dQuery, regexMode]);
 
   const fmtTs = (iso) => {
-    if (!iso) return "—";
+    // Point médian et non tiret cadratin, interdit dans les textes affichés. Une
+    // cellule vide passerait pour un défaut d'affichage, un point dit « rien
+    // ici » sans avoir à être traduit.
+    if (!iso) return "·";
     return new Date(iso).toLocaleString(locale, {
       day: "2-digit",
       month: "2-digit",

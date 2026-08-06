@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 
-import StatCards from "../components/dashboard/StatCards.jsx";
-import LevelChart from "../components/dashboard/LevelChart.jsx";
+import FileIdentity from "../components/dashboard/FileIdentity.jsx";
 import Timeline from "../components/dashboard/Timeline.jsx";
 import LogTable from "../components/dashboard/LogTable.jsx";
 import TabBar from "../components/dashboard/TabBar.jsx";
@@ -235,39 +234,36 @@ export default function Dashboard() {
         </div>
       )}
 
-      <StatCards stats={stats} />
+      <FileIdentity stats={stats} />
 
-      <div className="charts-grid">
-        <section className="card">
-          <h2 className="card-title">{t("dash.timeline")}</h2>
-          <Timeline
-            timeline={stats.timeline}
-            bounds={bounds}
-            range={range}
-            marks={showPeaks ? data.peaks : null}
-            onRangeChange={(r) => selectRange(r, "timeline_select")}
-          >
-            {/* L'accès aux zones vit DANS l'invitation à glisser, pas en dessous :
-                un accès secondaire qui forme son propre bloc cesse d'être
-                secondaire. */}
-            <PeakToggle
-              count={(data.peaks || []).length}
-              shown={showPeaks}
-              onToggle={togglePeaks}
-            />
-          </Timeline>
-          <PeakZones
-            peaks={data.peaks || []}
-            entries={entries}
+      {/* Le graphe prend toute la largeur : c'est la vedette de l'écran, et
+          l'histogramme par niveau qui lui prenait la moitié est remplacé par la
+          bande d'identité, plus basse et plus lisible. */}
+      <section className="card">
+        <h2 className="card-title">{t("dash.timeline")}</h2>
+        <Timeline
+          timeline={stats.timeline}
+          bounds={bounds}
+          range={range}
+          marks={showPeaks ? data.peaks : null}
+          onRangeChange={(r) => selectRange(r, "timeline_select")}
+        >
+          {/* L'accès aux zones vit DANS l'invitation à glisser, pas en dessous :
+              un accès secondaire qui forme son propre bloc cesse d'être
+              secondaire. */}
+          <PeakToggle
+            count={(data.peaks || []).length}
             shown={showPeaks}
-            onPick={pickPeak}
+            onToggle={togglePeaks}
           />
-        </section>
-        <section className="card">
-          <h2 className="card-title">{t("dash.levels")}</h2>
-          <LevelChart byLevel={stats.byLevel} />
-        </section>
-      </div>
+        </Timeline>
+        <PeakZones
+          peaks={data.peaks || []}
+          entries={entries}
+          shown={showPeaks}
+          onPick={pickPeak}
+        />
+      </section>
 
       <section className="card">
         <h2 className="card-title">{t("dash.journal")}</h2>

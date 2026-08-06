@@ -233,11 +233,16 @@ export function formatRatio(ratio) {
 
 // Taux affiché en pourcentage, avec assez de décimales pour que les petits
 // taux ne s'écrasent pas tous à « 0 % ».
+//
+// Le format vient d'`Intl` et non d'une concaténation : le français veut une
+// espace insécable fine avant le signe, l'anglais n'en veut pas du tout, et
+// coller « %` à la main donnait « 5.7 % » en anglais.
 export function formatRate(rate, locale) {
   const pct = rate * 100;
   const digits = pct >= 10 ? 0 : pct >= 1 ? 1 : 2;
-  return `${pct.toLocaleString(locale, {
+  return new Intl.NumberFormat(locale, {
+    style: "percent",
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
-  })} %`;
+  }).format(rate);
 }

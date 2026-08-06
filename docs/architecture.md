@@ -44,7 +44,7 @@ lib/               api.js · db.js · track.js · duration.js · patterns.js · 
                    tab-state.js (filtres par onglet) · time-range.js · clipboard.js
 components/        rangés par page : le chemin dit quelle page est concernée
   dashboard/       LogTable · MessageCell · PatternDiff · PatternRow · Timeline
-                   StatCards · LevelChart · TabBar
+                   FileIdentity · Peaks · TabBar
   stats/           StatsCharts · CountryBubbles
   home/            DropZone
   shared/          ImportManager · FilePicker (Home et Dashboard)
@@ -70,7 +70,7 @@ file.text() ─► parseAsync(content) ─► Web Worker (parser.worker.js)
 navigate(/dashboard/:id)
    │  getLog(id) ─► dbGet ─► re-parse (worker) ─► entries + stats
    ▼
-Dashboard ─► StatCards · Timeline · LevelChart · LogTable
+Dashboard ─► FileIdentity · Timeline (+ Peaks) · LogTable
 ```
 
 - **`lib/api.js`** est la façade locale : `uploadLog` (parse + stocke), `listLogs`,

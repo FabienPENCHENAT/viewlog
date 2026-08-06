@@ -160,7 +160,8 @@ export default function MessageCell({ message, highlight }) {
   const parts = useMemo(() => buildParts(message), [message]);
   const [open, setOpen] = useState(false);
 
-  if (parts.length === 0) return <span className="muted">—</span>;
+  // Point médian et non tiret cadratin, interdit dans les textes affichés.
+  if (parts.length === 0) return <span className="muted">·</span>;
 
   const totalLines = parts.reduce((n, p) => n + p.lines.length, 0);
   const hasJson = parts.some((p) => p.type === "json");

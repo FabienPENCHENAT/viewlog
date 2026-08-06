@@ -53,10 +53,13 @@ export default {
   "import.progress": "Import {done} / {total}",
 
   "stats.lines": "Lignes",
-  "stats.errors": "Erreurs",
-  "stats.warnings": "Warnings",
   "stats.duration": "Durée couverte",
+  "stats.span_short": "couvertes",
+  "stats.no_span": "non horodaté",
   "stats.instant": "instantané",
+  // Le libellé NOMME les niveaux comptés, pour que le chiffre reste vérifiable
+  // en additionnant ceux affichés juste au-dessus.
+  "stats.trouble": "{count} lignes en erreur ou en warning, soit {pct} du fichier",
 
   "dash.back_home": "← Retour",
   "dash.back_files": "← Fichiers",
@@ -153,8 +156,6 @@ export default {
   "msg.collapse": "Réduire ▲",
   "msg.expand": "Afficher tout ({count} lignes) ▼",
 
-  "chart.no_data": "Aucune donnée.",
-  "chart.entries": "Entrées",
   "chart.no_ts": "Aucun timestamp détecté dans ce fichier.",
   "chart.total": "Total",
   "chart.errors": "Erreurs",

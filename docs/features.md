@@ -93,11 +93,36 @@ par analyse des valeurs — donc **même sans en-tête**.
 
 ## Tableau de bord
 
-- **Stats clés** : nombre de lignes, erreurs, warnings, durée couverte.
-- **Volume dans le temps** : courbes (48 tranches) du total et des erreurs.
-  **Sélection à la souris** : on glisse sur un pic pour borner la période, un
-  double-clic revient à la période complète.
-- **Répartition par niveau** : proportion de chaque niveau.
+### La carte d'identité du fichier
+
+Une bande basse, en 20 / 80 : à gauche ce qui décrit **le fichier** (nombre de
+lignes, durée couverte), à droite ce qui décrit **son contenu** (chaque niveau
+avec son nombre et sa part, une barre de proportion, et le verdict).
+
+Elle remplace les quatre cartes de statistiques et l'histogramme par niveau, et
+corrige deux défauts au passage :
+
+- l'ancienne carte « Erreurs » additionnait `ERROR` et `FATAL`, donc les niveaux
+  fatals disparaissaient dans les erreurs, et l'histogramme ne les montrait pas
+  davantage (16 sur 14 000 fait moins d'un pixel de colonne). Les niveaux sont
+  désormais listés un par un ;
+- le **verdict nomme les niveaux qu'il compte** (« 3 095 lignes en erreur ou en
+  warning, soit 12 % du fichier »), pour que le chiffre reste vérifiable en
+  additionnant ceux affichés juste au-dessus.
+
+Les niveaux sont classés par **gravité décroissante** et non par nombre : on
+ouvre un log pour chercher ce qui va mal. Ceux qui signalent un problème gardent
+l'encre pleine, les autres passent en gris ; c'est le contraste qui porte la
+hiérarchie, pas un cadre ni un fond. Un niveau à zéro n'est pas affiché, et
+chaque segment de la barre garde trois pixels au minimum pour qu'un niveau rare
+ne puisse pas disparaître.
+
+### Volume dans le temps
+
+Courbes (48 tranches) du total et des erreurs, **en pleine largeur** : c'est la
+vedette de l'écran, et la bande d'identité lui a rendu la moitié de la largeur
+que l'histogramme lui prenait. **Sélection à la souris** : on glisse sur un pic
+pour borner la période, un double-clic revient à la période complète.
 
 ## Journal
 

@@ -51,10 +51,13 @@ export default {
   "import.progress": "Importing {done} / {total}",
 
   "stats.lines": "Lines",
-  "stats.errors": "Errors",
-  "stats.warnings": "Warnings",
   "stats.duration": "Time span",
+  "stats.span_short": "covered",
+  "stats.no_span": "no timestamps",
   "stats.instant": "instant",
+  // The label NAMES the levels it counts, so the figure stays checkable by
+  // adding up the ones shown just above it.
+  "stats.trouble": "{count} lines at error or warning level, {pct} of the file",
 
   "dash.back_home": "← Back",
   "dash.back_files": "← Files",
@@ -149,8 +152,6 @@ export default {
   "msg.collapse": "Collapse ▲",
   "msg.expand": "Show all ({count} lines) ▼",
 
-  "chart.no_data": "No data.",
-  "chart.entries": "Entries",
   "chart.no_ts": "No timestamps detected in this file.",
   "chart.total": "Total",
   "chart.errors": "Errors",
