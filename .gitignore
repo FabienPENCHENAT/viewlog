@@ -8,3 +8,9 @@ data/
 # Social assets (X and LinkedIn profile/banner), kept local
 viewlog-x-avatar.png
 viewlog-x-banner.png
+
+# Vidéos et images sociales : régénérables par `node scripts/gen-demo-video.mjs`,
+# donc on garde le script sous suivi et pas ses sorties binaires. Même choix que
+# pour l'avatar et la bannière ci-dessus.
+docs/social/
+.social-frames/

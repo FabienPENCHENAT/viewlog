@@ -870,11 +870,19 @@ ${c.rowsHits ? `  <g class="journalHits">${journal(c.rowsHits, x.numHits, x.tsHi
 `;
 }
 
-for (const name of Object.keys(SCENARIOS)) {
-  for (const lang of ["fr", "en"]) {
-    const svg = build(name, lang);
-    const file = join(OUT, `${SCENARIOS[name].file}.${lang}.svg`);
-    writeFileSync(file, svg);
-    console.log(`${SCENARIOS[name].file}.${lang}.svg : ${(svg.length / 1024).toFixed(1)} Ko`);
+// Exporté pour que `gen-demo-video.mjs` reparte du MÊME code : une maquette
+// sociale qui divergerait de la démo de la page « cas d'usage » serait un
+// second dessin à maintenir. Le module reste exécutable directement, et n'écrit
+// alors que dans ce cas, pour ne rien produire quand on l'importe.
+export { build, SCENARIOS };
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  for (const name of Object.keys(SCENARIOS)) {
+    for (const lang of ["fr", "en"]) {
+      const svg = build(name, lang);
+      const file = join(OUT, `${SCENARIOS[name].file}.${lang}.svg`);
+      writeFileSync(file, svg);
+      console.log(`${SCENARIOS[name].file}.${lang}.svg : ${(svg.length / 1024).toFixed(1)} Ko`);
+    }
   }
 }
