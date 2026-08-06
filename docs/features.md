@@ -298,6 +298,11 @@ positif. Le pointillé sur le graphe suit la même couleur. Une seule touche de
 couleur par ligne dans les deux cas : le reste se hiérarchise au contraste, la
 trouvaille étant en encre pleine puisque c'est pour elle qu'on cliquerait.
 
+**Une zone se voit cliquable au repos**, sans attendre le survol : un chevron
+d'ouverture en accent, et la plage soulignée en pointillés, exactement comme le
+lien d'accès sous le graphe. Le fond qui s'éclaire au survol ne se découvre qu'une
+fois la souris dessus, donc trop tard pour donner envie d'y aller.
+
 Une zone n'est pas annoncée parce qu'elle est haute, mais **parce que la
 comparaison y a trouvé quelque chose** : un pic se voit déjà sur le graphe, ce qui
 ne se voit pas, c'est s'il contient quelque chose d'atypique. Chaque zone est donc

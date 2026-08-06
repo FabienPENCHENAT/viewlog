@@ -1328,17 +1328,20 @@ body {
   background: var(--row-hover);
 }
 
-/* Le chevron prend l'accent au survol : la ligne se dit cliquable sans qu'on
-   ait rien ajouté à l'écran au repos. */
-.peak-zone:hover .peak-caret {
-  color: var(--accent);
-}
-
+/* Le chevron est le symbole d'ouverture, et il doit se voir SANS SURVOL : en gris
+   discret il ne se trouvait pas, et une zone proposée dont on ne devine pas
+   qu'elle s'ouvre est une zone qu'on ne clique jamais. Il est donc en accent au
+   repos, taille lisible, et il avance au survol. */
 .peak-caret {
   font-style: normal;
-  font-size: 10px;
-  line-height: 1.6;
-  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--accent);
+  transition: transform 0.12s ease;
+}
+
+.peak-zone:hover .peak-caret {
+  transform: translateX(2px);
 }
 
 .peak-head,
@@ -1355,11 +1358,22 @@ body {
    reste se hiérarchise au contraste. La trouvaille, ligne du bas, est ce pour
    quoi on cliquerait : elle passe donc en encre pleine, et c'est l'élément le
    plus lisible de la ligne. */
+/* La plage porte l'affordance de lien, avec le même vocabulaire que le reste de
+   l'app (le lien d'accès sous le graphe) : pointillé au repos, plein au survol.
+   C'est ce qui manquait, le fond qui s'éclaire au survol ne se découvre qu'une
+   fois la souris dessus, donc trop tard. Le pointillé ne coûte aucune couleur
+   supplémentaire, la règle « une seule touche par ligne » tient toujours. */
 .peak-when {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
+  border-bottom: 1px dotted var(--line);
+}
+
+.peak-zone:hover .peak-when {
+  border-bottom-color: var(--accent);
+  border-bottom-style: solid;
 }
 
 .peak-dur {
