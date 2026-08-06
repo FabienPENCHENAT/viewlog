@@ -357,6 +357,19 @@ générateur (`web/scripts/gen-demo-svg.mjs`) ; et le fichier pèse 6 Ko compres
 lieu de plusieurs Mo, en restant net à toutes les tailles. Le mouvement respecte
 `prefers-reduced-motion` en se figeant sur l'image du résultat.
 
+**Pour les réseaux sociaux, la même démonstration part en MP4** (anglais
+seulement), parce qu'aucun réseau n'accepte le SVG. `web/scripts/gen-demo-video.mjs`
+repart du même générateur, donc la vidéo ne peut pas dériver de la page : il
+compose un 1080×1350 (4:5, le ratio qui prend le plus de hauteur dans un fil),
+avec le titre du cas et la mention de confidentialité, puis fait capturer chaque
+image par Chrome et les assemble à ffmpeg. Le cycle entier est rejoué en 8
+secondes à 60 images par seconde : la vitesse et la fluidité sont deux réglages
+séparés (`--duration`, `--fps`). Les sorties ne sont pas suivies par git, comme
+l'avatar et la bannière : le script les régénère.
+
+Mode d'emploi, réglages et pièges mesurés dans
+[docs/social-assets.md](social-assets.md).
+
 **Deux cas, et deux gestes distincts**, pour ne pas raconter deux fois la même
 chose :
 

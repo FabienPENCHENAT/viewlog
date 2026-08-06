@@ -3,7 +3,8 @@
 Instructions pour toute contribution au code (assistée ou non). Objectif :
 garder le projet **simple, modulaire et privacy-first**. Docs détaillées :
 [docs/features.md](docs/features.md) · [docs/architecture.md](docs/architecture.md)
-· [docs/deployment.md](docs/deployment.md).
+· [docs/deployment.md](docs/deployment.md)
+· [docs/social-assets.md](docs/social-assets.md).
 
 ## Invariants (non négociables)
 
