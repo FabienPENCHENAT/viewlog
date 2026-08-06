@@ -267,10 +267,16 @@ d'accès et rappelé sous la liste.
 Ce qui est détecté est le **taux d'erreur**, jamais le volume : un pic de volume,
 c'est du trafic. Cinq pauses café d'une semaine de bureau ne déclenchent rien.
 
-Chaque zone tient sur deux lignes : quand et combien d'abord (avec le taux
-d'erreur **des deux côtés**, « 28 % des lignes ici, 3,2 % ailleurs », plutôt
-qu'un rapport que rien à l'écran ne permettrait de décoder), puis ce qu'on y a
-trouvé.
+Chaque zone tient sur deux lignes : quand et combien d'abord, puis ce qu'on y a
+trouvé. Rien n'y est posé sans être nommé. La plage est donnée par **ses deux
+bornes** (« samedi 14:05 → 15:19 »), donc la durée entre parenthèses ne fait que
+confirmer au lieu de laisser deviner de quoi elle est la durée. Et le taux
+d'erreur est donné **des deux côtés** (« 28 % des lignes ici, 3,2 % ailleurs »),
+plutôt qu'en rapport, qu'aucun élément de l'écran ne permettrait de décoder.
+
+Une seule touche de couleur par ligne, sur le nombre d'erreurs : le reste se
+hiérarchise au contraste, la trouvaille étant en encre pleine puisque c'est pour
+elle qu'on cliquerait.
 
 Une zone n'est pas annoncée parce qu'elle est haute, mais **parce que la
 comparaison y a trouvé quelque chose** : un pic se voit déjà sur le graphe, ce qui

@@ -79,6 +79,8 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
       hour: "2-digit",
       minute: "2-digit",
     });
+  const clock = (ms) =>
+    new Date(ms).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 
   const finding = (d) => {
     if (d.onlyHere > 0) {
@@ -110,13 +112,23 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
                   trouvé. Tout mettre sur une seule ligne tenait en largeur, mais
                   demandait de lire cinq choses d'un coup. */}
               <span className="peak-head">
-                <span className="peak-when">{when(d.zone.from)}</span>
+                {/* Une plage se dit avec SES DEUX BORNES. « 1 h 14 min » posé
+                    seul demandait de deviner de quoi c'était la durée, et une
+                    icône n'aurait fait que déplacer la devinette. Avec la borne
+                    de fin, la durée entre parenthèses ne fait plus que
+                    confirmer, et on gagne au passage l'heure de fin. */}
+                <span className="peak-when">
+                  {when(d.zone.from)} → {clock(d.zone.to)}
+                </span>
                 <span className="peak-dur">
-                  {formatDuration(d.zone.to - d.zone.from, t, locale)}
+                  ({formatDuration(d.zone.to - d.zone.from, t, locale)})
                 </span>
-                <span className="peak-count">
+                {/* Le seul élément coloré de la ligne : « erreurs » est le mot
+                    qui justifie la zone, et une seule touche de rouge par ligne
+                    lui donne un point d'accroche sans bariolage. */}
+                <b className="peak-count">
                   {t("peaks.errors", { count: d.zone.errors.toLocaleString(locale) })}
-                </span>
+                </b>
                 {/* Les deux taux en clair plutôt qu'un « ×8,7 » que rien à l'écran
                     ne permet de décoder. Même formulation que la comparaison de
                     motifs, qui dit déjà « x % ici, y % ailleurs ». */}
