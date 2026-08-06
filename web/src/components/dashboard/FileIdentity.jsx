@@ -27,6 +27,7 @@
 // niveau, jamais à remplir un fond.
 
 import { formatDuration } from "../../lib/duration.js";
+import { halfErrorsWithin } from "../../lib/insight.js";
 // Le format de pourcentage du projet vit là, on n'en veut pas deux.
 import { formatRate } from "../../lib/pattern-diff.js";
 import { levelColor } from "../../levels.js";
@@ -37,8 +38,8 @@ import { useI18n } from "../../i18n/index.jsx";
 // en tête, ce qui est vrai et inutile.
 const ORDER = ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "OTHER"];
 
-// Les niveaux comptés dans le verdict. Le libellé les NOMME, pour que le chiffre
-// reste vérifiable en additionnant ceux affichés juste au-dessus.
+// Les niveaux qui signalent un problème : ce sont eux qui gardent l'encre pleine
+// quand les autres passent en gris.
 const TROUBLE = new Set(["FATAL", "ERROR", "WARN"]);
 
 // Un nombre et son unité : « 6 j 23 h » se compose, les lettres plus petites et
@@ -63,7 +64,20 @@ export default function FileIdentity({ stats }) {
   const levels = ORDER.map((name) => ({ name, count: stats.byLevel?.[name] || 0 })).filter(
     (l) => l.count > 0
   );
-  const trouble = levels.reduce((s, l) => (TROUBLE.has(l.name) ? s + l.count : s), 0);
+
+  // Rafale ou bruit de fond ? Des erreurs réparties uniformément mettent la
+  // moitié d'elles-mêmes dans la moitié de la période ; en dessous du tiers, la
+  // concentration mérite d'être dite.
+  const half = halfErrorsWithin(stats);
+  let verdict = null;
+  if (total > 0 && (stats.errorCount || 0) === 0) {
+    verdict = t("stats.no_errors");
+  } else if (half) {
+    verdict =
+      half.share <= 1 / 3
+        ? t("stats.errors_burst", { dur: formatDuration(half.ms, t, locale) })
+        : t("stats.errors_spread");
+  }
 
   return (
     <section className="card file-id">
@@ -108,14 +122,12 @@ export default function FileIdentity({ stats }) {
                 />
               ))}
             </div>
-            {trouble > 0 && (
-              <p className="fid-verdict">
-                {t("stats.trouble", {
-                  count: num(trouble),
-                  pct: formatRate(trouble / total, locale),
-                })}
-              </p>
-            )}
+            {/* La phrase répond à la question SUIVANTE, jamais à celle que les
+                chiffres viennent de traiter : « 3 095 lignes, soit 12 % » ne
+                faisait que réécrire trois nombres affichés juste au-dessus. Ces
+                erreurs sont-elles une rafale ou un bruit de fond ? Aucun compteur
+                ne le dit, et la série du graphe suffit à le calculer. */}
+            {verdict && <p className="fid-verdict">{verdict}</p>}
           </div>
         </div>
       )}

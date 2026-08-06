@@ -106,9 +106,12 @@ corrige deux défauts au passage :
   fatals disparaissaient dans les erreurs, et l'histogramme ne les montrait pas
   davantage (16 sur 14 000 fait moins d'un pixel de colonne). Les niveaux sont
   désormais listés un par un ;
-- le **verdict nomme les niveaux qu'il compte** (« 3 095 lignes en erreur ou en
-  warning, soit 12 % du fichier »), pour que le chiffre reste vérifiable en
-  additionnant ceux affichés juste au-dessus.
+- la phrase du bas répond à la question **suivante**, jamais à celle que les
+  chiffres viennent de traiter : ces erreurs sont-elles une rafale ou un bruit de
+  fond ? Elle annonce donc dans quelle durée tient la moitié d'entre elles
+  (« la moitié des erreurs tiennent dans 3 h 29 min », sur une période de près de
+  sept jours), ou qu'elles sont réparties, ou qu'il n'y en a aucune. Aucun
+  compteur ne le dit, et la série du graphe suffit à le calculer.
 
 Les niveaux sont classés par **gravité décroissante** et non par nombre : on
 ouvre un log pour chercher ce qui va mal. Ceux qui signalent un problème gardent

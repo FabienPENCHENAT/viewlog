@@ -6,7 +6,7 @@ so each entry is filed under the day it went live.
 ## 2026-08-06
 ### Changed
 - The dashboard header is now a single low band: lines and time span on the left, every level with its count and share on the right, and the volume chart takes the full width below it
-- The level breakdown separates `FATAL` from `ERROR`, which the "Errors" figure used to merge, and adds how many lines are at error or warning level
+- The level breakdown separates `FATAL` from `ERROR`, which the "Errors" figure used to merge, and tells you whether the errors are one burst or a steady background
 ### Added
 - Under "Volume over time", show the zones worth a look: they are drawn on the chart with what was found in each, and a click opens one already compared to the rest of the file. Marked experimental.
 

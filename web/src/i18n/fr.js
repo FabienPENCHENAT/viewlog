@@ -57,9 +57,11 @@ export default {
   "stats.span_short": "couvertes",
   "stats.no_span": "non horodaté",
   "stats.instant": "instantané",
-  // Le libellé NOMME les niveaux comptés, pour que le chiffre reste vérifiable
-  // en additionnant ceux affichés juste au-dessus.
-  "stats.trouble": "{count} lignes en erreur ou en warning, soit {pct} du fichier",
+  // La phrase répond à la question SUIVANTE, pas à celle que les chiffres
+  // affichés juste au-dessus viennent de traiter.
+  "stats.no_errors": "Aucune erreur sur toute la période.",
+  "stats.errors_burst": "La moitié des erreurs tiennent dans {dur}.",
+  "stats.errors_spread": "Les erreurs sont réparties sur toute la période.",
 
   "dash.back_home": "← Retour",
   "dash.back_files": "← Fichiers",

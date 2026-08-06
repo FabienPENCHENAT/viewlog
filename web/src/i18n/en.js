@@ -55,9 +55,11 @@ export default {
   "stats.span_short": "covered",
   "stats.no_span": "no timestamps",
   "stats.instant": "instant",
-  // The label NAMES the levels it counts, so the figure stays checkable by
-  // adding up the ones shown just above it.
-  "stats.trouble": "{count} lines at error or warning level, {pct} of the file",
+  // The sentence answers the NEXT question, not the one the figures just above
+  // it have already dealt with.
+  "stats.no_errors": "No errors over the whole period.",
+  "stats.errors_burst": "Half the errors fit within {dur}.",
+  "stats.errors_spread": "The errors are spread across the whole period.",
 
   "dash.back_home": "← Back",
   "dash.back_files": "← Files",

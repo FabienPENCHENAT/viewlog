@@ -112,15 +112,25 @@ export default function PeakZones({ peaks, entries, shown, onPick }) {
               </span>
               <span className="peak-stat">
                 {t("peaks.errors", { count: d.zone.errors.toLocaleString(locale) })}
-                {" · ×"}
-                {d.zone.lift.toLocaleString(locale, { maximumFractionDigits: 1 })}
+                <em>
+                  {"×"}
+                  {d.zone.lift.toLocaleString(locale, { maximumFractionDigits: 1 })}
+                </em>
               </span>
               <span className="peak-find">{finding(d)}</span>
-              {d.top && (
-                <span className="peak-pat">
-                  <b>{d.top.count.toLocaleString(locale)}×</b> {d.top.level} {d.top.template}
-                </span>
-              )}
+              {/* Le motif est le seul élément élastique : c'est lui qui absorbe
+                  la largeur restante, et lui seul qu'on coupe. */}
+              {/* Pas de préfixe de niveau : le gabarit d'un log texte contient
+                  déjà le sien, et « 379× ERROR ERROR [pump] … » a l'air d'un
+                  bogue. La comparaison ouverte au clic, elle, porte la pastille
+                  de niveau là où elle a la place. */}
+              <span className="peak-pat">
+                {d.top && (
+                  <>
+                    <b>{d.top.count.toLocaleString(locale)}×</b> {d.top.template}
+                  </>
+                )}
+              </span>
             </button>
           </li>
         ))}
