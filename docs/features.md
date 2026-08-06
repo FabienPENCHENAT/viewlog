@@ -339,7 +339,7 @@ reste fluide grâce à la virtualisation.
 
 ## Page « cas d'usage »
 
-`/cas-usage` pose quatre situations concrètes, formulées comme l'utilisateur se
+`/cas-usage` pose deux situations concrètes, formulées comme l'utilisateur se
 les pose, et donne le geste qui y répond. La valeur de ViewLog est en effet
 **invisible sur une capture d'écran** : elle est dans le geste, pas dans un
 tableau de logs que tout le monde a déjà vu.

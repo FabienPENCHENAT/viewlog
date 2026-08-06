@@ -51,7 +51,7 @@ page ? » doit se répondre en lisant le chemin, pas en cherchant qui l'importe.
 
 | Dossier | Contenu |
 |---|---|
-| `components/dashboard/` | `LogTable`, `MessageCell`, `PatternDiff`, `PatternRow`, `Timeline`, `StatCards`, `LevelChart`, `TabBar` |
+| `components/dashboard/` | `FileIdentity`, `LogTable`, `MessageCell`, `PatternDiff`, `PatternRow`, `Peaks`, `TabBar`, `Timeline` |
 | `components/stats/` | `StatsCharts`, `CountryBubbles` |
 | `components/home/` | `DropZone` |
 | `components/shared/` | `ImportManager` et `FilePicker` (Home **et** Dashboard), `OfflineSwitch` (coquille de l'app) |
