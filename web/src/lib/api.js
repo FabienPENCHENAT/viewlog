@@ -4,7 +4,7 @@
 import { parseAsync } from "./parse-async.js";
 import { storeFrom } from "../parser/index.js";
 import { dbListMeta, dbGet, dbPut, dbPatch, dbDelete } from "./db.js";
-import { cacheGet, cachePut, cacheDrop } from "./log-cache.js";
+import { cacheGet, cachePut, cacheDrop, cacheReserve } from "./log-cache.js";
 import { MAX_LABEL } from "./tab-label.js";
 
 // On ne conserve que 5 fichiers (rotation). Exporté : la barre d'onglets a
@@ -169,6 +169,11 @@ export async function getLog(id) {
 
   const record = await dbGet(id);
   if (!record) throw new Error("errors.not_found");
+
+  // On libère AVANT d'allouer. Sans ça, ouvrir un second gros fichier fait
+  // cohabiter l'ancien et le nouveau le temps du parsing : le pic double, à
+  // l'instant précis où l'onglet est le plus fragile.
+  cacheReserve(record.size);
 
   const payload = await parseAsync(await bytesOf(record.content), true);
   const { truncated, totalLines, stats, levels, peaks } = payload;

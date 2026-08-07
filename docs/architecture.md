@@ -220,12 +220,24 @@ Ni la position (elle changerait à chaque réordonnancement, détruisant l'ident
 qu'elle sert à créer) ni un hachage de l'identifiant (cinq teintes pour cinq fichiers
 collisionnent vite, et deux onglets de la même couleur ne distinguent rien).
 
-**Le cache des logs analysés a un budget en ENTRÉES**, pas en nombre de logs
-(`lib/log-cache.js`). Compter les logs traitait un fichier de 2 000 lignes comme
-un fichier de deux millions : garder trois gros logs multipliait par trois le
-poste le plus lourd de l'application. La réserve est partagée, le plus récent est
-toujours gardé même s'il dépasse à lui seul le budget, et un gros fichier chasse
-donc les autres au lieu de s'ajouter à eux.
+**Le cache des logs analysés a un budget en OCTETS** (`lib/log-cache.js`), et
+c'est la seule chose qui borne la mémoire de l'onglet. Il l'a été en nombre de
+logs, puis en nombre d'entrées, et les deux étaient faux pour la même raison : ils
+ne mesuraient pas ce qui pèse. Compter les logs traitait un fichier de 2 000
+lignes comme un fichier de deux millions. Compter les entrées est devenu faux avec
+le modèle colonnaire, où le poids est celui des octets : **89 000 entrées peuvent
+peser 350 Mo, et deux millions d'entrées 40 Mo**. Un budget d'1,2 M d'entrées
+autorisait treize fichiers de 350 Mo, soit plus de quatre giga-octets.
+
+Chaque store sait ce qu'il coûte (`store.weight` : ses octets plus ses colonnes),
+et le budget est de **256 Mio**. Ce qu'il produit : plusieurs logs de travail
+tiennent ensemble et le passage d'un onglet à l'autre reste instantané, tandis
+qu'un gros fichier chasse ce qu'il faut pour tenir. Le plus récent est toujours
+gardé, même seul au-dessus du budget.
+
+Et `cacheReserve(taille)` **libère avant d'allouer** : sans lui, ouvrir un second
+gros fichier fait cohabiter l'ancien et le nouveau le temps du parsing, donc le pic
+double à l'instant précis où l'onglet est le plus fragile.
 
 L'état de filtrage par onglet vit dans **`lib/tab-state.js`**, volontairement **en
 mémoire** : un rechargement de page est une remise à zéro assumée, donc rien à

@@ -254,8 +254,19 @@ export function makeStore({ bytes, index, raw, message }) {
   const { count, level, time } = index;
   const ts = (i) => (Number.isNaN(time[i]) ? null : new Date(time[i]).toISOString());
 
+  // Ce que ce store coûte réellement en mémoire : les octets du fichier plus ses
+  // colonnes. Le store le calcule lui-même parce que personne d'autre n'a à
+  // savoir de quelles colonnes il est fait, et parce que c'est la SEULE mesure
+  // qui borne la mémoire de l'onglet. Compter les entrées ne veut plus rien dire :
+  // 89 000 entrées peuvent peser 350 Mo, et deux millions peser 40 Mo.
+  let weight = bytes.byteLength;
+  for (const column of [index.offset, index.length, index.level, index.time, index.tsStart, index.tsLen]) {
+    if (column) weight += column.byteLength;
+  }
+
   return {
     count,
+    weight,
     index,
     bytes,
     level: (i) => LEVELS[level[i]],
