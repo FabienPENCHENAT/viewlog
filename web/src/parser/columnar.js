@@ -219,9 +219,38 @@ function headerLine(line, ts) {
  *   - `raw(i)`, `message(i)`, `at(i)` fabriquent des chaînes, et ne doivent être
  *     appelés que pour ce qui est affiché, exporté ou cherché.
  */
+/**
+ * Coquille commune des stores, quel que soit le format.
+ *
+ * Elle ne porte que ce qui ne dépend pas du format : le compte, le niveau,
+ * l'horodatage, et la fabrication d'une entrée. Chaque format fournit ses deux
+ * matérialisateurs, `raw` et `message`, parce que retrouver le texte d'une
+ * entrée est le seul point où le texte et le CSV diffèrent.
+ *
+ * L'intérêt n'est pas d'économiser huit lignes, c'est de garantir que les deux
+ * stores exposent EXACTEMENT la même forme : tout le code au-dessus les consomme
+ * sans savoir de quel format vient le fichier.
+ */
+export function makeStore({ bytes, index, raw, message }) {
+  const { count, level, time } = index;
+  const ts = (i) => (Number.isNaN(time[i]) ? null : new Date(time[i]).toISOString());
+
+  return {
+    count,
+    index,
+    bytes,
+    level: (i) => LEVELS[level[i]],
+    time: (i) => time[i],
+    ts,
+    raw,
+    message,
+    at: (i) => ({ i, ts: ts(i), level: LEVELS[level[i]], message: message(i), raw: raw(i) }),
+  };
+}
+
 export function createStore(bytes, index) {
   const decoder = new TextDecoder("utf-8", { fatal: false });
-  const { count, offset, length, tsStart, tsLen, level, time } = index;
+  const { offset, length, tsStart, tsLen, time } = index;
 
   // Les fins de ligne sont normalisées ICI, et pas à l'indexation, parce que
   // l'index ne porte que des bornes : le `\r` d'un CRLF est à l'intérieur de la
@@ -231,8 +260,6 @@ export function createStore(bytes, index) {
   // est réellement matérialisé.
   const raw = (i) =>
     decoder.decode(bytes.subarray(offset[i], offset[i] + length[i])).replace(/\r\n/g, "\n");
-
-  const ts = (i) => (Number.isNaN(time[i]) ? null : new Date(time[i]).toISOString());
 
   // Le message est la ligne d'en-tête privée de son horodatage, puis rognée,
   // suivie des lignes de continuation. L'horodatage n'est pas toujours en tête
@@ -260,20 +287,9 @@ export function createStore(bytes, index) {
     return stripped.trim() + rest;
   };
 
-  return {
-    count,
-    index,
-    bytes,
-    level: (i) => LEVELS[level[i]],
-    time: (i) => time[i],
-    ts,
-    raw,
-    message,
-    // Une entrée au format attendu par l'UI, fabriquée à la demande. Même forme
-    // que celle du parseur actuel, donc les composants d'affichage n'ont rien à
-    // apprendre.
-    at: (i) => ({ i, ts: ts(i), level: LEVELS[level[i]], message: message(i), raw: raw(i) }),
-  };
+  // `at(i)` rend une entrée à la forme attendue par l'UI, fabriquée à la
+  // demande : les composants d'affichage n'ont rien à apprendre.
+  return makeStore({ bytes, index, raw, message });
 }
 
 /**

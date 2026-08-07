@@ -255,23 +255,40 @@ function pickColumns(header, dataSample, colCount) {
   return idx;
 }
 
+/**
+ * Reconnaît l'en-tête et les trois colonnes utiles sur un échantillon.
+ *
+ * Sorti de `parseCsv` pour que l'index colonnaire (`parser/columnar-csv.js`)
+ * s'appuie sur la MÊME reconnaissance : deux détections de colonnes qui
+ * divergeraient donneraient deux fichiers différents pour le même CSV.
+ *
+ * @param {string} content tout le contenu, ou un échantillon de son début
+ * @param {{delimiter:string, columns:number}} detected
+ * @returns {{hasHeader: boolean, colCount: number, idx: {ts:number, level:number, msg:number}} | null}
+ */
+export function analyzeCsv(content, detected) {
+  // 31 enregistrements suffisent : la reconnaissance doit être faite AVANT de
+  // construire la première entrée, sinon il faudrait garder tout le fichier pour
+  // y revenir.
+  const sample = collectRows(content, detected.delimiter, 31);
+  const clean = sample.filter((r) => r.some((c) => c && c.trim() !== ""));
+  if (clean.length === 0) return null;
+
+  const header = looksLikeHeader(clean[0], clean[1]) ? clean[0] : null;
+  const colCount = detected.columns || Math.max(...clean.map((r) => r.length));
+  const rows = (header ? clean.slice(1) : clean).slice(0, 30);
+  return { hasHeader: !!header, colCount, idx: pickColumns(header, rows, colCount) };
+}
+
 export function parseCsv(content, detected) {
   const delim = detected.delimiter;
 
-  // Deux balayages, et le premier ne lit que 31 enregistrements : la détection
-  // de l'en-tête et des colonnes doit être faite AVANT de construire la première
-  // entrée, sinon il faudrait garder tout le fichier pour y revenir.
-  const sample = collectRows(content, delim, 31);
-  const cleanSample = sample.filter((r) => r.some((c) => c && c.trim() !== ""));
-  if (cleanSample.length === 0) return { entries: [], truncated: false, totalLines: 0 };
-
-  const header = looksLikeHeader(cleanSample[0], cleanSample[1]) ? cleanSample[0] : null;
-  const colCount =
-    detected.columns || Math.max(...cleanSample.map((r) => r.length));
-  const idx = pickColumns(header, (header ? cleanSample.slice(1) : cleanSample).slice(0, 30), colCount);
+  const analysis = analyzeCsv(content, detected);
+  if (!analysis) return { entries: [], truncated: false, totalLines: 0 };
+  const { idx } = analysis;
 
   const entries = [];
-  let skipHeader = !!header;
+  let skipHeader = analysis.hasHeader;
 
   const { truncated } = scanRecords(content, delim, MAX_LINES + 1, (rec) => {
     if (!hasContent(content, rec)) return;
