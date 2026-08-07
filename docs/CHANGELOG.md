@@ -6,6 +6,8 @@ so each entry is filed under the day it went live.
 ## 2026-08-07
 ### Added
 - Files over 250 MB are turned away before being read, and the drop zone states the limit up front
+### Changed
+- Very large logs now take about a quarter of the memory they used to, so a file that only half opened now opens whole
 ### Fixed
 - Large CSV logs now open instead of killing the tab
 - Switching tabs and opening the file list stay fast when several large logs are stored

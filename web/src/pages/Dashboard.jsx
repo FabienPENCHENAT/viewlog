@@ -69,7 +69,7 @@ export default function Dashboard() {
 
   // Fenêtre temporelle partagée : le graphe de volume et le journal la lisent
   // et l'écrivent tous les deux, donc elle vit ici.
-  const bounds = useMemo(() => (data ? timeBounds(data.entries) : null), [data]);
+  const bounds = useMemo(() => timeBounds(data?.stats?.timeSpan), [data]);
   const [range, setRange] = useState(null);
   // Zones détectées : rien n'est affiché avant un geste explicite.
   const [showPeaks, setShowPeaks] = useState(false);
@@ -224,7 +224,7 @@ export default function Dashboard() {
     );
   }
 
-  const { stats, entries, meta } = data;
+  const { stats, store, meta } = data;
 
   return (
     <div className="dashboard">
@@ -261,7 +261,7 @@ export default function Dashboard() {
         </Timeline>
         <PeakZones
           peaks={data.peaks || []}
-          entries={entries}
+          store={store}
           shown={showPeaks}
           onPick={pickPeak}
         />
@@ -272,7 +272,7 @@ export default function Dashboard() {
         <LogTable
           key={`${id}:${peakNonce}`}
           tabId={id}
-          entries={entries}
+          store={store}
           byLevel={stats.byLevel}
           bounds={bounds}
           range={range}

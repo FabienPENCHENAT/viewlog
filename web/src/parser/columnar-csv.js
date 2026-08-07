@@ -324,5 +324,10 @@ export function parseCsvColumnar(bytes, opts = {}) {
     store: createCsvStore(bytes, index, detected, analysis.idx),
     truncated: index.truncated,
     totalLines: index.totalLines,
+    // Reconstruire le store à l'autre bout du pont demande de savoir re-découper
+    // un enregistrement : le délimiteur et les colonnes reconnues doivent donc
+    // voyager avec l'index. Quelques octets, et ça évite de refaire la détection
+    // du côté de l'interface, où elle pourrait conclure autrement.
+    csv: { detected, idx: analysis.idx },
   };
 }

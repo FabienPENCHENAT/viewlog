@@ -16,8 +16,8 @@
 // est dimensionné pour en contenir autant (voir `columnar-csv.js`).
 import { parseLog } from "./text.js";
 import { detectCsv, parseCsv } from "./csv.js";
-import { parseColumnar } from "./columnar.js";
-import { parseCsvColumnar } from "./columnar-csv.js";
+import { parseColumnar, createStore } from "./columnar.js";
+import { parseCsvColumnar, createCsvStore } from "./columnar-csv.js";
 
 export { MAX_LINES, MAX_BYTES, MAX_MB, LEVELS } from "./shared.js";
 export { buildStats, buildStatsFromStore } from "./stats.js";
@@ -42,4 +42,20 @@ export function parseToStore(bytes, opts) {
   const csv = parseCsvColumnar(bytes, opts);
   if (csv) return { ...csv, format: "csv" };
   return { ...parseColumnar(bytes, opts), format: "text" };
+}
+
+/**
+ * Reconstruit un store à partir de ce qui a traversé le pont.
+ *
+ * L'index et les octets sont TRANSFÉRÉS par le worker, donc ni l'un ni l'autre
+ * n'est recopié : c'est tout l'intérêt du modèle. Il ne reste qu'à rebrancher les
+ * matérialisateurs du bon format, qui sont des fonctions et ne traversent pas.
+ *
+ * @param {{bytes: ArrayBuffer, index: object, format: "csv"|"text", csv?: object}} payload
+ */
+export function storeFrom({ bytes, index, format, csv }) {
+  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  return format === "csv"
+    ? createCsvStore(u8, index, csv.detected, csv.idx)
+    : createStore(u8, index);
 }

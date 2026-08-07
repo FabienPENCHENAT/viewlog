@@ -48,35 +48,54 @@ export function PeakToggle({ count, shown, onToggle }) {
   );
 }
 
-// La comparaison porte sur le fichier entier, sans les filtres de la vue : une
+// Les trois zones décrites en une fois, et rien de plus que le nécessaire.
+//
+// La comparaison porte sur le fichier ENTIER, sans les filtres de la vue : une
 // zone est proposée à propos du fichier, pas à propos de ce qu'on regarde. Sinon
 // la même zone changerait de description au gré d'un filtre de niveau.
-// Les trois zones décrites en une fois, et c'est ce qui rend le clic tenable.
 //
-// Deux calculs étaient refaits À L'IDENTIQUE pour chaque zone alors qu'ils ne
-// dépendent pas d'elle : l'horodatage en millisecondes de chaque entrée, et
-// surtout le gabarit de chaque message. Sur un fichier dont les messages font
-// quelques kilo-octets d'un seul tenant, cette normalisation représentait
-// l'essentiel du temps, et trois zones la payaient trois fois. Elle est
-// maintenant faite une fois et prêtée à la comparaison.
-function describeAll(zones, entries) {
-  const times = new Float64Array(entries.length);
-  const templates = new Map();
-  for (let i = 0; i < entries.length; i++) {
-    const e = entries[i];
-    times[i] = e.ts ? new Date(e.ts).getTime() : NaN;
-    templates.set(e, patternize(firstLine(e.message || "")));
+// Trois économies, chacune mesurée sur un fichier réel :
+//
+//  1. L'horodatage et le gabarit ne dépendent pas de la zone, et ils étaient
+//     recalculés pour chacune. Trois zones payaient trois fois le même travail.
+//     Le gabarit est maintenant calculé une fois, sur la première ligne ENTIÈRE,
+//     et prêté à la comparaison, qui ne le recalcule donc jamais.
+//  2. `patternize` est plafonné (voir lib/patterns.js) : sur un message de
+//     quatre kilo-octets d'un seul tenant, il coûtait à lui seul dix secondes.
+//  3. On ne matérialise PAS l'entrée complète. La comparaison n'a besoin que de
+//     l'horodatage, du niveau et du gabarit ; fabriquer cent mille entrées de
+//     quatre kilo-octets pour les jeter aussitôt coûterait un giga-octet, soit
+//     exactement ce que le modèle colonnaire vient de supprimer. Le message porté
+//     par l'entrée allégée ne sert plus qu'à l'exemple, que ce bloc n'affiche pas,
+//     d'où son plafond.
+const LIGHT_MESSAGE = 301;
+
+function describeAll(zones, store) {
+  const times = new Float64Array(store.count);
+  const light = new Array(store.count);
+  const templates = new Array(store.count);
+
+  for (let i = 0; i < store.count; i++) {
+    times[i] = store.time(i);
+    const fl = firstLine(store.message(i) || "");
+    templates[i] = patternize(fl);
+    light[i] = {
+      ts: Number.isNaN(times[i]) ? null : new Date(times[i]).toISOString(),
+      level: store.level(i),
+      message: fl.length > LIGHT_MESSAGE ? fl.slice(0, LIGHT_MESSAGE) : fl,
+      row: i,
+    };
   }
-  const templateAt = (e, fl) => templates.get(e) ?? patternize(fl);
+  const templateAt = (e) => templates[e.row];
 
   return zones.map((zone) => {
     const inside = [];
     const outside = [];
-    for (let i = 0; i < entries.length; i++) {
+    for (let i = 0; i < store.count; i++) {
       const ms = times[i];
       if (Number.isNaN(ms)) continue;
-      if (ms >= zone.from && ms <= zone.to) inside.push(entries[i]);
-      else outside.push(entries[i]);
+      if (ms >= zone.from && ms <= zone.to) inside.push(light[i]);
+      else outside.push(light[i]);
     }
     const diff = comparePatterns(inside, outside, zone, templateAt);
     return {
@@ -88,12 +107,12 @@ function describeAll(zones, entries) {
   });
 }
 
-export default function PeakZones({ peaks, entries, shown, onPick }) {
+export default function PeakZones({ peaks, store, shown, onPick }) {
   const { t, locale } = useI18n();
 
   const described = useMemo(
-    () => (shown && peaks.length ? describeAll(peaks, entries) : null),
-    [shown, peaks, entries]
+    () => (shown && peaks.length ? describeAll(peaks, store) : null),
+    [shown, peaks, store]
   );
 
   if (!described) return null;

@@ -1,16 +1,13 @@
 // Fenêtre temporelle partagée par le graphe de volume et le journal.
-// Les bornes viennent des entrées (min/max des horodatages) ; la fenêtre
-// sélectionnée est toujours exprimée en millisecondes { from, to }.
+// La fenêtre sélectionnée est toujours exprimée en millisecondes { from, to }.
 
-export function timeBounds(entries) {
-  let lo = Infinity;
-  let hi = -Infinity;
-  for (const e of entries) {
-    if (!e.ts) continue;
-    const ms = new Date(e.ts).getTime();
-    if (ms < lo) lo = ms;
-    if (ms > hi) hi = ms;
-  }
+// Les bornes se lisent dans la plage déjà calculée par les agrégats, au lieu de
+// reparcourir tout le fichier pour retrouver deux valeurs qu'on connaît. Sur un
+// million d'entrées, ça faisait un million de `new Date()` à chaque ouverture.
+export function timeBounds(timeSpan) {
+  if (!timeSpan) return null;
+  const lo = Date.parse(timeSpan.start);
+  const hi = Date.parse(timeSpan.end);
   return hi > lo ? { lo, hi } : null;
 }
 

@@ -22,8 +22,12 @@ const MAX_ENTRIES = 1_200_000;
 // utilisée.
 const cache = new Map();
 
+// Le poids d'un log analysé se compte en entrées. Depuis le modèle colonnaire,
+// l'index lui-même est minuscule (2 Mo pour 128 000 entrées) et ce qui pèse sont
+// les OCTETS du fichier, que le store garde. Le nombre d'entrées reste malgré
+// tout la bonne mesure du travail conservé, et la réserve borne la mémoire.
 function weigh(value) {
-  return value?.entries?.length || 0;
+  return value?.store?.count || 0;
 }
 
 function evict() {

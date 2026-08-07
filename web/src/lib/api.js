@@ -2,6 +2,7 @@
 // Aucune requête réseau, aucune donnée ne quitte la machine du client.
 // Les erreurs sont levées sous forme de CLÉS i18n ; l'UI les traduit à l'affichage.
 import { parseAsync } from "./parse-async.js";
+import { storeFrom } from "../parser/index.js";
 import { dbListMeta, dbGet, dbPut, dbPatch, dbDelete } from "./db.js";
 import { cacheGet, cachePut, cacheDrop } from "./log-cache.js";
 import { MAX_LABEL } from "./tab-label.js";
@@ -32,6 +33,15 @@ function genId() {
 
 function byRecent(a, b) {
   return new Date(b.importedAt) - new Date(a.importedAt);
+}
+
+// Les octets d'un contenu stocké. Les enregistrements d'avant le passage au Blob
+// portent une CHAÎNE : on les réencode à la lecture plutôt que de les réécrire,
+// parce que réécrire un enregistrement de 200 Mo pour l'avoir simplement ouvert
+// serait une surprise désagréable. Ils basculeront à leur prochain import.
+function bytesOf(content) {
+  if (typeof content === "string") return new TextEncoder().encode(content).buffer;
+  return content.arrayBuffer();
 }
 
 // L'ordre des onglets appartient à l'utilisateur : il est donc PERSISTÉ et ne
@@ -88,9 +98,12 @@ export async function listLogs() {
 // Parse le fichier localement, le stocke en tête, applique la rotation.
 export async function uploadLog(file) {
   try {
-    const content = await file.text();
-    // Métadonnées seulement : pas besoin de rapatrier les entrées ici.
-    const { truncated, totalLines, stats } = await parseAsync(content, false);
+    // Les OCTETS, pas le texte. Une chaîne JavaScript ne peut pas dépasser
+    // 536 870 888 caractères, et un fichier de 500 Mo en occupe déjà 98 % :
+    // `file.text()` lèverait « Invalid string length » avant même le parsing.
+    // Le tampon est transféré au worker, donc inutilisable au retour ici, ce qui
+    // n'est pas un problème : c'est le FICHIER qu'on stocke, pas son texte.
+    const { truncated, totalLines, stats } = await parseAsync(await file.arrayBuffer(), false);
 
     const existing = await ordered();
     // La place la plus à droite est libérée juste après : sa teinte redevient
@@ -111,7 +124,11 @@ export async function uploadLog(file) {
         warnCount: stats.warnCount,
         truncated,
       },
-      content,
+      // Le fichier lui-même, et non son texte. IndexedDB range un Blob hors de
+      // la valeur, donc le relire ne fait plus monter des centaines de Mo de
+      // chaîne en mémoire : on demande ses octets au moment de parser, et
+      // seulement à ce moment.
+      content: file,
     };
 
     await dbPut(record);
@@ -144,10 +161,8 @@ export async function getLog(id) {
   const record = await dbGet(id);
   if (!record) throw new Error("errors.not_found");
 
-  const { entries, truncated, totalLines, stats, levels, peaks } = await parseAsync(
-    record.content,
-    true
-  );
+  const payload = await parseAsync(await bytesOf(record.content), true);
+  const { truncated, totalLines, stats, levels, peaks } = payload;
 
   const result = {
     meta: {
@@ -160,7 +175,9 @@ export async function getLog(id) {
     levels,
     stats,
     peaks: peaks || [],
-    entries,
+    // Les octets et l'index sont revenus du worker sans copie ; il ne reste qu'à
+    // rebrancher les matérialisateurs du bon format.
+    store: storeFrom(payload),
   };
 
   cachePut(id, result);

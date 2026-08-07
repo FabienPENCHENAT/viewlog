@@ -31,7 +31,8 @@ parser.worker.js   Point d'entrée du Web Worker
 
 parser/            Parsing (voir plus bas)
   shared.js          niveaux, alias, détection horodatage/niveau, MAX_LINES, MAX_BYTES
-  columnar.js        buildIndex + createStore, modèle sans objet par ligne
+  columnar.js        buildIndex + createStore + makeStore (modèle texte)
+  columnar-csv.js    buildCsvIndex + createCsvStore (balayage sur les octets)
   text.js            parseLog — parseur texte générique (.log / .txt)
   csv.js             detectCsv + parseCsv (tokenizer RFC 4180, mapping colonnes)
   stats.js           buildStats — agrégats (par niveau, plage, série temporelle)
@@ -60,35 +61,45 @@ assets/            privacy-shield.svg
 Home (dépôt / collage)
    │  api.uploadLog(file)                       (lib/api.js)
    ▼
-file.text() ─► parseAsync(content) ─► Web Worker (parser.worker.js)
-                                          │  parse(content)          (parser/index.js)
-                                          │    detectCsv ? parseCsv : parseLog
-                                          │    + buildStats
-                                          ▼
-                                   { entries, stats, truncated }
-   │  dbPut(record)  ── rotation sur 5 fichiers ──►  IndexedDB      (lib/db.js)
-   ▼
+file.arrayBuffer() ══► parseAsync(bytes) ══► Web Worker (parser.worker.js)
+   (════ = transféré,                            │  parseToStore(bytes)   (parser/index.js)
+    jamais recopié)                              │    CSV ? index CSV : index texte
+                                                 │    + buildStatsFromStore
+                                                 │    + findPeaksFromStore
+                                                 ▼
+                                   { stats, peaks, truncated }
+   │  dbPut({ …, content: file })  ── rotation sur 5 fichiers ──►  IndexedDB
+   ▼                                   (un Blob, pas une chaîne)      (lib/db.js)
 navigate(/dashboard/:id)
-   │  getLog(id) ─► dbGet ─► re-parse (worker) ─► entries + stats
+   │  getLog(id) ─► dbGet ─► content.arrayBuffer() ══► worker ══► { bytes, index }
+   │                                                       │
+   │                                          storeFrom(payload) : le store
    ▼
 Dashboard ─► FileIdentity · Timeline (+ Peaks) · LogTable
+             (tous lisent `stats` ou le store, jamais un tableau d'entrées)
 ```
 
 - **`lib/api.js`** est la façade locale : `uploadLog` (parse + stocke), `listLogs`,
   `getLog` (re-parse le contenu stocké), `renameLog`, `reorderLogs`, `deleteLog`.
   Aucune requête réseau.
-- **`lib/log-cache.js`** mémorise les 3 derniers logs analysés. Sans lui, chaque
-  changement d'onglet relancerait un parsing complet et la barre d'onglets perdrait
-  exactement ce qu'elle apporte. Borné à 3 car les entrées analysées d'un gros
-  fichier pèsent lourd.
-- **`lib/parse-async.js`** lance le Web Worker et renvoie une promesse. Sur un
-  simple upload, seules les métadonnées reviennent (on évite de recopier des
-  centaines de milliers d'entrées entre threads).
-- **`parser/index.js`** est le seul point de dispatch : détection CSV au contenu,
-  sinon parseur texte. Les deux rendent le même modèle d'entrée
-  `{ i, ts, level, message, raw }`.
+- **Le contenu est stocké en Blob**, pas en chaîne. IndexedDB le range hors de la
+  valeur, donc lister les fichiers ou relire un enregistrement ne fait plus monter
+  des centaines de Mo en mémoire : on demande ses octets au moment de parser, et
+  seulement à ce moment. Les enregistrements d'avant ce changement portent une
+  chaîne et sont réencodés à la lecture, sans réécriture : réécrire 200 Mo pour
+  avoir simplement ouvert un fichier serait une surprise désagréable.
+- **`lib/log-cache.js`** mémorise les logs analysés, avec un budget en ENTRÉES et
+  non un nombre de fichiers : un gros fichier chasse les autres au lieu de
+  s'ajouter à eux.
+- **`lib/parse-async.js`** lance le Web Worker et renvoie une promesse. ⚠️ L'
+  `ArrayBuffer` qu'on lui passe est **détaché** : il traverse le pont par transfert,
+  donc l'appelant ne doit plus s'en servir. C'est le prix, assumé, de ne jamais
+  dupliquer un fichier de 500 Mo.
+- **`parser/index.js`** porte les deux dispatchs : `parse(content)` pour le modèle
+  objet (chaîne en entrée), `parseToStore(bytes)` pour le modèle colonnaire, plus
+  `storeFrom(payload)` qui rebranche les matérialisateurs du bon format à l'arrivée.
 
-## Le modèle colonnaire (chantier en cours)
+## Le modèle colonnaire
 
 Le modèle actuel fabrique **un objet par entrée**, ce qui ne passe pas l'échelle.
 Mesuré sur un vrai fichier de 200 Mo couvrant 24 h (1 975 356 lignes) :
@@ -125,10 +136,19 @@ ne fabriquent rien et suffisent aux statistiques, au graphe et aux zones ;
 qu'à l'affichage, à l'export et à la recherche. Personne au-dessus du store ne
 touche aux tableaux typés, sinon le modèle cesserait d'être remplaçable.
 
-État du chantier : **le module existe et son équivalence est prouvée, rien ne
-l'utilise encore.** Un script de comparaison hors navigateur parse le même
-fichier des deux façons et diffe `ts`, `level`, `message` et `raw` entrée par
-entrée, plus les agrégats. Sur les 982 324 entrées du fichier de 200 Mo, et sur
+État : **branché de bout en bout.** Le worker construit l'index, le transfère
+avec les octets, et l'interface reconstruit le store sans qu'un seul octet soit
+recopié. La vue filtrée est une liste d'INDEX (`Uint32Array`), soit quatre octets
+par ligne retenue, et une entrée n'est fabriquée que pour être affichée. Deux
+endroits matérialisent encore toute la sélection, parce que leur algorithme a
+besoin du texte de chaque ligne : le regroupement par motif et la comparaison de
+zone. C'est le même coût qu'avant, et il ne se paye plus dans le journal.
+
+L'équivalence est vérifiée hors navigateur à chaque étage : un script parse le
+même fichier des deux façons et diffe `ts`, `level`, `message` et `raw` entrée par
+entrée, plus les agrégats ; un autre rejoue sept combinaisons de filtres
+(niveaux, recherche, période, drill-down, et tout combiné) sur six fichiers et
+compare les numéros de ligne retenus, du fichier de onze lignes au million. Sur les 982 324 entrées du fichier de 200 Mo, et sur
 un jeu de cas tordus (horodatage Apache au milieu de la ligne, syslog, UTF-8
 multi-octets avant l'horodatage, indentation, CRLF sans saut final, ligne de
 5 000 caractères), **une seule différence assumée** : une ligne blanche contenant
@@ -176,10 +196,10 @@ identiques à l'ancien parseur sur le million d'entrées ; seul `raw` change de
 définition, et c'est voulu : c'est la **ligne source** au lieu d'une
 recomposition, donc copier une ligne rend la vraie ligne du fichier.
 
-Le CSV **entrera aussi dans le modèle colonnaire** : un enregistrement est une
+Le CSV **est dans le modèle colonnaire** lui aussi : un enregistrement est une
 plage d'octets contiguë, retours à la ligne quotés compris, et les colonnes se
-retrouvent en re-balayant ce seul enregistrement à l'affichage. C'était écarté du
-périmètre par erreur, alors que les fichiers qui posent le problème sont des CSV.
+retrouvent en re-balayant ce seul enregistrement à l'affichage. Il en avait été
+écarté par erreur, alors que les fichiers qui posent le problème sont des CSV.
 
 ## Stockage local
 
