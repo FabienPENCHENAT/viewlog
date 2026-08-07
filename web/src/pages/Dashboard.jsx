@@ -52,6 +52,10 @@ export default function Dashboard() {
     };
     setData(null);
     setError(null);
+    // La consigne et le voile appartiennent au fichier qu'on quitte : les laisser
+    // traîner ouvrirait le suivant en comparaison sans qu'on l'ait demandé.
+    setFocus(null);
+    setPendingPeak(null);
     getLog(id)
       .then((d) => {
         setData(d);
@@ -74,10 +78,16 @@ export default function Dashboard() {
   const [range, setRange] = useState(null);
   // Zones détectées : rien n'est affiché avant un geste explicite.
   const [showPeaks, setShowPeaks] = useState(false);
-  // Incrémenté au clic sur une zone : il entre dans la clé de LogTable pour
-  // le remonter, donc pour qu'il relise la vue et le mode qu'on vient d'écrire
-  // dans l'état d'onglet. Sans ça, la comparaison ne s'ouvrirait pas.
-  const [peakNonce, setPeakNonce] = useState(0);
+  // Consigne envoyée au journal quand on ouvre une zone : « mets-toi en vue
+  // Motifs, comparaison active ». Un objet neuf à chaque fois, c'est ce qui la
+  // rend détectable.
+  //
+  // Avant, cette consigne passait par un nonce dans la CLÉ de LogTable, donc par
+  // un remontage complet du composant, pour qu'il relise l'état d'onglet à
+  // l'initialisation. Ça marchait, mais un remontage jette tout : la vue calculée
+  // repartait de zéro, la liste s'affichait vide, le cadre s'effondrait et la page
+  // sautait. Une consigne appliquée sur place ne coûte rien de tout ça.
+  const [focus, setFocus] = useState(null);
   // Zone dont l'ouverture est en cours : grise le bloc et porte le loader.
   const [pendingPeak, setPendingPeak] = useState(null);
   useEffect(() => {
@@ -131,21 +141,19 @@ export default function Dashboard() {
     }
     const timer = setTimeout(() => {
       trackFeature("peaks_pick");
-      setTabState(id, { view: "patterns", compare: true });
+      // Pas d'écriture directe de l'état d'onglet : le journal le persiste
+      // lui-même quand il applique la consigne, et deux écrivains pour une même
+      // valeur finissent toujours par se contredire.
+      setFocus({ view: "patterns", compare: true, at: zone.from });
       selectRange({ from: zone.from, to: zone.to }, "timeline_select");
-      setPeakNonce((n) => n + 1);
+      // Le voile se lève ici : à partir de cet instant c'est le PANNEAU qui
+      // annonce son travail, avec sa propre étiquette et sa liste estompée. Deux
+      // signes d'activité superposés ne valent pas mieux qu'un seul.
+      setPendingPeak(null);
     }, 0);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingPeak]);
-
-  // Le voile se lève ici, et pas à la fin du travail : cet effet s'exécute après
-  // la PEINTURE du rendu déclenché par le nonce, donc au moment où le journal est
-  // réellement à l'écran. Le lever plus tôt ferait disparaître le signe d'activité
-  // pendant que le thread est encore bloqué.
-  useEffect(() => {
-    setPendingPeak(null);
-  }, [peakNonce]);
 
   function togglePeaks() {
     if (!showPeaks) trackFeature("peaks_show");
@@ -309,9 +317,10 @@ export default function Dashboard() {
       <section className="card">
         <h2 className="card-title">{t("dash.journal")}</h2>
         <LogTable
-          key={`${id}:${peakNonce}`}
+          key={id}
           tabId={id}
           store={store}
+          focus={focus}
           byLevel={stats.byLevel}
           bounds={bounds}
           range={range}

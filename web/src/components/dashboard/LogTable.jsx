@@ -83,7 +83,7 @@ function useDebounced(value, delay) {
 // colonnaire, avec de quoi fabriquer une entrée à la demande (voir
 // parser/columnar.js). Rien n'est matérialisé qui ne soit affiché, cherché ou
 // exporté.
-export default function LogTable({ tabId, store, byLevel, bounds, range, onRangeChange }) {
+export default function LogTable({ tabId, store, byLevel, bounds, range, onRangeChange, focus }) {
   const { t, locale } = useI18n();
 
   // Filtres repris là où on les avait laissés sur cet onglet. Le composant est
@@ -186,6 +186,18 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
       marked,
     });
   }, [tabId, query, active, view, patternFilter, regexMode, compare, saved, marked]);
+
+  // Consigne venue du dashboard : ouvrir une zone demande la vue Motifs et la
+  // comparaison. Appliquée ici plutôt qu'en remontant le composant, ce qui
+  // jetterait la vue déjà calculée et ferait sauter l'écran.
+  useEffect(() => {
+    if (!focus) return;
+    clearJump();
+    setView(focus.view);
+    setCompare(focus.compare);
+    setPatternFilter(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus]);
 
   // Relâcher la période retire la référence : sans zone, il n'y a plus rien à
   // comparer au reste du fichier. Vaut pour le bouton « Tout » comme pour un
