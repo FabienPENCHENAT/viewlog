@@ -2762,6 +2762,21 @@ tbody tr:hover .row-copy,
   background: var(--accent);
 }
 
+/* Sur un fond coloré, l'ambre ne peut pas servir : le trait ambre sur une pastille
+   ambre disparaît. Le loader prend alors la couleur de son contexte, et la ligne
+   mise en évidence se distingue par son OPACITÉ. Ça suit automatiquement les deux
+   états de la pastille des zones, ambre pâle au repos et plein au survol, sans
+   coder aucune couleur en dur. */
+.loader--inherit .loader-bar {
+  background: currentColor;
+  opacity: 0.42;
+}
+
+.loader--inherit .loader-bar--amber {
+  background: currentColor;
+  opacity: 1;
+}
+
 /* Une animation qui tourne sans fin est exactement ce que ce réglage vise. La
    pile s'arrête alors sur une position qui reste le logo, et le texte à côté
    continue de dire ce qui se passe. */

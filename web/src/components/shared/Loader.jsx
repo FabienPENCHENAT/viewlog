@@ -49,10 +49,19 @@ const bars = Array.from({ length: LINES }, (_, i) => ({
  * @param {number} [props.size] côté du carré, en pixels
  * @param {string} [props.label] texte à côté (en ligne) ou en dessous (en bloc)
  * @param {boolean} [props.block] disposition verticale, pour une grande attente
+ * @param {boolean} [props.inherit] prend la couleur de son contexte au lieu de
+ *   l'encre et de l'ambre. Indispensable sur un fond ambre, où le trait ambre
+ *   serait invisible : la pastille « Analyser cette zone » a un fond ambre pâle au
+ *   repos et plein au survol, et la souris est justement dessus au moment du clic.
+ *   La ligne mise en évidence reste alors la plus opaque, donc elle garde son sens.
  */
-export default function Loader({ size = 40, label, block = false }) {
+export default function Loader({ size = 40, label, block = false, inherit = false }) {
   const icon = (
-    <span className="loader" style={{ "--loader-size": `${size}px` }} aria-hidden="true">
+    <span
+      className={inherit ? "loader loader--inherit" : "loader"}
+      style={{ "--loader-size": `${size}px` }}
+      aria-hidden="true"
+    >
       <span className="loader-roll">
         {bars.map((b) => (
           <i

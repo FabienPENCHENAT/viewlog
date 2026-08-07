@@ -268,7 +268,9 @@ export default function PeakZones({ peaks, store, shown, pending, onPick }) {
                 {picking ? (
                   <>
                     {t("peaks.opening")}
-                    <Loader size={18} />
+                    {/* `inherit` : la pastille a un fond ambre, où un trait ambre
+                        serait invisible. */}
+                    <Loader size={18} inherit />
                   </>
                 ) : (
                   <>
