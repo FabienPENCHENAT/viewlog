@@ -20,7 +20,7 @@ const ImportManager = forwardRef(function ImportManager({ onDone, onError, onBus
   const folderInput = useRef(null);
 
   const [pending, setPending] = useState(null); // { files, method, fromFolder }
-  const [progress, setProgress] = useState(null); // { done, total, name }
+  const [progress, setProgress] = useState(null); // { done, total, name, step }
 
   function fail(key) {
     if (onError) onError(key);
@@ -30,15 +30,18 @@ const ImportManager = forwardRef(function ImportManager({ onDone, onError, onBus
     if (!files.length) return;
     if (files.length > 1) trackFeature("multi_import");
 
-    if (onBusy) onBusy(true);
-    setProgress({ done: 0, total: files.length, name: files[0].name });
+    if (onBusy) onBusy(true, null);
+    setProgress({ done: 0, total: files.length, name: files[0].name, step: null });
 
-    const { ids, failed } = await importMany(files, method, (done, total, name) =>
-      setProgress({ done, total, name })
-    );
+    const { ids, failed } = await importMany(files, method, (done, total, name, step) => {
+      setProgress({ done, total, name, step });
+      // L'étape remonte aussi à la page : sur un seul fichier il n'y a pas de
+      // barre de lot, et c'est pourtant là que l'attente est la plus longue.
+      if (onBusy) onBusy(true, step);
+    });
 
     setProgress(null);
-    if (onBusy) onBusy(false);
+    if (onBusy) onBusy(false, null);
 
     // Un échec partiel ne doit pas masquer ce qui a marché : on ouvre quand même
     // ce qui a été importé, et on signale le reste.
@@ -123,6 +126,7 @@ const ImportManager = forwardRef(function ImportManager({ onDone, onError, onBus
           <span>
             {t("import.progress", { done: progress.done, total: progress.total })}
             {progress.name ? ` · ${progress.name}` : ""}
+            {progress.step ? ` · ${t(`loader.${progress.step}`)}` : ""}
           </span>
         </div>
       )}

@@ -8,6 +8,7 @@ import TabBar from "../components/dashboard/TabBar.jsx";
 import PeakZones, { PeakToggle } from "../components/dashboard/Peaks.jsx";
 import { getLog, listLogs, deleteLog, renameLog, reorderLogs, MAX_FILES } from "../lib/api.js";
 import ImportManager from "../components/shared/ImportManager.jsx";
+import Loader from "../components/shared/Loader.jsx";
 import { labelTabs } from "../lib/tab-label.js";
 import { getTabState, setTabState, dropTabState } from "../lib/tab-state.js";
 import { trackOpen, trackFeature, featureOnce } from "../lib/track.js";
@@ -219,7 +220,9 @@ export default function Dashboard() {
     return (
       <div className="dashboard">
         {head}
-        <div className="loading">{t("dash.loading")}</div>
+        <div className="loading">
+          <Loader size={40} label={t("dash.loading")} block />
+        </div>
       </div>
     );
   }

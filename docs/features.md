@@ -323,6 +323,35 @@ essayé et écarté y est gardé, parce que les deux approches évidentes (déco
 tranches, mesurer la densité entre erreurs voisines) échouent chacune pour une
 raison qu'il serait coûteux de redécouvrir.
 
+## L'attente
+
+Toute attente montre **le logo en mouvement** : sa pile de lignes roule, une ligne
+entre par le bas, celle du haut s'en va. Aux quatre endroits où ViewLog fait
+patienter, c'est la même icône à quatre tailles, de 20 à 56 px.
+
+Trois règles la tiennent, et chacune vient d'un défaut observé :
+
+- **La course d'un cycle vaut la période des largeurs**, douze lignes. Une boucle
+  qui translate d'un seul pas ramène une ligne courte à la place d'une longue, et
+  ça saute à chaque tour.
+- **L'ambre reste une ligne sur quatre**, comme dans le logo. La fenêtre ne montre
+  que quatre lignes et demie : l'espacer davantage laisserait l'icône sans son
+  signe distinctif pendant des secondes.
+- **Les bords sont estompés.** Une ligne se révèle en entrant et s'efface en
+  sortant, au lieu de surgir et d'être coupée net.
+
+**Un import nomme son étape** plutôt que de répéter « analyse » : lecture du
+fichier, analyse du contenu, enregistrement dans le navigateur. Les trois sont
+réelles, rapportées par le code qui les exécute, jamais simulées. Sur un fichier
+de 350 Mo l'attente dure quatre secondes, et « ça travaille » ne suffit pas à dire
+s'il faut patienter ou s'inquiéter.
+
+**Sur le bloc des zones à surveiller**, l'attente occupe la hauteur exacte des
+cartes à venir : un bloc qui grandit d'un coup à l'arrivée du résultat déplacerait
+ce qu'on est en train de lire. Le calcul y est volontairement différé d'un tour de
+boucle, sans quoi il monopoliserait le thread avant le premier affichage et aucune
+attente ne pourrait jamais apparaître.
+
 ## Confort de lecture
 
 - **Pretty-print du JSON inline** : un payload JSON valide dans un message est

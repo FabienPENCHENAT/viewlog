@@ -15,7 +15,7 @@ export function fileExt(name) {
 // method : "drop" | "picker" | "paste" | "tab_add" | "folder".
 // Renvoie { id, truncated }, ou relance l'erreur (clé i18n) après l'avoir
 // comptée comme un échec.
-export async function importLog(file, method) {
+export async function importLog(file, method, onStep) {
   const ext = fileExt(file?.name);
   const size = sizeBucket(file?.size || 0);
 
@@ -29,7 +29,7 @@ export async function importLog(file, method) {
   }
 
   try {
-    const { id, truncated } = await uploadLog(file);
+    const { id, truncated } = await uploadLog(file, onStep);
     trackImport("success", { method, ext, size, truncated });
     return { id, truncated };
   } catch (e) {
@@ -47,7 +47,9 @@ export async function importLog(file, method) {
 //  - **Un échec n'arrête pas le lot.** Perdre les quatre fichiers déjà traités
 //    parce que le cinquième est illisible serait le pire des comportements.
 //
-// `onProgress(done, total, name)` est appelé avant chaque fichier.
+// `onProgress(done, total, name, step)` est appelé avant chaque fichier, puis à
+// chaque étape longue de son import : sans ça, un seul gros fichier n'aurait
+// aucun signe de vie pendant plusieurs secondes.
 // Renvoie { ids, failed } : `ids` dans l'ordre de sélection, `failed` la liste
 // des noms en échec avec leur clé d'erreur.
 export async function importMany(files, method, onProgress) {
@@ -57,15 +59,17 @@ export async function importMany(files, method, onProgress) {
 
   for (let i = total - 1; i >= 0; i--) {
     const file = files[i];
-    if (onProgress) onProgress(total - i - 1, total, file.name);
+    if (onProgress) onProgress(total - i - 1, total, file.name, null);
     try {
-      const { id } = await importLog(file, method);
+      const { id } = await importLog(file, method, (step) =>
+        onProgress && onProgress(total - i - 1, total, file.name, step)
+      );
       ids.unshift(id);
     } catch (e) {
       failed.push({ name: file.name, error: e.message });
     }
   }
 
-  if (onProgress) onProgress(total, total, null);
+  if (onProgress) onProgress(total, total, null, null);
   return { ids, failed };
 }

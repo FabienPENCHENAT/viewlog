@@ -18,6 +18,7 @@ export default function Home() {
   const { t, locale } = useI18n();
   const [recent, setRecent] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState(null);
   const [error, setError] = useState(null);
   const [showPaste, setShowPaste] = useState(false);
   const [pasteText, setPasteText] = useState("");
@@ -69,6 +70,7 @@ export default function Home() {
 
       <DropZone
         busy={busy}
+        step={step}
         onFiles={(files, method) => importer.current?.intake(files, method)}
         onPickFiles={() => importer.current?.openFiles()}
         onPickFolder={() => importer.current?.openFolder()}
@@ -77,10 +79,14 @@ export default function Home() {
       <ImportManager
         ref={importer}
         onDone={opened}
-        onBusy={setBusy}
+        onBusy={(b, s) => {
+          setBusy(b);
+          setStep(s);
+        }}
         onError={(key) => {
           setError(key);
           setBusy(false);
+          setStep(null);
         }}
       />
 

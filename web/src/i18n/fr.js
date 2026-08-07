@@ -163,6 +163,13 @@ export default {
   "context.back": "Retour aux résultats",
   "context.dismiss": "Rester dans le journal complet et fermer ce bandeau",
 
+  // Étapes d'un import, nommées parce qu'une attente de quatre secondes sans mot
+  // ne dit pas s'il faut patienter ou s'inquiéter. Les trois sont réelles et
+  // rapportées par lib/api.js, jamais simulées.
+  "loader.read": "Lecture du fichier",
+  "loader.parse": "Analyse du contenu",
+  "loader.store": "Enregistrement dans le navigateur",
+
   "msg.collapse": "Réduire ▲",
   "msg.expand": "Afficher tout ({count} lignes) ▼",
 

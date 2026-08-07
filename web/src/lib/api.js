@@ -96,14 +96,22 @@ export async function listLogs() {
 }
 
 // Parse le fichier localement, le stocke en tête, applique la rotation.
-export async function uploadLog(file) {
+// `onStep(nom)` est appelé avant chaque étape longue. Les trois étapes sont
+// connues et mesurables, donc autant les nommer : sur un fichier de 350 Mo,
+// l'attente dure quatre secondes, et « ça travaille » ne suffit pas à dire s'il
+// faut patienter ou s'inquiéter.
+export async function uploadLog(file, onStep) {
+  const step = (name) => onStep && onStep(name);
   try {
+    step("read");
     // Les OCTETS, pas le texte. Une chaîne JavaScript ne peut pas dépasser
     // 536 870 888 caractères, et un fichier de 500 Mo en occupe déjà 98 % :
     // `file.text()` lèverait « Invalid string length » avant même le parsing.
     // Le tampon est transféré au worker, donc inutilisable au retour ici, ce qui
     // n'est pas un problème : c'est le FICHIER qu'on stocke, pas son texte.
-    const { truncated, totalLines, stats } = await parseAsync(await file.arrayBuffer(), false);
+    const bytes = await file.arrayBuffer();
+    step("parse");
+    const { truncated, totalLines, stats } = await parseAsync(bytes, false);
 
     const existing = await ordered();
     // La place la plus à droite est libérée juste après : sa teinte redevient
@@ -131,6 +139,7 @@ export async function uploadLog(file) {
       content: file,
     };
 
+    step("store");
     await dbPut(record);
 
     // Le nouvel import entre à gauche : tout le monde se décale d'un cran, et ce

@@ -160,6 +160,13 @@ export default {
   "context.back": "Back to results",
   "context.dismiss": "Stay in the full journal and close this banner",
 
+  // Import steps, named because a four-second wait with no words does not say
+  // whether to be patient or worried. All three are real and reported by
+  // lib/api.js, never simulated.
+  "loader.read": "Reading the file",
+  "loader.parse": "Analysing the content",
+  "loader.store": "Saving in the browser",
+
   "msg.collapse": "Collapse ▲",
   "msg.expand": "Show all ({count} lines) ▼",
 

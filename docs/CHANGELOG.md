@@ -6,6 +6,7 @@ so each entry is filed under the day it went live.
 ## 2026-08-07
 ### Added
 - Logs up to 500 MB and five million lines, whichever comes first. A larger file is turned away before being read, and the drop zone states the limit up front
+- Waiting now shows: the logo's stacked lines roll while ViewLog works, and an import says which step it is on
 ### Changed
 - Very large logs now take about a quarter of the memory they used to, and open several times faster
 ### Fixed

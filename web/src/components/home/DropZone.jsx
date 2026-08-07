@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import Loader from "../shared/Loader.jsx";
 import { filesFromDrop } from "../../lib/files.js";
 import { MAX_MB } from "../../parser/index.js";
 import { useI18n } from "../../i18n/index.jsx";
@@ -7,7 +8,7 @@ import { useI18n } from "../../i18n/index.jsx";
 // ne lit que les enfants directs). Le tri de ce qui est déposé vit dans
 // `lib/files.js` ; ici on ne capte que le geste, et les inputs sont portés par
 // ImportManager pour que le « + » de la barre d'onglets se comporte pareil.
-export default function DropZone({ onFiles, onPickFiles, onPickFolder, busy }) {
+export default function DropZone({ onFiles, onPickFiles, onPickFolder, busy, step }) {
   const { t } = useI18n();
   const [dragging, setDragging] = useState(false);
 
@@ -40,9 +41,14 @@ export default function DropZone({ onFiles, onPickFiles, onPickFolder, busy }) {
         onPickFiles();
       }}
     >
-      <div className="dropzone-icon">{busy ? "⏳" : "⬆"}</div>
+      {/* Le sablier ne disait rien : ni si ça travaille, ni où on en est. Le
+          loader roule tant que le worker travaille, et le titre nomme l'étape
+          en cours plutôt que de répéter « analyse ». */}
+      <div className="dropzone-icon">
+        {busy ? <Loader size={56} /> : "⬆"}
+      </div>
       <div className="dropzone-title">
-        {busy ? t("dropzone.analyzing") : t("dropzone.title")}
+        {busy ? t(step ? `loader.${step}` : "dropzone.analyzing") : t("dropzone.title")}
       </div>
       <div className="dropzone-sub">
         {/* Le plafond est annoncé AVANT le dépôt : le découvrir par un refus,

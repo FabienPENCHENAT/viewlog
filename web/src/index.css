@@ -506,6 +506,11 @@ body {
 .dropzone-icon {
   font-size: 32px;
   margin-bottom: 8px;
+  /* Le loader qui remplace la flèche pendant l'import n'est pas du texte : sans
+     ça, la hauteur de ligne de 32 px le décalerait de son emplacement. */
+  display: flex;
+  justify-content: center;
+  line-height: 1;
 }
 
 .dropzone-title {
@@ -1294,6 +1299,17 @@ body {
   margin-top: 10px;
   padding-top: 8px;
   border-top: 1px solid var(--line);
+}
+
+/* L'attente occupe la hauteur des cartes qui vont s'afficher, une par zone
+   trouvée : un bloc qui grandit d'un coup à l'arrivée du résultat déplacerait ce
+   qu'on est en train de lire. La hauteur d'une carte est mesurée sur le rendu
+   réel, pas devinée. */
+.peaks--waiting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--rows, 3) * 78px);
 }
 
 /* Une pile de cartes, pas une liste de lignes séparées par un filet. Deux essais
@@ -2639,6 +2655,86 @@ tbody tr:hover .row-copy,
   padding: 60px;
   text-align: center;
   color: var(--muted);
+}
+
+/* --- L'attente : le logo mis en mouvement ---
+   Voir components/shared/Loader.jsx pour les trois règles qui la tiennent (la
+   course vaut la période des largeurs, l'ambre une ligne sur quatre, les bords
+   estompés). Ici, seulement la géométrie et le mouvement. */
+
+.loader-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.loader-wrap--block {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loader-label {
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.loader {
+  position: relative;
+  width: var(--loader-size, 40px);
+  height: var(--loader-size, 40px);
+  flex: none;
+  overflow: hidden;
+  /* Les bords s'estompent : une ligne se révèle en entrant, s'efface en sortant.
+     Le masque évite d'avoir à connaître la couleur du fond, contrairement à deux
+     dégradés posés par-dessus. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 20%,
+    #000 80%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to bottom, transparent 0, #000 20%, #000 80%, transparent 100%);
+}
+
+.loader-roll {
+  position: absolute;
+  inset: 0;
+  /* La course vaut douze pas de 22 %, soit la période exacte des largeurs :
+     c'est ce qui rend le raccord invisible. */
+  animation: loader-roll 7.8s linear infinite;
+}
+
+@keyframes loader-roll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-264%);
+  }
+}
+
+.loader-bar {
+  position: absolute;
+  left: 10%;
+  height: 13%;
+  width: calc(var(--w) * 1%);
+  top: calc(10.5% + var(--i) * 22%);
+  border-radius: 999px;
+  background: var(--ink);
+}
+
+.loader-bar--amber {
+  background: var(--accent);
+}
+
+/* Une animation qui tourne sans fin est exactement ce que ce réglage vise. La
+   pile s'arrête alors sur une position qui reste le logo, et le texte à côté
+   continue de dire ce qui se passe. */
+@media (prefers-reduced-motion: reduce) {
+  .loader-roll {
+    animation: none;
+  }
 }
 
 .error-banner {

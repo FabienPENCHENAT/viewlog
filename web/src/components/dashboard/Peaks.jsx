@@ -26,7 +26,8 @@
 // comparaisons coûtent ~700 ms sur 400 000 lignes, et derrière un clic une
 // demi-seconde est attendue au lieu d'être subie.
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
+import Loader from "../shared/Loader.jsx";
 import { comparePatterns, formatRate } from "../../lib/pattern-diff.js";
 import { firstLine, patternize } from "../../lib/patterns.js";
 import { formatDuration } from "../../lib/duration.js";
@@ -109,13 +110,34 @@ function describeAll(zones, store) {
 
 export default function PeakZones({ peaks, store, shown, onPick }) {
   const { t, locale } = useI18n();
+  const [described, setDescribed] = useState(null);
 
-  const described = useMemo(
-    () => (shown && peaks.length ? describeAll(peaks, store) : null),
-    [shown, peaks, store]
-  );
+  // Le calcul est DIFFÉRÉ d'un tour de boucle, et ce n'est pas un détail : tant
+  // qu'il tourne, le thread principal ne peint pas. Fait dans un `useMemo`, il
+  // aurait lieu AVANT le premier affichage, donc aucun loader n'aurait jamais pu
+  // apparaître, quelle que soit sa durée. On rend d'abord l'attente, puis on
+  // calcule.
+  useEffect(() => {
+    if (!shown || !peaks.length) {
+      setDescribed(null);
+      return;
+    }
+    setDescribed(null);
+    const id = setTimeout(() => setDescribed(describeAll(peaks, store)), 0);
+    return () => clearTimeout(id);
+  }, [shown, peaks, store]);
 
-  if (!described) return null;
+  if (!shown || !peaks.length) return null;
+
+  // L'attente occupe la hauteur des cartes à venir : un bloc qui grandit d'un
+  // coup à l'arrivée du résultat déplace ce qu'on était en train de lire.
+  if (!described) {
+    return (
+      <div className="peaks peaks--waiting" style={{ "--rows": peaks.length }}>
+        <Loader size={32} />
+      </div>
+    );
+  }
 
   // Jour et heure suffisent : l'année et le mois sont déjà donnés par l'axe du
   // graphe juste au-dessus, et une date complète alourdit chaque ligne.
