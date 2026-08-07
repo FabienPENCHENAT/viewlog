@@ -333,19 +333,28 @@ raison qu'il serait coûteux de redécouvrir.
 
 ## Gros fichiers
 
-Fichiers de plusieurs dizaines de Mo / centaines de milliers de lignes pris en
-charge. Le traitement porte sur le **premier million de lignes** ; l'affichage
-reste fluide grâce à la virtualisation.
+Fichiers jusqu'à **500 Mo** et **cinq millions de lignes**. L'affichage reste
+fluide grâce à la virtualisation, et le fichier n'est jamais recopié : ni pour
+traverser vers le thread de calcul, ni pour en revenir.
 
 **Deux plafonds, et ils ne disent pas la même chose.** Un fichier de plus de
-**250 Mo est refusé à l'import**, avant d'être lu, et la zone de dépôt annonce la
+500 Mo est **refusé à l'import**, avant d'être lu, et la zone de dépôt annonce la
 limite plutôt que de la faire découvrir par un refus. Le plafond en lignes, lui,
-tronque : un fichier peut tenir sous 250 Mo et porter trois millions de lignes.
-Sans limite de taille, un fichier assez gros faisait **tuer l'onglet par le
-navigateur**, ce qui ne s'explique pas à l'utilisateur.
+tronque, et il n'est pas redondant : un fichier peut tenir sous 500 Mo et porter
+dix millions de lignes, ou faire 350 Mo en 90 000 lignes si chaque message porte
+une stack trace.
 
-Le chantier qui relève ces plafonds est mesuré et engagé : voir le modèle
-colonnaire dans [architecture.md](architecture.md).
+**Ce que ça donne, mesuré.** Un CSV de 500 Mo dont les messages font quatre
+kilo-octets, soit 128 000 entrées : 504 Mo en mémoire, indexé en 0,57 s. Le même
+volume en lignes courtes, soit 4,85 millions d'entrées, qui est le pire cas :
+593 Mo, indexé en 1,69 s, avec les compteurs en 0,10 s et une recherche plein
+texte sur tout le fichier en 0,50 s.
+
+Le plafond décrit ce que le moteur encaisse, jamais une intention : il était à
+250 Mo tant que le fichier devait exister sous forme de chaîne de caractères,
+parce qu'une chaîne JavaScript ne peut pas dépasser 512 Mio et qu'un fichier de
+500 Mo en occupait 98 %. Détail de la méthode dans
+[architecture.md](architecture.md).
 
 ## Page « cas d'usage »
 

@@ -126,7 +126,7 @@ export function buildIndex(bytes, { maxLines = MAX_LINES } = {}) {
     // espaces d'une ligne blanche ; ici la plage d'octets les garde, ce qui rend
     // le `raw` plus fidèle au fichier. C'est la seule différence assumée avec
     // l'ancien modèle, et le script de comparaison la met en évidence.
-    if (line.trim() === "" && count > 0) {
+    if (count > 0 && isBlank(line)) {
       length[count - 1] = stop - offset[count - 1];
       pos = nl + 1;
       continue;
@@ -162,10 +162,14 @@ export function buildIndex(bytes, { maxLines = MAX_LINES } = {}) {
       // Positions en CARACTÈRES dans la première ligne de l'entrée, pas en
       // octets : le message est reconstruit après décodage, donc les deux
       // doivent parler la même unité.
-      const raw = ts.raw;
-      const start = line.indexOf(raw);
-      tsStart[count] = start >= 0 && start < NO_TS && raw.length <= 0xff ? start : NO_TS;
-      tsLen[count] = start >= 0 && raw.length <= 0xff ? raw.length : 0;
+      //
+      // La position vient de la détection elle-même (`ts.index`) et non d'un
+      // `indexOf` : chercher une seconde fois ce que le moteur d'expressions
+      // régulières vient de trouver coûtait une recherche par ligne.
+      const start = ts.index;
+      const len = ts.raw.length;
+      tsStart[count] = start >= 0 && start < NO_TS && len <= 0xff ? start : NO_TS;
+      tsLen[count] = start >= 0 && len <= 0xff ? len : 0;
     } else {
       time[count] = NaN;
       tsStart[count] = NO_TS;
@@ -201,9 +205,24 @@ function continuation(line) {
   return /^\s/.test(line) || /^(at |Caused by:|\.\.\.|Traceback|File ")/.test(line);
 }
 
+// Lus au caractère, sans allouer. `line.trim() === ""` et
+// `line.trimStart().length` fabriquaient chacun UNE CHAÎNE PAR LIGNE : sur un
+// fichier de cinq millions de lignes, ces deux commodités coûtaient à elles seules
+// plus que toute la détection d'horodatage.
+function isBlank(line) {
+  for (let i = 0; i < line.length; i++) if (line.charCodeAt(i) > 32) return false;
+  return true;
+}
+
+function indentOf(line) {
+  let i = 0;
+  while (i < line.length && line.charCodeAt(i) <= 32) i++;
+  return i;
+}
+
 function headerLine(line, ts) {
   if (!ts) return false;
-  const indent = line.length - line.trimStart().length;
+  const indent = indentOf(line);
   if (indent === 0) return true;
   return ts.index - indent <= INDENTED_TS_BUDGET;
 }

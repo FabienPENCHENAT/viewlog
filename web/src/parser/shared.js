@@ -1,16 +1,32 @@
 // Socle commun aux parseurs (texte et CSV) : niveaux de sévérité, détection
 // d'horodatage et de niveau. Exécuté côté navigateur (dans un Web Worker).
 
-// Garde-fou anti-fichier-fou. Relevé pour absorber de très gros logs
-// (centaines de milliers de lignes / dizaines de Mo).
-export const MAX_LINES = 1000000;
+// Garde-fou anti-fichier-fou, en LIGNES. Relevé de un à cinq millions avec le
+// modèle colonnaire : une entrée coûte désormais dix-neuf octets d'index au lieu
+// d'un objet et de ses chaînes.
+//
+// Mesuré sur un fichier de 500 Mo à lignes courtes, soit le pire cas pour ce
+// plafond, 4 851 948 entrées : 93 Mo d'index, 1,69 s d'indexation, 593 Mo en
+// mémoire au total. Les agrégats prennent 0,10 s, la détection de zones 0,22 s,
+// un filtre plein texte sur tout le fichier 0,50 s.
+export const MAX_LINES = 5000000;
 
 // Plafond en OCTETS, refusé à l'import. Les deux garde-fous ne disent pas la
-// même chose : un fichier peut tenir sous le million de lignes et peser 800 Mo
-// (lignes très longues), ou faire 40 Mo et porter trois millions de lignes.
-// Sans limite de taille, un fichier assez gros faisait tuer l'onglet par le
-// navigateur, ce qui ne s'explique pas à l'utilisateur.
-export const MAX_BYTES = 250 * 1024 * 1024;
+// même chose : un fichier peut tenir sous le plafond de lignes et peser 800 Mo
+// (lignes très longues), ou faire 40 Mo et porter dix millions de lignes. Sans
+// limite de taille, un fichier assez gros faisait tuer l'onglet par le navigateur,
+// ce qui ne s'explique pas à l'utilisateur.
+//
+// 250 Mo tant que le fichier devait exister en chaîne de caractères, 500 depuis
+// qu'il n'existe qu'en octets. Ce n'était pas un choix de confort : une chaîne
+// JavaScript ne peut pas dépasser 536 870 888 caractères, mesuré, et un fichier de
+// 500 Mo en occupait 526 653 114, soit 98 % de la limite. Un fichier à peine plus
+// gros, ou simplement accentué, faisait lever « Invalid string length » avant même
+// le parsing.
+//
+// Le plafond décrit ce que le moteur encaisse AUJOURD'HUI, jamais la cible d'un
+// chantier en cours : un garde-fou qui laisse passer ce qui plante ne garde rien.
+export const MAX_BYTES = 500 * 1024 * 1024;
 
 // Le même plafond en Mo, pour les textes affichés : le seuil ne doit exister
 // qu'à un seul endroit, sinon un message finit par annoncer une limite qui n'est
