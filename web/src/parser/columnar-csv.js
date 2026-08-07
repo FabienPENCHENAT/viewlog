@@ -41,7 +41,10 @@ const OTHER = LEVEL_ID.get("OTHER");
 // plusieurs kilo-octets (une stack trace dans une cellule). On monte donc jusqu'à
 // 4 Mo, ce qui couvre des lignes de 100 Ko.
 const SAMPLE_MAX = 4 * 1024 * 1024;
-const SAMPLE_MIN_RECORDS = 4;
+// `detectCsv` regarde jusqu'à 40 enregistrements : viser ce nombre rend la
+// détection sur échantillon équivalente à la détection sur tout le fichier, au
+// lieu de la faire décider sur trois lignes.
+const SAMPLE_MIN_RECORDS = 41;
 
 function sampleText(bytes) {
   const decoder = new TextDecoder("utf-8", { fatal: false });
