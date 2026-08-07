@@ -155,6 +155,34 @@ multi-octets avant l'horodatage, indentation, CRLF sans saut final, ligne de
 des espaces au milieu d'une stack trace garde ses espaces, là où l'ancien parseur
 les laissait tomber. Le nouveau comportement est le plus fidèle au fichier.
 
+### Ce que le store expose, et pourquoi il y a trois accès au texte
+
+Le store rend le texte de trois façons, et l'écart entre elles fait tout :
+
+| Accès | Coût | Qui l'utilise |
+|---|---|---|
+| `level(i)`, `time(i)` | une lecture de colonne | agrégats, graphe, zones, filtres |
+| `head(i)` | la **première ligne** seule, plafonnée à 2 Kio, décodée au plus juste | regroupement, comparaison, drill-down |
+| `raw(i)`, `message(i)`, `at(i)` | l'entrée entière | affichage d'une ligne, copie, export |
+
+`head` existe parce que `firstLine(message(i))` décodait le message **entier** pour
+en jeter 99 % : sur un fichier de 128 000 entrées de quatre kilo-octets, un
+demi-giga-octet de chaînes fabriquées puis abandonnées à chaque regroupement, ce
+qui produisait des pics de mémoire de 200 Mo pendant une comparaison. Il s'arrête
+au premier saut de ligne, cherché dans les **octets**, et retire l'horodatage comme
+`message` le ferait, sans quoi le gabarit porterait un `{time}` en tête.
+
+Côté CSV, les bornes de la colonne message se trouvent en **balayant les octets** de
+l'enregistrement, comme à l'indexation : comparer quatre mille octets ne coûte
+rien, les décoder coûte tout.
+
+Mesuré : le regroupement après un filtre passe de 1 057 à 252 ms, la comparaison
+de zone de 5 943 à 1 376 ms. Clés et comptes **identiques** sur cinq fichiers.
+Seule concession, vérifiée comme étant une pure troncature : sur un message d'un
+seul tenant de plus de deux kilo-octets, l'exemple affiché à côté du gabarit est
+coupé (3 577 → 1 803 caractères sur le fichier de mesure). Personne ne lit trois
+mille caractères dans une ligne de tableau.
+
 ### Le fichier de référence, et pourquoi sa forme compte
 
 Les mesures ci-dessus valent sur des logs à **lignes courtes**, où le nombre

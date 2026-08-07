@@ -89,7 +89,7 @@ export function sideOfEntries(entries, templateAt) {
   return {
     count: entries.length,
     levelAt: (i) => entries[i].level,
-    messageAt: (i) => entries[i].message,
+    headAt: (i) => firstLine(entries[i].message || ""),
     timeAt: (i) => (entries[i].ts ? new Date(entries[i].ts).getTime() : NaN),
     templateAt: templateAt ? (i, fl) => templateAt(entries[i], fl) : undefined,
   };
@@ -100,7 +100,7 @@ export function sideOfStore(store, ids) {
   return {
     count: ids.length,
     levelAt: (k) => store.level(ids[k]),
-    messageAt: (k) => store.message(ids[k]),
+    headAt: (k) => store.head(ids[k]),
     timeAt: (k) => store.time(ids[k]),
   };
 }
@@ -140,7 +140,7 @@ function buildReference(outside, zone) {
   // Seconde passe : les motifs, avec la somme de leurs taux par fenêtre.
   const map = new Map();
   for (let i = 0; i < total; i++) {
-    const example = firstLine(outside.messageAt(i) || "");
+    const example = outside.headAt(i) || "";
     const template = outside.templateAt ? outside.templateAt(i, example) : patternize(example);
     const level = outside.levelAt(i);
     const key = keyOf(level, template);

@@ -29,7 +29,7 @@
 import { useEffect, useState } from "react";
 import Loader from "../shared/Loader.jsx";
 import { comparePatterns, formatRate } from "../../lib/pattern-diff.js";
-import { firstLine, patternize } from "../../lib/patterns.js";
+import { patternize } from "../../lib/patterns.js";
 import { formatDuration } from "../../lib/duration.js";
 import { useI18n } from "../../i18n/index.jsx";
 
@@ -78,7 +78,7 @@ function describeAll(zones, store) {
 
   for (let i = 0; i < store.count; i++) {
     times[i] = store.time(i);
-    const fl = firstLine(store.message(i) || "");
+    const fl = store.head(i) || "";
     templates[i] = patternize(fl);
     light[i] = {
       ts: Number.isNaN(times[i]) ? null : new Date(times[i]).toISOString(),

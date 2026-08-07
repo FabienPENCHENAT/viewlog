@@ -49,6 +49,11 @@ const NO_TS = 0xffff;
 // n'alloue pas au plus juste, on grandit par paliers.
 const BYTES_PER_LINE_GUESS = 40;
 
+// Plafond du décodage d'une première ligne. `patternize` n'en garde que 300
+// caractères, et un exemple plus long que deux kilo-octets n'est de toute façon
+// pas lisible dans une ligne de tableau.
+const HEAD_BYTES = 2048;
+
 function grow(array, size) {
   const next = new array.constructor(size);
   next.set(array);
@@ -250,7 +255,7 @@ function headerLine(line, ts) {
  * stores exposent EXACTEMENT la même forme : tout le code au-dessus les consomme
  * sans savoir de quel format vient le fichier.
  */
-export function makeStore({ bytes, index, raw, message }) {
+export function makeStore({ bytes, index, raw, message, head }) {
   const { count, level, time } = index;
   const ts = (i) => (Number.isNaN(time[i]) ? null : new Date(time[i]).toISOString());
 
@@ -274,6 +279,9 @@ export function makeStore({ bytes, index, raw, message }) {
     ts,
     raw,
     message,
+    // La première ligne du message, décodée au plus juste : c'est le seul accès
+    // dont le regroupement et la comparaison ont besoin.
+    head,
     at: (i) => ({ i, ts: ts(i), level: LEVELS[level[i]], message: message(i), raw: raw(i) }),
   };
 }
@@ -301,25 +309,60 @@ export function createStore(bytes, index) {
     if (Number.isNaN(time[i])) return text;
 
     const nl = text.indexOf("\n");
-    const head = nl === -1 ? text : text.slice(0, nl);
+    const first = nl === -1 ? text : text.slice(0, nl);
     const rest = nl === -1 ? "" : text.slice(nl);
 
     let stripped;
     if (tsStart[i] === NO_TS) {
       // Index inutilisable : on redétecte, ce qui reste juste et ne coûte que
       // sur les lignes concernées.
-      const found = detectTimestamp(head);
-      stripped = found ? head.replace(found.raw, "") : head;
+      const found = detectTimestamp(first);
+      stripped = found ? first.replace(found.raw, "") : first;
     } else {
-      stripped = head.slice(0, tsStart[i]) + head.slice(tsStart[i] + tsLen[i]);
+      stripped = first.slice(0, tsStart[i]) + first.slice(tsStart[i] + tsLen[i]);
     }
 
     return stripped.trim() + rest;
   };
 
+  /* La PREMIÈRE LIGNE seule, et c'est ce que demandent le regroupement, la
+     comparaison et le drill-down : eux ne lisent jamais le reste.
+     `firstLine(message(i))` décodait le message ENTIER pour en jeter 99 % : sur un
+     fichier de 128 000 entrées de quatre kilo-octets, un demi-giga-octet de
+     chaînes fabriquées puis abandonnées, d'où les pics de mémoire pendant une
+     comparaison.
+
+     Ici on s'arrête au premier saut de ligne, cherché dans les OCTETS, et on
+     plafonne : au-delà de deux kilo-octets, aucune première ligne n'est ni lisible
+     ni discriminante, et `patternize` en garde de toute façon 300 caractères. */
+  const head = (i) => {
+    const start = offset[i];
+    const stop = Math.min(start + length[i], start + HEAD_BYTES);
+    let to = stop;
+    for (let p = start; p < stop; p++) {
+      if (bytes[p] === LF) {
+        to = p;
+        break;
+      }
+    }
+    let text = decoder.decode(bytes.subarray(start, to));
+    if (text.endsWith("\r")) text = text.slice(0, -1);
+    // L'horodatage est retiré comme dans `message`, sinon le gabarit porterait un
+    // `{time}` en tête et ne regrouperait plus rien de la même façon.
+    if (!Number.isNaN(time[i])) {
+      if (tsStart[i] === NO_TS) {
+        const found = detectTimestamp(text);
+        if (found) text = text.replace(found.raw, "");
+      } else if (tsStart[i] + tsLen[i] <= text.length) {
+        text = text.slice(0, tsStart[i]) + text.slice(tsStart[i] + tsLen[i]);
+      }
+    }
+    return text.trim();
+  };
+
   // `at(i)` rend une entrée à la forme attendue par l'UI, fabriquée à la
   // demande : les composants d'affichage n'ont rien à apprendre.
-  return makeStore({ bytes, index, raw, message });
+  return makeStore({ bytes, index, raw, message, head });
 }
 
 /**

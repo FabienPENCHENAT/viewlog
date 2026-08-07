@@ -26,6 +26,7 @@
 // dépende des internes de l'autre. Celle de `csv.js` disparaîtra avec lui.
 
 import { MAX_LINES, LEVELS, detectTimestamp, normalizeLevel } from "./shared.js";
+import { firstLine as firstLineOf } from "../lib/patterns.js";
 import { detectCsv, analyzeCsv } from "./csv.js";
 import { makeStore } from "./columnar.js";
 
@@ -45,6 +46,10 @@ const SAMPLE_MAX = 4 * 1024 * 1024;
 // détection sur échantillon équivalente à la détection sur tout le fichier, au
 // lieu de la faire décider sur trois lignes.
 const SAMPLE_MIN_RECORDS = 41;
+
+// Même plafond que le modèle texte : `patternize` ne garde que 300 caractères, et
+// un exemple de plus de deux kilo-octets n'est pas lisible dans un tableau.
+const HEAD_BYTES = 2048;
 
 function sampleText(bytes) {
   const decoder = new TextDecoder("utf-8", { fatal: false });
@@ -235,6 +240,7 @@ export function createCsvStore(bytes, index, detected, idx) {
   const decoder = new TextDecoder("utf-8", { fatal: false });
   const { offset, length } = index;
   const delim = detected.delimiter;
+  const delimByte = delim.charCodeAt(0);
 
   const raw = (i) => {
     const text = decoder.decode(bytes.subarray(offset[i], offset[i] + length[i]));
@@ -298,7 +304,73 @@ export function createCsvStore(bytes, index, detected, idx) {
     return row.filter((_, k) => k !== idx.ts && k !== idx.level).join(" · ");
   };
 
-  return makeStore({ bytes, index, raw, message });
+  /* La PREMIÈRE LIGNE de la colonne message, sans décoder l'enregistrement.
+     C'est le seul accès dont le regroupement, la comparaison et le drill-down ont
+     besoin, et passer par `message(i)` décodait les quatre kilo-octets du
+     enregistrement entier pour en jeter 99 % : un demi-giga-octet de chaînes
+     abandonnées sur un fichier de 128 000 lignes, d'où les pics pendant une
+     comparaison.
+
+     Les bornes de la colonne se trouvent en balayant les OCTETS, comme à
+     l'indexation : comparer quatre mille octets ne coûte rien, les décoder coûte
+     tout. Seule la colonne utile est décodée, plafonnée, et arrêtée à son premier
+     saut de ligne. */
+  const head = (i) => {
+    if (idx.msg < 0) return firstLineOf(message(i));
+
+    const start = offset[i];
+    const end = start + length[i];
+    let field = 0;
+    let fieldStart = start;
+    let quoted = false;
+    let inStr = false;
+
+    for (let p = start; p <= end; p++) {
+      const atEnd = p === end;
+      const b = atEnd ? delimByte : bytes[p];
+
+      if (!atEnd && inStr) {
+        if (b !== QUOTE) continue;
+        if (bytes[p + 1] === QUOTE) {
+          p++;
+          continue;
+        }
+        inStr = false;
+        continue;
+      }
+      if (!atEnd && b === QUOTE) {
+        inStr = true;
+        if (p === fieldStart) quoted = true;
+        continue;
+      }
+      if (b === delimByte) {
+        if (field === idx.msg) {
+          let s0 = fieldStart;
+          let e0 = p;
+          if (quoted && bytes[s0] === QUOTE) s0++;
+          if (quoted && e0 > s0 && bytes[e0 - 1] === QUOTE) e0--;
+          const stop = Math.min(e0, s0 + HEAD_BYTES);
+          let to = stop;
+          for (let q = s0; q < stop; q++) {
+            if (bytes[q] === LF) {
+              to = q;
+              break;
+            }
+          }
+          let text = decoder.decode(bytes.subarray(s0, to));
+          if (text.includes("\r")) text = text.replace(/\r/g, "");
+          if (quoted && text.includes('""')) text = text.replace(/""/g, '"');
+          return text.trim();
+        }
+        field++;
+        fieldStart = p + 1;
+        quoted = false;
+      }
+    }
+    return "";
+  };
+
+  return makeStore({ bytes, index, raw, message, head });
 }
 
 /**
