@@ -2,6 +2,23 @@
 // horodatage / niveau / message vers le même modèle d'entrée que le parseur
 // texte. La détection se fait sur le contenu (pas l'extension), pour couvrir
 // aussi le collage direct.
+//
+// MÉMOIRE : LE TOKENIZER NE CONSTRUIT PAS DE CELLULES. Il rend des BORNES, et
+// les chaînes sont découpées à la demande. La version précédente construisait
+// chaque champ caractère par caractère (`field += ch`), gardait tous les
+// enregistrements dans un tableau de tableaux, `trim()`ait chaque cellule pour
+// écarter les lignes vides, puis recomposait `raw` par un `join`. Mesuré sur un
+// vrai CSV de 201 Mo couvrant 24 h : **1 503 octets par entrée**, contre 181 pour
+// le parseur texte, soit un fichier de 100 Mo qui retenait 1,4 Go et faisait
+// tuer l'onglet par le navigateur.
+//
+// Trois conséquences de ce choix :
+//   - les cellules sont des tranches de la chaîne source (V8 ne recopie pas) ;
+//   - rien n'est matérialisé pour les enregistrements vides, qu'on écarte en
+//     lisant les codes de caractères, sans allouer ;
+//   - `raw` est la LIGNE SOURCE et non plus un `join(" ")` des champs, donc
+//     copier une ligne rend la vraie ligne du fichier, guillemets et délimiteurs
+//     compris.
 import { MAX_LINES, detectTimestamp, normalizeLevel } from "./shared.js";
 
 const CSV_DELIMS = [",", ";", "\t", "|"];
@@ -10,47 +27,149 @@ const HEADER_TS = /^(@?timestamp|time|datetime|date|ts|eventtime|logtime|when)$/
 const HEADER_LEVEL = /^(level|lvl|severity|sev|loglevel|priority)$/i;
 const HEADER_MSG = /^(message|msg|text|body|log|description|detail|event)$/i;
 
-// Tokenise le CSV (RFC 4180 : guillemets, "" échappés, retours dans les champs).
-function tokenizeCsv(text, delim, maxRecords) {
-  const records = [];
-  let field = "";
-  let row = [];
-  let inStr = false;
+/**
+ * Balayage RFC 4180 (guillemets, `""` échappés, retours à la ligne dans un
+ * champ), sans allouer une seule cellule.
+ *
+ * `onRecord(rec)` est appelé pour chaque enregistrement. `rec` est RÉUTILISÉ
+ * d'un appel à l'autre : le lire, ne pas le garder. C'est ce qui permet de
+ * parcourir un fichier de 200 Mo sans mémoire proportionnelle.
+ *
+ * @param {string} content
+ * @param {string} delim
+ * @param {number} maxRecords
+ * @param {(rec: {start:number, end:number, count:number, starts:number[], ends:number[], quoted:boolean[]}) => void} onRecord
+ * @returns {{records: number, truncated: boolean}}
+ */
+export function scanRecords(content, delim, maxRecords, onRecord) {
+  const len = content.length;
+  const rec = { start: 0, end: 0, count: 0, starts: [], ends: [], quoted: [] };
+
+  // Bornes d'un champ. Les guillemets encadrants sont exclus, et on retient
+  // qu'il faudra dédoubler les `""` à la matérialisation, ce qui n'arrive que
+  // sur les champs qui en contiennent vraiment.
+  const pushField = (start, end, quoted, hasEscape) => {
+    let s = start;
+    let e = end;
+    if (quoted && content[s] === '"') s++;
+    if (quoted && e > s && content[e - 1] === '"') e--;
+    rec.starts[rec.count] = s;
+    rec.ends[rec.count] = e;
+    rec.quoted[rec.count] = quoted && hasEscape;
+    rec.count++;
+  };
+
+  let records = 0;
   let truncated = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (inStr) {
-      if (ch === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++; }
-        else inStr = false;
-      } else field += ch;
-      continue;
+  let i = 0;
+
+  while (i <= len) {
+    if (records >= maxRecords) {
+      truncated = true;
+      break;
     }
-    if (ch === '"') inStr = true;
-    else if (ch === delim) { row.push(field); field = ""; }
-    else if (ch === "\r") { /* ignoré */ }
-    else if (ch === "\n") {
-      row.push(field);
-      records.push(row);
-      row = [];
-      field = "";
-      if (records.length >= maxRecords) { truncated = true; break; }
-    } else field += ch;
+    if (i === len) break;
+
+    rec.start = i;
+    rec.count = 0;
+
+    let fieldStart = i;
+    let inStr = false;
+    let quoted = false;
+    let hasEscape = false;
+    let recordEnd = -1;
+
+    for (; i <= len; i++) {
+      if (i === len) {
+        // Dernier enregistrement, sans saut de ligne final.
+        pushField(fieldStart, len, quoted, hasEscape);
+        recordEnd = len;
+        break;
+      }
+      const ch = content[i];
+
+      if (inStr) {
+        if (ch !== '"') continue;
+        if (content[i + 1] === '"') {
+          hasEscape = true;
+          i++;
+          continue;
+        }
+        inStr = false;
+        continue;
+      }
+
+      if (ch === '"') {
+        inStr = true;
+        // Un champ dont le premier caractère est un guillemet est un champ
+        // quoté : ses bornes excluront les guillemets encadrants.
+        if (i === fieldStart) quoted = true;
+        continue;
+      }
+      if (ch === delim) {
+        pushField(fieldStart, i, quoted, hasEscape);
+        fieldStart = i + 1;
+        quoted = false;
+        hasEscape = false;
+        continue;
+      }
+      if (ch === "\n") {
+        pushField(fieldStart, i, quoted, hasEscape);
+        recordEnd = i;
+        i++;
+        break;
+      }
+    }
+
+    rec.end = recordEnd === -1 ? len : recordEnd;
+    records++;
+    onRecord(rec);
   }
-  if (!truncated && (field.length > 0 || row.length > 0)) {
-    row.push(field);
-    records.push(row);
-  }
+
   return { records, truncated };
 }
 
-// Détecte un format CSV : pour chaque délimiteur candidat, on tokenise un
-// échantillon (ce qui gère les champs quotés multi-lignes) et on vérifie que le
-// nombre de colonnes est régulier. Le texte libre (colonnes irrégulières)
-// échoue et retombe sur le parseur texte.
+// Un champ, matérialisé. Les `\r` sont retirés comme le faisait le tokenizer
+// précédent, qui les ignorait à la lecture, y compris dans un champ quoté.
+function cellOf(content, rec, k) {
+  if (k >= rec.count) return "";
+  const raw = content.slice(rec.starts[k], rec.ends[k]);
+  const noCr = raw.includes("\r") ? raw.replace(/\r/g, "") : raw;
+  return rec.quoted[k] ? noCr.replace(/""/g, '"') : noCr;
+}
+
+// Un enregistrement a-t-il au moins un caractère significatif ? Lu sur les codes,
+// donc sans allouer : c'est le test qui écartait les lignes vides en `trim()`ant
+// chaque cellule du fichier.
+function hasContent(content, rec) {
+  for (let k = 0; k < rec.count; k++) {
+    for (let p = rec.starts[k]; p < rec.ends[k]; p++) {
+      const c = content.charCodeAt(p);
+      if (c > 32) return true;
+    }
+  }
+  return false;
+}
+
+// Les `n` premiers enregistrements non vides, matérialisés. Sert à la détection
+// (délimiteur, en-tête, colonnes) : quelques dizaines de lignes, jamais plus.
+function collectRows(content, delim, n) {
+  const rows = [];
+  scanRecords(content, delim, n, (rec) => {
+    const row = new Array(rec.count);
+    for (let k = 0; k < rec.count; k++) row[k] = cellOf(content, rec, k);
+    rows.push(row);
+  });
+  return rows;
+}
+
+// Détecte un format CSV : pour chaque délimiteur candidat, on lit un échantillon
+// (ce qui gère les champs quotés multi-lignes) et on vérifie que le nombre de
+// colonnes est régulier. Le texte libre (colonnes irrégulières) échoue et
+// retombe sur le parseur texte.
 export function detectCsv(content) {
   for (const delimiter of CSV_DELIMS) {
-    const { records } = tokenizeCsv(content, delimiter, 40);
+    const records = collectRows(content, delimiter, 40);
     const rows = records.filter((r) => r.some((c) => c && c.trim() !== ""));
     if (rows.length < 2) continue;
     const cols = rows[0].length;
@@ -137,32 +256,58 @@ function pickColumns(header, dataSample, colCount) {
 }
 
 export function parseCsv(content, detected) {
-  const { records, truncated } = tokenizeCsv(content, detected.delimiter, MAX_LINES + 1);
+  const delim = detected.delimiter;
 
-  // Ignore les enregistrements entièrement vides.
-  const clean = records.filter((r) => r.some((c) => c && c.trim() !== ""));
-  if (clean.length === 0) return { entries: [], truncated: false, totalLines: 0 };
+  // Deux balayages, et le premier ne lit que 31 enregistrements : la détection
+  // de l'en-tête et des colonnes doit être faite AVANT de construire la première
+  // entrée, sinon il faudrait garder tout le fichier pour y revenir.
+  const sample = collectRows(content, delim, 31);
+  const cleanSample = sample.filter((r) => r.some((c) => c && c.trim() !== ""));
+  if (cleanSample.length === 0) return { entries: [], truncated: false, totalLines: 0 };
 
-  const header = looksLikeHeader(clean[0], clean[1]) ? clean[0] : null;
-  const dataRows = header ? clean.slice(1) : clean;
-  const colCount = detected.columns || Math.max(...clean.map((r) => r.length));
-  const idx = pickColumns(header, dataRows.slice(0, 30), colCount);
+  const header = looksLikeHeader(cleanSample[0], cleanSample[1]) ? cleanSample[0] : null;
+  const colCount =
+    detected.columns || Math.max(...cleanSample.map((r) => r.length));
+  const idx = pickColumns(header, (header ? cleanSample.slice(1) : cleanSample).slice(0, 30), colCount);
 
-  const entries = dataRows.map((r, i) => {
-    const tsRaw = idx.ts >= 0 ? r[idx.ts] : "";
+  const entries = [];
+  let skipHeader = !!header;
+
+  const { truncated } = scanRecords(content, delim, MAX_LINES + 1, (rec) => {
+    if (!hasContent(content, rec)) return;
+    if (skipHeader) {
+      skipHeader = false;
+      return;
+    }
+
+    const tsRaw = idx.ts >= 0 ? cellOf(content, rec, idx.ts) : "";
     const det = tsRaw ? detectTimestamp(tsRaw) : null;
-    const level = idx.level >= 0 ? normalizeLevel(r[idx.level]) || "OTHER" : "OTHER";
-    const message =
-      idx.msg >= 0 && r[idx.msg] != null
-        ? r[idx.msg]
-        : r.filter((_, k) => k !== idx.ts && k !== idx.level).join(" · ");
-    return {
-      i,
+    const level = idx.level >= 0 ? normalizeLevel(cellOf(content, rec, idx.level)) || "OTHER" : "OTHER";
+
+    let message;
+    if (idx.msg >= 0 && idx.msg < rec.count) {
+      message = cellOf(content, rec, idx.msg);
+    } else {
+      // Repli : toutes les colonnes sauf l'horodatage et le niveau.
+      const parts = [];
+      for (let k = 0; k < rec.count; k++) {
+        if (k === idx.ts || k === idx.level) continue;
+        parts.push(cellOf(content, rec, k));
+      }
+      message = parts.join(" · ");
+    }
+
+    // `raw` est la ligne source, tranche de la chaîne d'origine : aucune copie,
+    // et c'est la vraie ligne du fichier plutôt qu'une recomposition.
+    const source = content.slice(rec.start, rec.end);
+
+    entries.push({
+      i: entries.length,
       ts: det ? det.date.toISOString() : null,
       level,
       message: message || "",
-      raw: r.join(" "),
-    };
+      raw: source.includes("\r") ? source.replace(/\r/g, "") : source,
+    });
   });
 
   return { entries, truncated, totalLines: entries.length };

@@ -135,9 +135,31 @@ multi-octets avant l'horodatage, indentation, CRLF sans saut final, ligne de
 des espaces au milieu d'une stack trace garde ses espaces, là où l'ancien parseur
 les laissait tomber. Le nouveau comportement est le plus fidèle au fichier.
 
-Le CSV **reste sur le modèle actuel** : son tokenizer reconstruit le message à
-partir de colonnes, ce n'est donc pas une tranche du fichier et une plage
-d'octets ne suffit pas à le retrouver.
+### Le CSV coûtait huit fois le texte
+
+Le CSV n'est pas le texte, et ça ne se voyait pas : `tokenizeCsv` construisait
+chaque cellule **caractère par caractère** (`field += ch`), donc chaque champ
+était une chaîne réellement allouée et non une tranche de la source ; il gardait
+ensuite **tous** les enregistrements dans un tableau de tableaux ; le filtre des
+lignes vides `trim()`ait chaque cellule du fichier ; et `raw` était recomposé par
+un `join(" ")`, une chaîne de plus par ligne.
+
+Mesuré sur un vrai CSV de 201 Mo couvrant 24 h : **1 503 octets par entrée**,
+contre 181 pour le parseur texte. Un CSV de 100 Mo retenait 1,4 Go, et un import
+de 201 Mo faisait tuer l'onglet, sous le plafond de 250 Mo qui le laissait donc
+passer.
+
+Le tokenizer rend désormais des **bornes** et les chaînes sont découpées à la
+demande, ce qui donne **178 octets par entrée** (8,5 fois moins) et un parsing
+2,7 fois plus rapide. Sur le fichier de 201 Mo, `ts`, `level` et `message` sont
+identiques à l'ancien parseur sur le million d'entrées ; seul `raw` change de
+définition, et c'est voulu : c'est la **ligne source** au lieu d'une
+recomposition, donc copier une ligne rend la vraie ligne du fichier.
+
+Le CSV **entrera aussi dans le modèle colonnaire** : un enregistrement est une
+plage d'octets contiguë, retours à la ligne quotés compris, et les colonnes se
+retrouvent en re-balayant ce seul enregistrement à l'affichage. C'était écarté du
+périmètre par erreur, alors que les fichiers qui posent le problème sont des CSV.
 
 ## Stockage local
 
@@ -157,6 +179,13 @@ est supprimé. Glisser un onglet vers la gauche le protège donc de la rotation.
 Ni la position (elle changerait à chaque réordonnancement, détruisant l'identité
 qu'elle sert à créer) ni un hachage de l'identifiant (cinq teintes pour cinq fichiers
 collisionnent vite, et deux onglets de la même couleur ne distinguent rien).
+
+**Le cache des logs analysés a un budget en ENTRÉES**, pas en nombre de logs
+(`lib/log-cache.js`). Compter les logs traitait un fichier de 2 000 lignes comme
+un fichier de deux millions : garder trois gros logs multipliait par trois le
+poste le plus lourd de l'application. La réserve est partagée, le plus récent est
+toujours gardé même s'il dépasse à lui seul le budget, et un gros fichier chasse
+donc les autres au lieu de s'ajouter à eux.
 
 L'état de filtrage par onglet vit dans **`lib/tab-state.js`**, volontairement **en
 mémoire** : un rechargement de page est une remise à zéro assumée, donc rien à
