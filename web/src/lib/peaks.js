@@ -71,7 +71,7 @@
 // des milliers de nats, parce que des lignes il y en a beaucoup. Le score y sert
 // à CLASSER les candidates, la confirmation par le contenu à les écarter.
 
-import { patternKey } from "./patterns.js";
+import { patternKey, keyOf, patternize, firstLine } from "./patterns.js";
 
 // Nombre d'erreurs minimal dans une zone. Silence par défaut : en dessous, on
 // ne dérange pas, quelle que soit la statistique.
@@ -154,28 +154,36 @@ function isError(level) {
 }
 
 /**
- * @param {Array} entries entrées parsées (avec `ts` et `level`)
+ * Détection à partir d'ACCESSEURS et non d'un tableau d'entrées, pour que le
+ * modèle objet et le modèle colonnaire partagent la même détection. Le calcul ne
+ * fabrique aucune chaîne : `keyAt` n'est appelé que pour confirmer une zone de
+ * volume, donc jamais dans le cas courant où il n'y a aucune candidate.
+ *
+ * @param {object} src
+ * @param {number} src.count nombre d'entrées
+ * @param {(i:number) => number} src.timeAt horodatage en ms, `NaN` si absent
+ * @param {(i:number) => string} src.levelAt niveau canonique
+ * @param {(i:number) => string} src.keyAt clé de motif, appelée à la demande
  * @returns {{kind:"rate"|"volume",from:number,to:number,errors:number,lines:number,
  *   rate:number,rateOutside:number,lift:number,perMin:number,perMinOutside:number,
  *   volumeLift:number,exclusive:number,score:number}[]}
  *   zones classées du plus tôt au plus tard, au maximum MAX_ZONES
  */
-export function findPeaks(entries) {
+export function findPeaksFrom({ count, timeAt, levelAt, keyAt }) {
   // Une seule passe : on paye l'analyse des dates une fois, pas deux. On garde
-  // les entrées datées à côté de leurs dates, parce que la confirmation par le
-  // contenu devra relire ces mêmes lignes sans re-analyser une seule date.
+  // l'INDEX des entrées datées à côté de leurs dates, parce que la confirmation
+  // par le contenu devra relire ces mêmes lignes sans re-analyser une seule date.
   const times = [];
-  const dated = [];
+  const rows = [];
   const errorTimes = [];
   let lo = Infinity;
   let hi = -Infinity;
-  for (const e of entries) {
-    if (!e.ts) continue;
-    const t = new Date(e.ts).getTime();
+  for (let i = 0; i < count; i++) {
+    const t = timeAt(i);
     if (Number.isNaN(t)) continue;
     times.push(t);
-    dated.push(e);
-    if (isError(e.level)) errorTimes.push(t);
+    rows.push(i);
+    if (isError(levelAt(i))) errorTimes.push(t);
     if (t < lo) lo = t;
     if (t > hi) hi = t;
   }
@@ -363,7 +371,7 @@ export function findPeaks(entries) {
     const insides = ranges.map(() => new Map());
     for (let i = 0; i < times.length; i++) {
       const s = slot(times[i]);
-      const key = patternKey(dated[i]);
+      const key = keyAt(rows[i]);
       totals.set(key, (totals.get(key) || 0) + 1);
       for (let r = 0; r < ranges.length; r++) {
         if (s < ranges[r].a || s >= ranges[r].b) continue;
@@ -442,4 +450,29 @@ export function findPeaks(entries) {
       };
     })
     .sort((x, y) => x.from - y.from);
+}
+
+// Adaptateur du modèle objet : le parseur texte et le parseur CSV.
+export function findPeaks(entries) {
+  return findPeaksFrom({
+    count: entries.length,
+    timeAt: (i) => {
+      const ts = entries[i].ts;
+      return ts ? new Date(ts).getTime() : NaN;
+    },
+    levelAt: (i) => entries[i].level,
+    keyAt: (i) => patternKey(entries[i]),
+  });
+}
+
+// Adaptateur du modèle colonnaire : l'horodatage et le niveau sont lus dans des
+// tableaux typés, et le message n'est matérialisé que si une zone de volume doit
+// être confirmée.
+export function findPeaksFromStore(store) {
+  return findPeaksFrom({
+    count: store.count,
+    timeAt: store.time,
+    levelAt: store.level,
+    keyAt: (i) => keyOf(store.level(i), patternize(firstLine(store.message(i) || ""))),
+  });
 }
