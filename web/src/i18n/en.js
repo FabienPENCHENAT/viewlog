@@ -136,6 +136,7 @@ export default {
   "peaks.hide": "Hide the zones",
   "peaks.experimental": "experimental",
   "peaks.open": "Analyse this zone",
+  "peaks.opening": "Analysing",
   "peaks.errors": "{count} errors",
   // Both rates spelled out: a bare "×8.7" cannot be decoded on screen.
   "peaks.density": "{inside} of lines here, {outside} elsewhere",

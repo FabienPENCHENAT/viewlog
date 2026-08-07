@@ -1305,6 +1305,23 @@ body {
    trouvée : un bloc qui grandit d'un coup à l'arrivée du résultat déplacerait ce
    qu'on est en train de lire. La hauteur d'une carte est mesurée sur le rendu
    réel, pas devinée. */
+/* Ouverture d'une zone : sur un gros fichier, le journal met une à deux secondes
+   à refiltrer, regrouper et comparer. Les autres cartes s'effacent, celle qu'on a
+   cliquée garde son encre et porte le loader : griser tout uniformément ne dirait
+   pas laquelle est en train de s'ouvrir. */
+.peak-list--busy {
+  pointer-events: none;
+}
+
+.peak-list--busy > li {
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+}
+
+.peak-list--busy > li.peak-picking {
+  opacity: 1;
+}
+
 .peaks--waiting {
   display: flex;
   align-items: center;

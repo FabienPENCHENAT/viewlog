@@ -78,6 +78,8 @@ export default function Dashboard() {
   // le remonter, donc pour qu'il relise la vue et le mode qu'on vient d'écrire
   // dans l'état d'onglet. Sans ça, la comparaison ne s'ouvrirait pas.
   const [peakNonce, setPeakNonce] = useState(0);
+  // Zone dont l'ouverture est en cours : grise le bloc et porte le loader.
+  const [pendingPeak, setPendingPeak] = useState(null);
   useEffect(() => {
     // Reprise de la période là où on l'avait laissée sur CET onglet : revenir
     // dessus doit rendre le journal tel qu'on l'a quitté.
@@ -105,12 +107,45 @@ export default function Dashboard() {
   // Un clic sur une zone proposée : la période devient la zone, et le journal
   // s'ouvre directement sur la comparaison des motifs. Le bloc est une entrée
   // dans la fonctionnalité existante, pas une seconde analyse.
+  //
+  // EN TROIS TEMPS, ET C'EST NÉCESSAIRE. Sur un gros fichier, ouvrir une zone
+  // coûte une à deux secondes : le journal refiltre, regroupe les motifs et
+  // calcule la comparaison, tout cela SYNCHRONEMENT. Fait dans le gestionnaire de
+  // clic, ce travail commence avant la première peinture, donc aucun signe
+  // d'activité ne peut s'afficher et le clic a l'air ignoré.
+  //
+  //  1. le clic ne fait que retenir la zone en attente, ce qui grise le bloc ;
+  //  2. un effet, donc APRÈS la peinture de ce voile, lance le vrai travail ;
+  //  3. le voile se lève quand le journal a fini de se rendre, pas avant.
   function pickPeak(zone) {
-    trackFeature("peaks_pick");
-    setTabState(id, { view: "patterns", compare: true });
-    selectRange({ from: zone.from, to: zone.to }, "timeline_select");
-    setPeakNonce((n) => n + 1);
+    if (pendingPeak != null) return; // un clic suffit, le second serait perdu
+    setPendingPeak(zone.from);
   }
+
+  useEffect(() => {
+    if (pendingPeak == null) return;
+    const zone = (data?.peaks || []).find((z) => z.from === pendingPeak);
+    if (!zone) {
+      setPendingPeak(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      trackFeature("peaks_pick");
+      setTabState(id, { view: "patterns", compare: true });
+      selectRange({ from: zone.from, to: zone.to }, "timeline_select");
+      setPeakNonce((n) => n + 1);
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPeak]);
+
+  // Le voile se lève ici, et pas à la fin du travail : cet effet s'exécute après
+  // la PEINTURE du rendu déclenché par le nonce, donc au moment où le journal est
+  // réellement à l'écran. Le lever plus tôt ferait disparaître le signe d'activité
+  // pendant que le thread est encore bloqué.
+  useEffect(() => {
+    setPendingPeak(null);
+  }, [peakNonce]);
 
   function togglePeaks() {
     if (!showPeaks) trackFeature("peaks_show");
@@ -266,6 +301,7 @@ export default function Dashboard() {
           peaks={data.peaks || []}
           store={store}
           shown={showPeaks}
+          pending={pendingPeak}
           onPick={pickPeak}
         />
       </section>

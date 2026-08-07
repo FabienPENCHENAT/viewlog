@@ -139,6 +139,7 @@ export default {
   "peaks.hide": "Masquer les zones",
   "peaks.experimental": "expérimental",
   "peaks.open": "Analyser cette zone",
+  "peaks.opening": "Analyse en cours",
   "peaks.errors": "{count} erreurs",
   // Les deux taux en clair : un rapport « ×8,7 » ne se décode pas à l'écran.
   "peaks.density": "{inside} des lignes ici, {outside} ailleurs",

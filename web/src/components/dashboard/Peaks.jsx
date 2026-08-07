@@ -108,7 +108,7 @@ function describeAll(zones, store) {
   });
 }
 
-export default function PeakZones({ peaks, store, shown, onPick }) {
+export default function PeakZones({ peaks, store, shown, pending, onPick }) {
   const { t, locale } = useI18n();
   const [described, setDescribed] = useState(null);
 
@@ -174,11 +174,18 @@ export default function PeakZones({ peaks, store, shown, onPick }) {
 
   return (
     <div className="peaks">
-      <ul className="peak-list">
+      {/* Pendant l'ouverture d'une zone, les autres s'effacent et la cliquée
+          garde son encre : griser tout le bloc uniformément ne dirait pas
+          LAQUELLE est en train de s'ouvrir. */}
+      <ul
+        className={pending != null ? "peak-list peak-list--busy" : "peak-list"}
+        aria-busy={pending != null || undefined}
+      >
         {described.map((d) => {
           const volume = d.zone.kind === "volume";
+          const picking = pending === d.zone.from;
           return (
-          <li key={d.zone.from}>
+          <li key={d.zone.from} className={picking ? "peak-picking" : undefined}>
             {/* Plus de `title` : l'action est écrite dans la carte, une bulle
                 qui répéterait le même mot au survol ne ferait que passer devant
                 les chiffres qu'on est en train de lire. */}
@@ -258,8 +265,17 @@ export default function PeakZones({ peaks, store, shown, onPick }) {
                   d'affordance en pointillés et en chevron coloré n'ont pas suffi
                   à dire qu'une zone s'ouvre. Un mot et une flèche le disent. */}
               <span className="peak-go">
-                {t("peaks.open")}
-                <i className="peak-go-arrow" aria-hidden="true">→</i>
+                {picking ? (
+                  <>
+                    {t("peaks.opening")}
+                    <Loader size={18} />
+                  </>
+                ) : (
+                  <>
+                    {t("peaks.open")}
+                    <i className="peak-go-arrow" aria-hidden="true">→</i>
+                  </>
+                )}
               </span>
             </button>
           </li>
