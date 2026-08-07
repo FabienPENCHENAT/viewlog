@@ -4,6 +4,7 @@ import { levelColor } from "../../levels.js";
 import MessageCell from "./MessageCell.jsx";
 import PatternRow from "./PatternRow.jsx";
 import PatternDiff from "./PatternDiff.jsx";
+import Loader from "../shared/Loader.jsx";
 import { formatDuration } from "../../lib/duration.js";
 import { groupPatterns, patternKeyAt, templateFromKey } from "../../lib/patterns.js";
 import { comparePatterns } from "../../lib/pattern-diff.js";
@@ -62,6 +63,39 @@ function ContextIcon() {
   );
 }
 
+// Un travail lourd, mais annoncé.
+//
+// Trois gestes de ce panneau coûtent une à deux secondes sur un gros fichier :
+// comparer la zone au reste du fichier, passer en vue Motifs, isoler un motif.
+// Tous trois refiltrent, regroupent ou comparent, et tout cela SYNCHRONEMENT.
+// Lancés depuis le gestionnaire de clic, ils commencent avant la première
+// peinture : rien ne peut s'afficher, et le clic a l'air ignoré.
+//
+// D'où trois temps : le clic ne fait que poser l'étiquette de ce qui va se passer,
+// un effet lance le travail APRÈS la peinture de cette étiquette, et un dernier
+// rendu la retire quand le résultat est à l'écran.
+function useAnnouncedWork() {
+  const [job, setJob] = useState(null); // { label, fn, phase }
+
+  useEffect(() => {
+    if (!job) return;
+    if (job.phase === "shown") {
+      const timer = setTimeout(() => {
+        job.fn();
+        setJob((j) => (j ? { ...j, phase: "done" } : null));
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+    setJob(null);
+  }, [job]);
+
+  // Un second clic pendant un travail est ignoré, pas mis en file : deux
+  // regroupements qui se chevauchent afficheraient un résultat qui ne correspond
+  // à aucun des deux gestes.
+  const start = (label, fn) => setJob((j) => (j ? j : { label, fn, phase: "shown" }));
+  return [job ? job.label : null, start];
+}
+
 // Petit hook de débounce : évite de refiltrer des centaines de milliers de
 // lignes à chaque frappe / mouvement de curseur.
 function useDebounced(value, delay) {
@@ -94,6 +128,8 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
   // Comparaison de la zone sélectionnée avec le reste du fichier : un mode de la
   // vue Motifs, pas une troisième vue. Il n'a de sens qu'avec une période active.
   const [compare, setCompare] = useState(() => restored.current.compare || false);
+  // Étiquette du travail en cours, ou null (voir useAnnouncedWork).
+  const [working, startWork] = useAnnouncedWork();
 
   // Analytics feature : on ne compte chaque feature qu'UNE fois par fichier
   // ouvert (mesure l'adoption, pas le volume de clics). Remis à zéro au fichier.
@@ -295,9 +331,11 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
   // le clic mène au journal filtré dessus. Comportement inchangé, un seul chemin.
   function pickPattern(key) {
     markFeature("pattern_click");
-    setPatternFilter(key);
-    setView("journal");
-    setCompare(false);
+    startWork("patterns.filtering", () => {
+      setPatternFilter(key);
+      setView("journal");
+      setCompare(false);
+    });
   }
 
   function toggleLevel(level) {
@@ -470,7 +508,11 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
               type="button"
               className={`view-btn ${view === v ? "view-btn--on" : ""}`}
               aria-pressed={view === v}
-              onClick={() => switchView(v)}
+              onClick={() =>
+                v === "patterns" && view !== "patterns"
+                  ? startWork("patterns.grouping", () => switchView(v))
+                  : switchView(v)
+              }
             >
               {t(v === "journal" ? "table.view_journal" : "table.view_patterns")}
             </button>
@@ -649,16 +691,32 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
               className="count-cmp"
               onClick={() => {
                 markFeature("pattern_diff");
-                setCompare(true);
+                startWork("patterns.comparing", () => setCompare(true));
               }}
             >
               {t("patterns.compare")}
             </button>
           </>
         )}
+        {/* L'attente s'annonce là où le clic a été fait, au bout de la même
+            ligne : la chercher ailleurs sur l'écran serait la manquer. */}
+        {working && (
+          <>
+            {" · "}
+            <span className="count-working">
+              <Loader size={16} label={t(working)} />
+            </span>
+          </>
+        )}
       </div>
 
-      <div className="logtable-scroll" ref={scrollRef}>
+      {/* La liste s'efface le temps du calcul : son contenu est sur le point
+          d'être remplacé, la laisser nette laisserait croire qu'elle est à jour. */}
+      <div
+        className={working ? "logtable-scroll logtable-scroll--busy" : "logtable-scroll"}
+        ref={scrollRef}
+        aria-busy={working ? true : undefined}
+      >
         {diffOn && diff ? (
           <PatternDiff diff={diff} onPick={pickPattern} />
         ) : view === "patterns" ? (

@@ -2151,6 +2151,23 @@ body {
   text-decoration-color: var(--accent);
 }
 
+/* L'attente au bout de la ligne de compte, et la liste qui s'efface derrière. */
+.count-working {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.count-working .loader-label {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.logtable-scroll--busy {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
 /* Texte du bandeau de comparaison : occupe la place que `.pattern-tpl` prend
    dans le bandeau de drill-down, pour repousser le ✕ à droite. */
 .banner-txt {
