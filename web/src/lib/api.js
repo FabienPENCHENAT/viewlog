@@ -2,7 +2,7 @@
 // Aucune requête réseau, aucune donnée ne quitte la machine du client.
 // Les erreurs sont levées sous forme de CLÉS i18n ; l'UI les traduit à l'affichage.
 import { parseAsync } from "./parse-async.js";
-import { dbGetAll, dbGet, dbPut, dbDelete } from "./db.js";
+import { dbListMeta, dbGet, dbPut, dbPatch, dbDelete } from "./db.js";
 import { cacheGet, cachePut, cacheDrop } from "./log-cache.js";
 import { MAX_LABEL } from "./tab-label.js";
 
@@ -40,8 +40,12 @@ function byRecent(a, b) {
 // vers la gauche le protège.
 //
 // `order` = 0 pour l'onglet le plus à gauche.
+// ⚠️ Les enregistrements rendus ici sont ALLÉGÉS : ils n'ont pas de `content`
+// (voir `dbListMeta`). Ne jamais les repasser à `dbPut`, qui remplacerait
+// l'enregistrement entier et effacerait le contenu du fichier. Toute
+// modification passe par `dbPatch`.
 async function ordered() {
-  const all = await dbGetAll();
+  const all = await dbListMeta();
 
   // Enregistrements d'avant l'introduction de `order` / `hue` : on les numérote
   // du plus récent au plus ancien, ce qui était leur ordre d'affichage
@@ -51,7 +55,7 @@ async function ordered() {
     for (let i = 0; i < all.length; i++) {
       all[i].order = i;
       all[i].hue = i % HUES;
-      await dbPut(all[i]);
+      await dbPatch(all[i].id, { order: all[i].order, hue: all[i].hue });
     }
     return all;
   }
@@ -122,7 +126,7 @@ export async function uploadLog(file) {
         continue;
       }
       old.order = next++;
-      await dbPut(old);
+      await dbPatch(old.id, { order: old.order });
     }
 
     return { id: record.id, truncated };
@@ -166,21 +170,22 @@ export async function getLog(id) {
 // Étiquette choisie par l'utilisateur. Chaîne vide = retour à l'étiquette
 // automatique (l'heure d'import).
 export async function renameLog(id, label) {
-  const record = await dbGet(id);
-  if (!record) throw new Error("errors.not_found");
-
   try {
-    const clean = (label || "").trim().slice(0, MAX_LABEL);
-    record.label = clean || null;
-    await dbPut(record);
+    const clean = (label || "").trim().slice(0, MAX_LABEL) || null;
+    // Un patch, et pas une relecture suivie d'une écriture : relire
+    // l'enregistrement complet ferait monter le contenu du fichier en mémoire
+    // pour changer une étiquette de quatorze caractères.
+    const found = await dbPatch(id, { label: clean });
+    if (!found) throw new Error("errors.not_found");
 
     // Le cache porte l'étiquette dans ses métadonnées : on l'y répercute plutôt
     // que de jeter un parsing encore valable.
     const cached = cacheGet(id);
-    if (cached) cachePut(id, { ...cached, meta: { ...cached.meta, label: record.label } });
+    if (cached) cachePut(id, { ...cached, meta: { ...cached.meta, label: clean } });
 
-    return { label: record.label };
-  } catch {
+    return { label: clean };
+  } catch (e) {
+    if (e.message === "errors.not_found") throw e;
     throw new Error("errors.rename");
   }
 }
@@ -196,7 +201,7 @@ export async function reorderLogs(ids) {
       const next = rank.has(record.id) ? rank.get(record.id) : ids.length;
       if (record.order === next) continue;
       record.order = next;
-      await dbPut(record);
+      await dbPatch(record.id, { order: next });
     }
 
     return { ok: true };
@@ -215,7 +220,7 @@ export async function deleteLog(id) {
     for (let i = 0; i < all.length; i++) {
       if (all[i].order === i) continue;
       all[i].order = i;
-      await dbPut(all[i]);
+      await dbPatch(all[i].id, { order: i });
     }
     return { ok: true };
   } catch {

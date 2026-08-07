@@ -8,6 +8,7 @@ so each entry is filed under the day it went live.
 - Files over 250 MB are turned away before being read, and the drop zone states the limit up front
 ### Fixed
 - Large CSV logs now open instead of killing the tab
+- Switching tabs and opening the file list stay fast when several large logs are stored
 
 ## 2026-08-06
 ### Changed
