@@ -85,9 +85,9 @@ function tsMs(entry) {
   return entry.ts ? new Date(entry.ts).getTime() : null;
 }
 
-function index(entries) {
+function index(entries, templateAt) {
   const map = new Map();
-  for (const g of groupPatterns(entries)) map.set(g.key, g);
+  for (const g of groupPatterns(entries, templateAt)) map.set(g.key, g);
   return map;
 }
 
@@ -95,7 +95,7 @@ function index(entries) {
  * Le rythme habituel hors de la zone : pour chaque motif, la moyenne de son
  * taux sur des fenêtres de la durée de la zone.
  */
-function buildReference(outside, zone) {
+function buildReference(outside, zone, templateAt) {
   const total = outside.length;
   const span = zone && zone.to > zone.from ? zone.to - zone.from : 0;
 
@@ -122,7 +122,7 @@ function buildReference(outside, zone) {
   for (let i = 0; i < total; i++) {
     const e = outside[i];
     const example = firstLine(e.message || "");
-    const template = patternize(example);
+    const template = templateAt ? templateAt(e, example) : patternize(example);
     const key = keyOf(e.level, template);
     let g = map.get(key);
     if (!g) {
@@ -150,13 +150,16 @@ function buildReference(outside, zone) {
  * @param {Array} outside entrées du reste du fichier (mêmes filtres, période inversée)
  * @param {{from:number,to:number}} [zone] bornes de la zone, en ms : elles donnent
  *   la durée des fenêtres de référence. Sans elles, on retombe sur le taux global.
+ * @param {(entry: object, firstLine: string) => string} [templateAt] gabarit déjà
+ *   calculé. À fournir quand plusieurs zones du MÊME fichier sont comparées :
+ *   sinon la normalisation des messages est refaite intégralement pour chacune.
  * @returns {{
  *   degenerate: boolean, insideTotal: number, outsideTotal: number,
  *   windows: number, pooled: boolean,
  *   onlyHere: Array, over: Array, absent: Array
  * }}
  */
-export function comparePatterns(inside, outside, zone) {
+export function comparePatterns(inside, outside, zone, templateAt) {
   const insideTotal = inside.length;
   const outsideTotal = outside.length;
 
@@ -168,8 +171,8 @@ export function comparePatterns(inside, outside, zone) {
     };
   }
 
-  const here = index(inside);
-  const ref = buildReference(outside, zone);
+  const here = index(inside, templateAt);
+  const ref = buildReference(outside, zone, templateAt);
 
   const onlyHere = [];
   const over = [];

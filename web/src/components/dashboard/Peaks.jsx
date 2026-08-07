@@ -28,6 +28,7 @@
 
 import { useMemo } from "react";
 import { comparePatterns, formatRate } from "../../lib/pattern-diff.js";
+import { firstLine, patternize } from "../../lib/patterns.js";
 import { formatDuration } from "../../lib/duration.js";
 import { useI18n } from "../../i18n/index.jsx";
 
@@ -50,29 +51,48 @@ export function PeakToggle({ count, shown, onToggle }) {
 // La comparaison porte sur le fichier entier, sans les filtres de la vue : une
 // zone est proposée à propos du fichier, pas à propos de ce qu'on regarde. Sinon
 // la même zone changerait de description au gré d'un filtre de niveau.
-function describe(zone, entries) {
-  const inside = [];
-  const outside = [];
-  for (const e of entries) {
-    if (!e.ts) continue;
-    const ms = new Date(e.ts).getTime();
-    if (ms >= zone.from && ms <= zone.to) inside.push(e);
-    else outside.push(e);
+// Les trois zones décrites en une fois, et c'est ce qui rend le clic tenable.
+//
+// Deux calculs étaient refaits À L'IDENTIQUE pour chaque zone alors qu'ils ne
+// dépendent pas d'elle : l'horodatage en millisecondes de chaque entrée, et
+// surtout le gabarit de chaque message. Sur un fichier dont les messages font
+// quelques kilo-octets d'un seul tenant, cette normalisation représentait
+// l'essentiel du temps, et trois zones la payaient trois fois. Elle est
+// maintenant faite une fois et prêtée à la comparaison.
+function describeAll(zones, entries) {
+  const times = new Float64Array(entries.length);
+  const templates = new Map();
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+    times[i] = e.ts ? new Date(e.ts).getTime() : NaN;
+    templates.set(e, patternize(firstLine(e.message || "")));
   }
-  const diff = comparePatterns(inside, outside, zone);
-  return {
-    onlyHere: diff.onlyHere.length,
-    over: diff.over.length,
-    top: diff.onlyHere[0] || diff.over[0] || null,
-  };
+  const templateAt = (e, fl) => templates.get(e) ?? patternize(fl);
+
+  return zones.map((zone) => {
+    const inside = [];
+    const outside = [];
+    for (let i = 0; i < entries.length; i++) {
+      const ms = times[i];
+      if (Number.isNaN(ms)) continue;
+      if (ms >= zone.from && ms <= zone.to) inside.push(entries[i]);
+      else outside.push(entries[i]);
+    }
+    const diff = comparePatterns(inside, outside, zone, templateAt);
+    return {
+      zone,
+      onlyHere: diff.onlyHere.length,
+      over: diff.over.length,
+      top: diff.onlyHere[0] || diff.over[0] || null,
+    };
+  });
 }
 
 export default function PeakZones({ peaks, entries, shown, onPick }) {
   const { t, locale } = useI18n();
 
   const described = useMemo(
-    () =>
-      shown && peaks.length ? peaks.map((z) => ({ zone: z, ...describe(z, entries) })) : null,
+    () => (shown && peaks.length ? describeAll(peaks, entries) : null),
     [shown, peaks, entries]
   );
 

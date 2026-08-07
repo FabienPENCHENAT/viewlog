@@ -9,6 +9,7 @@ so each entry is filed under the day it went live.
 ### Fixed
 - Large CSV logs now open instead of killing the tab
 - Switching tabs and opening the file list stay fast when several large logs are stored
+- Opening the zones to watch no longer takes seconds on logs whose messages are several kilobytes long
 
 ## 2026-08-06
 ### Changed
