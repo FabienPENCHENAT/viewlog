@@ -36,7 +36,7 @@
 // le fichier de mesure : dix faux exclusifs, jusqu'à `Selection: hot_chocolate`.
 // Une moyenne rognée (écarter le décile haut de chaque motif) est pire encore.
 
-import { firstLine, patternize, keyOf, groupPatterns } from "./patterns.js";
+import { firstLine, patternize, keyOf, groupPatternsFrom } from "./patterns.js";
 
 // Occurrences minimales dans la zone pour qu'un motif présent des deux côtés
 // soit déclaré sur-représenté. Sans ce plancher, la longue traîne de lignes
@@ -81,13 +81,33 @@ const MIN_WINDOWS = 4;
 // ne ferait pas l'affaire.
 const NO_WINDOW = 2147483647;
 
-function tsMs(entry) {
-  return entry.ts ? new Date(entry.ts).getTime() : null;
+// Un côté décrit par accesseurs. C'est ce qui permet de comparer sans fabriquer
+// une entrée par ligne : sur un fichier aux messages de plusieurs kilo-octets, les
+// deux côtés couvrent tout le fichier, donc la matérialisation le recopiait en
+// entier pour n'en lire que le niveau, l'horodatage et la première ligne.
+export function sideOfEntries(entries, templateAt) {
+  return {
+    count: entries.length,
+    levelAt: (i) => entries[i].level,
+    messageAt: (i) => entries[i].message,
+    timeAt: (i) => (entries[i].ts ? new Date(entries[i].ts).getTime() : NaN),
+    templateAt: templateAt ? (i, fl) => templateAt(entries[i], fl) : undefined,
+  };
 }
 
-function index(entries, templateAt) {
+// Le même côté, lu dans un store colonnaire.
+export function sideOfStore(store, ids) {
+  return {
+    count: ids.length,
+    levelAt: (k) => store.level(ids[k]),
+    messageAt: (k) => store.message(ids[k]),
+    timeAt: (k) => store.time(ids[k]),
+  };
+}
+
+function index(side) {
   const map = new Map();
-  for (const g of groupPatterns(entries, templateAt)) map.set(g.key, g);
+  for (const g of groupPatternsFrom(side)) map.set(g.key, g);
   return map;
 }
 
@@ -95,8 +115,8 @@ function index(entries, templateAt) {
  * Le rythme habituel hors de la zone : pour chaque motif, la moyenne de son
  * taux sur des fenêtres de la durée de la zone.
  */
-function buildReference(outside, zone, templateAt) {
-  const total = outside.length;
+function buildReference(outside, zone) {
+  const total = outside.count;
   const span = zone && zone.to > zone.from ? zone.to - zone.from : 0;
 
   // Première passe : le nombre de lignes de chaque fenêtre. On mémorise l'index
@@ -108,8 +128,8 @@ function buildReference(outside, zone, templateAt) {
     slot = new Int32Array(total);
     lines = new Map();
     for (let i = 0; i < total; i++) {
-      const ms = tsMs(outside[i]);
-      const w = ms === null ? NO_WINDOW : Math.floor((ms - zone.from) / span);
+      const ms = outside.timeAt(i);
+      const w = Number.isNaN(ms) ? NO_WINDOW : Math.floor((ms - zone.from) / span);
       slot[i] = w;
       if (w !== NO_WINDOW) lines.set(w, (lines.get(w) || 0) + 1);
     }
@@ -120,13 +140,13 @@ function buildReference(outside, zone, templateAt) {
   // Seconde passe : les motifs, avec la somme de leurs taux par fenêtre.
   const map = new Map();
   for (let i = 0; i < total; i++) {
-    const e = outside[i];
-    const example = firstLine(e.message || "");
-    const template = templateAt ? templateAt(e, example) : patternize(example);
-    const key = keyOf(e.level, template);
+    const example = firstLine(outside.messageAt(i) || "");
+    const template = outside.templateAt ? outside.templateAt(i, example) : patternize(example);
+    const level = outside.levelAt(i);
+    const key = keyOf(level, template);
     let g = map.get(key);
     if (!g) {
-      g = { key, level: e.level, template, example, count: 0, acc: 0 };
+      g = { key, level, template, example, count: 0, acc: 0 };
       map.set(key, g);
     }
     g.count += 1;
@@ -159,9 +179,9 @@ function buildReference(outside, zone, templateAt) {
  *   onlyHere: Array, over: Array, absent: Array
  * }}
  */
-export function comparePatterns(inside, outside, zone, templateAt) {
-  const insideTotal = inside.length;
-  const outsideTotal = outside.length;
+export function comparePatternsFrom(inside, outside, zone) {
+  const insideTotal = inside.count;
+  const outsideTotal = outside.count;
 
   if (outsideTotal < MIN_OUTSIDE) {
     return {
@@ -171,8 +191,8 @@ export function comparePatterns(inside, outside, zone, templateAt) {
     };
   }
 
-  const here = index(inside, templateAt);
-  const ref = buildReference(outside, zone, templateAt);
+  const here = index(inside);
+  const ref = buildReference(outside, zone);
 
   const onlyHere = [];
   const over = [];
@@ -248,4 +268,14 @@ export function formatRate(rate, locale) {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   }).format(rate);
+}
+
+// Adaptateur du modèle objet, conservé : la détection de zones et les scripts de
+// vérification travaillent sur des entrées.
+export function comparePatterns(inside, outside, zone, templateAt) {
+  return comparePatternsFrom(
+    sideOfEntries(inside, templateAt),
+    sideOfEntries(outside, templateAt),
+    zone
+  );
 }

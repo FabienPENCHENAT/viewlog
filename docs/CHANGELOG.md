@@ -9,6 +9,7 @@ so each entry is filed under the day it went live.
 - Waiting now shows: the logo's stacked lines roll while ViewLog works, and an import says which step it is on
 ### Changed
 - Very large logs now take about a quarter of the memory they used to, and open several times faster
+- The patterns view and the zone comparison are about twice as fast on large files, and any filter change now says it is working instead of freezing silently
 ### Fixed
 - Large CSV logs now open instead of killing the tab
 - Switching tabs and opening the file list stay fast when several large logs are stored

@@ -1,13 +1,16 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { levelColor } from "../../levels.js";
+
+// Vue vide le temps du premier calcul : une liste d'index, comme les autres.
+const EMPTY_IDS = new Uint32Array(0);
 import MessageCell from "./MessageCell.jsx";
 import PatternRow from "./PatternRow.jsx";
 import PatternDiff from "./PatternDiff.jsx";
 import Loader from "../shared/Loader.jsx";
 import { formatDuration } from "../../lib/duration.js";
-import { groupPatterns, patternKeyAt, templateFromKey } from "../../lib/patterns.js";
-import { comparePatterns } from "../../lib/pattern-diff.js";
+import { groupPatternsOf, patternKeyAt, templateFromKey } from "../../lib/patterns.js";
+import { comparePatternsFrom, sideOfStore } from "../../lib/pattern-diff.js";
 import { featureOnce } from "../../lib/track.js";
 import { copyText } from "../../lib/clipboard.js";
 import { fullRange, rangeStep, isPartialRange } from "../../lib/time-range.js";
@@ -63,39 +66,6 @@ function ContextIcon() {
   );
 }
 
-// Un travail lourd, mais annoncé.
-//
-// Trois gestes de ce panneau coûtent une à deux secondes sur un gros fichier :
-// comparer la zone au reste du fichier, passer en vue Motifs, isoler un motif.
-// Tous trois refiltrent, regroupent ou comparent, et tout cela SYNCHRONEMENT.
-// Lancés depuis le gestionnaire de clic, ils commencent avant la première
-// peinture : rien ne peut s'afficher, et le clic a l'air ignoré.
-//
-// D'où trois temps : le clic ne fait que poser l'étiquette de ce qui va se passer,
-// un effet lance le travail APRÈS la peinture de cette étiquette, et un dernier
-// rendu la retire quand le résultat est à l'écran.
-function useAnnouncedWork() {
-  const [job, setJob] = useState(null); // { label, fn, phase }
-
-  useEffect(() => {
-    if (!job) return;
-    if (job.phase === "shown") {
-      const timer = setTimeout(() => {
-        job.fn();
-        setJob((j) => (j ? { ...j, phase: "done" } : null));
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-    setJob(null);
-  }, [job]);
-
-  // Un second clic pendant un travail est ignoré, pas mis en file : deux
-  // regroupements qui se chevauchent afficheraient un résultat qui ne correspond
-  // à aucun des deux gestes.
-  const start = (label, fn) => setJob((j) => (j ? j : { label, fn, phase: "shown" }));
-  return [job ? job.label : null, start];
-}
-
 // Petit hook de débounce : évite de refiltrer des centaines de milliers de
 // lignes à chaque frappe / mouvement de curseur.
 function useDebounced(value, delay) {
@@ -128,8 +98,6 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
   // Comparaison de la zone sélectionnée avec le reste du fichier : un mode de la
   // vue Motifs, pas une troisième vue. Il n'a de sens qu'avec une période active.
   const [compare, setCompare] = useState(() => restored.current.compare || false);
-  // Étiquette du travail en cours, ou null (voir useAnnouncedWork).
-  const [working, startWork] = useAnnouncedWork();
 
   // Analytics feature : on ne compte chaque feature qu'UNE fois par fichier
   // ouvert (mesure l'adoption, pas le volume de clics). Remis à zéro au fichier.
@@ -331,11 +299,9 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
   // le clic mène au journal filtré dessus. Comportement inchangé, un seul chemin.
   function pickPattern(key) {
     markFeature("pattern_click");
-    startWork("patterns.filtering", () => {
-      setPatternFilter(key);
-      setView("journal");
-      setCompare(false);
-    });
+    setPatternFilter(key);
+    setView("journal");
+    setCompare(false);
   }
 
   function toggleLevel(level) {
@@ -347,78 +313,100 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
     });
   }
 
-  // La vue filtrée est une liste d'INDEX, pas un tableau d'entrées : quatre
-  // octets par ligne retenue au lieu d'un objet et de ses chaînes. Les colonnes
-  // (niveau, horodatage) se lisent sans rien fabriquer ; seuls la recherche et le
-  // drill-down ont besoin du texte, et il est décodé ligne par ligne, ce qui a été
-  // mesuré à 0,11 s sur un fichier de 500 Mo.
-  const filtered = useMemo(() => {
-    const timeFilter = !!(bounds && dRange && (dRange.from > bounds.lo || dRange.to < bounds.hi));
-    const out = new Uint32Array(store.count);
-    let n = 0;
-    for (let i = 0; i < store.count; i++) {
-      if (active.size > 0 && !active.has(store.level(i))) continue;
-      if (timeFilter) {
-        const ms = store.time(i);
-        // Une entrée sans horodatage est exclue dès qu'on filtre le temps.
-        if (Number.isNaN(ms) || ms < dRange.from || ms > dRange.to) continue;
-      }
-      if (searchRe.test && !searchRe.test(store.raw(i))) continue;
-      if (patternFilter && patternKeyAt(store, i) !== patternFilter) continue;
-      out[n++] = i;
-    }
-    return out.subarray(0, n);
-  }, [store, searchRe, active, dRange, bounds, patternFilter]);
-
-  // Les entrées ne sont matérialisées que là où l'algorithme a besoin du texte de
-  // toute la sélection : le regroupement par motif et la comparaison de zone.
-  // C'est le même coût qu'avant, et il ne se paye plus dans le journal.
-  const materialize = (ids) => {
-    const out = new Array(ids.length);
-    for (let i = 0; i < ids.length; i++) out[i] = store.at(ids[i]);
-    return out;
-  };
-
-  // Regroupement par motif (seulement en vue "Motifs").
-  const groups = useMemo(
-    () => (view === "patterns" ? groupPatterns(materialize(filtered)) : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [view, filtered, store]
-  );
-
   const diffOn = compare && view === "patterns" && timeActive;
 
-  // Le reste du fichier, référence de la comparaison. Les niveaux et la
-  // recherche restent appliqués des DEUX côtés : sans ça, avec un filtre ERROR
-  // actif, le complément ramènerait tous les INFO et noierait la comparaison.
-  // Seule la période est inversée.
-  const complement = useMemo(() => {
-    if (!diffOn || !bounds || !dRange) return null;
-    const out = new Uint32Array(store.count);
-    let n = 0;
-    for (let i = 0; i < store.count; i++) {
-      if (active.size > 0 && !active.has(store.level(i))) continue;
-      // Une entrée sans horodatage n'est ni dedans ni dehors : la comparaison
-      // est temporelle, donc elle ne participe pas plutôt que de peser d'un côté.
-      const ms = store.time(i);
-      if (Number.isNaN(ms)) continue;
-      if (ms >= dRange.from && ms <= dRange.to) continue;
-      if (searchRe.test && !searchRe.test(store.raw(i))) continue;
-      out[n++] = i;
-    }
-    return materialize(out.subarray(0, n));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [diffOn, store, active, searchRe, dRange, bounds]);
+  /* --- La vue dérivée, calculée HORS du rendu -------------------------------
+     Trois calculs dépendent des filtres : la liste des lignes retenues, leur
+     regroupement par motif, et la comparaison de zone. Faits dans un `useMemo`,
+     ils s'exécutent AVANT la première peinture, donc aucun signe d'activité ne
+     peut s'afficher, quel que soit le geste qui les déclenche.
 
-  // La zone est passée à la comparaison : sa DURÉE définit les fenêtres de
-  // référence, donc « le taux habituel sur une zone équivalente ailleurs »
-  // plutôt que « le taux moyen de tout le reste ». C'est ce qui empêche un
-  // second pic ailleurs dans le fichier d'écraser la comparaison.
-  const diff = useMemo(
-    () => (complement ? comparePatterns(materialize(filtered), complement, dRange) : null),
+     Les sortir du rendu couvre donc TOUS les contrôles d'un coup, y compris ceux
+     qu'on ajoutera : la puce de niveau, le curseur de période, le glisser sur le
+     graphe, la recherche, les deux ✕, le saut vers le contexte. Une étiquette
+     cousue à chaque bouton aurait fini par se désynchroniser du travail réel.
+
+     La signature des entrées dit quand il faut recalculer. Elle est bâtie sur les
+     valeurs DÉBOUNCÉES : taper dans la recherche ne relance donc pas le calcul à
+     chaque frappe. */
+  const inputsKey = [
+    view,
+    diffOn ? "cmp" : "",
+    [...active].sort().join("+"),
+    regexMode ? "re" : "",
+    dQuery,
+    patternFilter || "",
+    dRange ? `${dRange.from}-${dRange.to}` : "",
+  ].join("|");
+
+  const [derived, setDerived] = useState(null); // { key, ids, groups, diff }
+  const fresh = derived && derived.key === inputsKey;
+  const working = !fresh;
+  const filtered = fresh ? derived.ids : EMPTY_IDS;
+  // L'étiquette se DÉDUIT du calcul en cours, au lieu d'être portée par chaque
+  // bouton : elle ne peut donc pas mentir sur ce qui se passe.
+  const workingLabel = diffOn
+    ? "patterns.comparing"
+    : view === "patterns"
+      ? "patterns.grouping"
+      : "patterns.filtering";
+  const groups = fresh ? derived.groups : null;
+  const diff = fresh ? derived.diff : null;
+
+  useEffect(() => {
+    // Un tour de boucle pour laisser peindre l'état d'attente, puis le travail.
+    const timer = setTimeout(() => {
+      const timeFilter = !!(bounds && dRange && (dRange.from > bounds.lo || dRange.to < bounds.hi));
+      const out = new Uint32Array(store.count);
+      let n = 0;
+      for (let i = 0; i < store.count; i++) {
+        if (active.size > 0 && !active.has(store.level(i))) continue;
+        if (timeFilter) {
+          const ms = store.time(i);
+          // Une entrée sans horodatage est exclue dès qu'on filtre le temps.
+          if (Number.isNaN(ms) || ms < dRange.from || ms > dRange.to) continue;
+        }
+        if (searchRe.test && !searchRe.test(store.raw(i))) continue;
+        if (patternFilter && patternKeyAt(store, i) !== patternFilter) continue;
+        out[n++] = i;
+      }
+      const ids = out.subarray(0, n);
+
+      // Le regroupement et la comparaison lisent le store : ils n'ont besoin que
+      // du niveau et de la première ligne, et fabriquer une entrée complète par
+      // ligne coûtait 766 ms sur les 1 089 d'un fichier de 500 Mo.
+      const grouped = view === "patterns" ? groupPatternsOf(store, ids) : null;
+
+      let comparison = null;
+      if (diffOn && bounds && dRange) {
+        // Le reste du fichier, référence de la comparaison. Les niveaux et la
+        // recherche restent appliqués des DEUX côtés : sans ça, avec un filtre
+        // ERROR actif, le complément ramènerait tous les INFO et noierait la
+        // comparaison. Seule la période est inversée.
+        const outside = new Uint32Array(store.count);
+        let m = 0;
+        for (let i = 0; i < store.count; i++) {
+          if (active.size > 0 && !active.has(store.level(i))) continue;
+          // Une entrée sans horodatage n'est ni dedans ni dehors : la comparaison
+          // est temporelle, donc elle ne participe pas plutôt que de peser d'un côté.
+          const ms = store.time(i);
+          if (Number.isNaN(ms)) continue;
+          if (ms >= dRange.from && ms <= dRange.to) continue;
+          if (searchRe.test && !searchRe.test(store.raw(i))) continue;
+          outside[m++] = i;
+        }
+        comparison = comparePatternsFrom(
+          sideOfStore(store, ids),
+          sideOfStore(store, outside.subarray(0, m)),
+          dRange
+        );
+      }
+
+      setDerived({ key: inputsKey, ids, groups: grouped, diff: comparison });
+    }, 0);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [complement, filtered, dRange, store]
-  );
+  }, [inputsKey, store]);
 
   // --- Virtualisation du journal : on ne rend que les lignes visibles.
   const scrollRef = useRef(null);
@@ -439,10 +427,10 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
   // apparaît viserait une liste intermédiaire, puis la liste finale, plus
   // longue, décalerait la cible loin de l'écran. On attend donc que les valeurs
   // débouncées aient rattrapé les valeurs vivantes.
-  const rangeSettled =
-    dRange === range ||
-    (!!dRange && !!range && dRange.from === range.from && dRange.to === range.to);
-  const filtersSettled = dQuery === query && rangeSettled;
+  // La vue dérivée porte la signature des filtres débouncés : « à jour » veut donc
+  // dire que le calcul correspondant est terminé, ce que `fresh` dit déjà. La
+  // comparaison manuelle des valeurs vivantes et débouncées ne sert plus.
+  const filtersSettled = fresh;
 
   // Les lignes sont mesurées à la volée (messages multi-lignes, stack traces) :
   // un premier défilement ne connaît que des hauteurs estimées, et les mesures
@@ -508,11 +496,7 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
               type="button"
               className={`view-btn ${view === v ? "view-btn--on" : ""}`}
               aria-pressed={view === v}
-              onClick={() =>
-                v === "patterns" && view !== "patterns"
-                  ? startWork("patterns.grouping", () => switchView(v))
-                  : switchView(v)
-              }
+              onClick={() => switchView(v)}
             >
               {t(v === "journal" ? "table.view_journal" : "table.view_patterns")}
             </button>
@@ -679,6 +663,7 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
       <div className="logtable-count muted">
         {t("table.entries", { count: filtered.length.toLocaleString(locale) })}
         {view === "patterns" &&
+          groups &&
           " → " + t("patterns.unique", { count: groups.length.toLocaleString(locale) })}
         {/* Le point d'entrée de la comparaison : une action au bout d'une ligne
             qui existe déjà, et seulement quand une période borne une zone. Rien
@@ -691,7 +676,7 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
               className="count-cmp"
               onClick={() => {
                 markFeature("pattern_diff");
-                startWork("patterns.comparing", () => setCompare(true));
+                setCompare(true);
               }}
             >
               {t("patterns.compare")}
@@ -700,11 +685,11 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
         )}
         {/* L'attente s'annonce là où le clic a été fait, au bout de la même
             ligne : la chercher ailleurs sur l'écran serait la manquer. */}
-        {working && (
+        {working && filtered !== null && (
           <>
             {" · "}
             <span className="count-working">
-              <Loader size={16} label={t(working)} />
+              <Loader size={16} label={t(workingLabel)} />
             </span>
           </>
         )}
@@ -721,8 +706,13 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
           <PatternDiff diff={diff} onPick={pickPattern} />
         ) : view === "patterns" ? (
           <div className="patterns">
-            {groups.length === 0 && <div className="lt-empty muted">{t("table.empty")}</div>}
-            {groups.slice(0, MAX_PATTERNS).map((g) => (
+            {/* Tant que le regroupement n'est pas fini, ni liste ni « aucune
+                entrée » : le second serait faux, et l'attente est déjà annoncée
+                au bout de la ligne de compte. */}
+            {groups && groups.length === 0 && (
+              <div className="lt-empty muted">{t("table.empty")}</div>
+            )}
+            {(groups || []).slice(0, MAX_PATTERNS).map((g) => (
               <PatternRow
                 key={g.key}
                 lead={`${g.count.toLocaleString(locale)}×`}
@@ -732,7 +722,7 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
                 onClick={() => pickPattern(g.key)}
               />
             ))}
-            {groups.length > MAX_PATTERNS && (
+            {groups && groups.length > MAX_PATTERNS && (
               <div className="muted pat-more">
                 {t("patterns.more", { count: (groups.length - MAX_PATTERNS).toLocaleString(locale) })}
               </div>
