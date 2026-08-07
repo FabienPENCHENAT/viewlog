@@ -4,7 +4,7 @@
 import { parseLog } from "./text.js";
 import { detectCsv, parseCsv } from "./csv.js";
 
-export { MAX_LINES, LEVELS } from "./shared.js";
+export { MAX_LINES, MAX_BYTES, MAX_MB, LEVELS } from "./shared.js";
 export { buildStats } from "./stats.js";
 export { parseLog } from "./text.js";
 export { detectCsv, parseCsv } from "./csv.js";

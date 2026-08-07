@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { filesFromDrop } from "../../lib/files.js";
+import { MAX_MB } from "../../parser/index.js";
 import { useI18n } from "../../i18n/index.jsx";
 
 // Zone de dépôt. Accepte un fichier, plusieurs fichiers, ou un dossier (dont on
@@ -44,7 +45,9 @@ export default function DropZone({ onFiles, onPickFiles, onPickFolder, busy }) {
         {busy ? t("dropzone.analyzing") : t("dropzone.title")}
       </div>
       <div className="dropzone-sub">
-        {busy ? t("dropzone.wait") : t("dropzone.hint")}
+        {/* Le plafond est annoncé AVANT le dépôt : le découvrir par un refus,
+            après avoir attendu, est le pire moment pour l'apprendre. */}
+        {busy ? t("dropzone.wait") : t("dropzone.hint", { max: MAX_MB })}
       </div>
       {!busy && (
         <button

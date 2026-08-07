@@ -12,7 +12,7 @@ import { labelTabs } from "../lib/tab-label.js";
 import { getTabState, setTabState, dropTabState } from "../lib/tab-state.js";
 import { trackOpen, trackFeature, featureOnce } from "../lib/track.js";
 import { timeBounds, fullRange, clampRange, isPartialRange } from "../lib/time-range.js";
-import { MAX_LINES } from "../parser/index.js";
+import { MAX_LINES, MAX_MB } from "../parser/index.js";
 import { useI18n } from "../i18n/index.jsx";
 
 export default function Dashboard() {
@@ -167,7 +167,9 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="dashboard">
-        <div className="error-banner">{t(error)}</div>
+        {/* Même interpolation qu'à l'accueil : le plafond de taille est fourni à
+            toutes les erreurs, seules celles qui en parlent l'utilisent. */}
+        <div className="error-banner">{t(error, { max: MAX_MB })}</div>
         <Link to="/" className="back-link">{t("dash.back_home")}</Link>
       </div>
     );

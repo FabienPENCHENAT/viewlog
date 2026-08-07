@@ -35,7 +35,7 @@ export default {
   "dropzone.title": "Déposez votre fichier de log ici",
   "dropzone.wait": "Un instant",
   "dropzone.hint":
-    "ou cliquez pour parcourir · plusieurs fichiers acceptés · .log / .txt / .csv",
+    "ou cliquez pour parcourir · plusieurs fichiers acceptés · .log / .txt / .csv · {max} Mo max",
   "dropzone.folder": "Ou choisir un dossier",
 
   "paste.toggle": "Ou collez vos logs directement",
@@ -191,6 +191,9 @@ export default {
   "errors.reorder": "Réorganisation impossible",
   "errors.no_file": "Aucun fichier exploitable dans ce que vous avez déposé",
   "errors.import_partial": "Certains fichiers n'ont pas pu être importés",
+  // La limite est dite en clair : « trop gros » sans le seuil laisse l'utilisateur
+  // deviner s'il doit découper en deux ou en vingt.
+  "errors.too_big": "Fichier trop gros : ViewLog s'arrête à {max} Mo par fichier",
 
   "uc.title": "Cas d'usage",
   "uc.steps": "Les étapes",

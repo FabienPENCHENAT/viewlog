@@ -4,6 +4,7 @@
 // les deux chemins comptent leurs imports de la même façon.
 import { uploadLog } from "./api.js";
 import { trackImport, sizeBucket } from "./track.js";
+import { MAX_BYTES } from "../parser/shared.js";
 
 // Extension seule (jamais le nom complet) pour les stats d'usage anonymes.
 export function fileExt(name) {
@@ -17,6 +18,16 @@ export function fileExt(name) {
 export async function importLog(file, method) {
   const ext = fileExt(file?.name);
   const size = sizeBucket(file?.size || 0);
+
+  // Le refus se décide AVANT de lire le fichier : lire 800 Mo pour conclure
+  // qu'ils ne passent pas, c'est déjà avoir fait tomber l'onglet. Le refus est
+  // compté comme un échec d'import, avec sa tranche de taille : c'est ce qui
+  // dira s'il faut relever le plafond.
+  if ((file?.size || 0) > MAX_BYTES) {
+    trackImport("fail", { method, ext, size });
+    throw new Error("errors.too_big");
+  }
+
   try {
     const { id, truncated } = await uploadLog(file);
     trackImport("success", { method, ext, size, truncated });

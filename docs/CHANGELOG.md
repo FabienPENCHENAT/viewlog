@@ -3,6 +3,10 @@
 All notable changes to ViewLog, newest first. Everything ships continuously,
 so each entry is filed under the day it went live.
 
+## 2026-08-07
+### Added
+- Files over 250 MB are turned away before being read, and the drop zone states the limit up front
+
 ## 2026-08-06
 ### Changed
 - The dashboard header is now a single low band: lines and time span on the left, every level with its count and share on the right, and the volume chart takes the full width below it

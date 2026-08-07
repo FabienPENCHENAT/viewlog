@@ -33,7 +33,8 @@ export default {
   "dropzone.analyzing": "Reading the file…",
   "dropzone.title": "Drop your log file here",
   "dropzone.wait": "One moment",
-  "dropzone.hint": "or click to browse · several files accepted · .log / .txt / .csv",
+  "dropzone.hint":
+    "or click to browse · several files accepted · .log / .txt / .csv · {max} MB max",
   "dropzone.folder": "Or pick a folder",
 
   "paste.toggle": "Or paste your logs directly",
@@ -186,6 +187,9 @@ export default {
   "errors.reorder": "Couldn't reorder",
   "errors.no_file": "Nothing usable in what you dropped",
   "errors.import_partial": "Some files couldn't be imported",
+  // The limit is spelled out: "too big" without the threshold leaves the user
+  // guessing whether to split the file in two or in twenty.
+  "errors.too_big": "File too large: ViewLog stops at {max} MB per file",
 
   "uc.title": "Use cases",
   "uc.steps": "The steps",

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DropZone from "../components/home/DropZone.jsx";
 import ImportManager from "../components/shared/ImportManager.jsx";
 import { listLogs, deleteLog } from "../lib/api.js";
+import { MAX_MB } from "../parser/index.js";
 import { useI18n } from "../i18n/index.jsx";
 import shieldIcon from "../assets/privacy-shield.svg";
 
@@ -113,7 +114,10 @@ export default function Home() {
         )}
       </div>
 
-      {error && <div className="error-banner">{t(error)}</div>}
+      {/* Le plafond de taille est passé à toutes les erreurs : l'interpolation
+          ignore les clés qui n'en parlent pas, et ça évite de recopier le seuil
+          dans les textes, où il finirait par mentir. */}
+      {error && <div className="error-banner">{t(error, { max: MAX_MB })}</div>}
 
       <section className="recent">
         <h2>

@@ -5,6 +5,18 @@
 // (centaines de milliers de lignes / dizaines de Mo).
 export const MAX_LINES = 1000000;
 
+// Plafond en OCTETS, refusé à l'import. Les deux garde-fous ne disent pas la
+// même chose : un fichier peut tenir sous le million de lignes et peser 800 Mo
+// (lignes très longues), ou faire 40 Mo et porter trois millions de lignes.
+// Sans limite de taille, un fichier assez gros faisait tuer l'onglet par le
+// navigateur, ce qui ne s'explique pas à l'utilisateur.
+export const MAX_BYTES = 250 * 1024 * 1024;
+
+// Le même plafond en Mo, pour les textes affichés : le seuil ne doit exister
+// qu'à un seul endroit, sinon un message finit par annoncer une limite qui n'est
+// plus celle du code.
+export const MAX_MB = MAX_BYTES / (1024 * 1024);
+
 // Niveaux canoniques (ordre de sévérité croissant).
 export const LEVELS = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "OTHER"];
 

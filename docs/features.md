@@ -337,6 +337,16 @@ Fichiers de plusieurs dizaines de Mo / centaines de milliers de lignes pris en
 charge. Le traitement porte sur le **premier million de lignes** ; l'affichage
 reste fluide grâce à la virtualisation.
 
+**Deux plafonds, et ils ne disent pas la même chose.** Un fichier de plus de
+**250 Mo est refusé à l'import**, avant d'être lu, et la zone de dépôt annonce la
+limite plutôt que de la faire découvrir par un refus. Le plafond en lignes, lui,
+tronque : un fichier peut tenir sous 250 Mo et porter trois millions de lignes.
+Sans limite de taille, un fichier assez gros faisait **tuer l'onglet par le
+navigateur**, ce qui ne s'explique pas à l'utilisateur.
+
+Le chantier qui relève ces plafonds est mesuré et engagé : voir le modèle
+colonnaire dans [architecture.md](architecture.md).
+
 ## Page « cas d'usage »
 
 `/cas-usage` pose deux situations concrètes, formulées comme l'utilisateur se
