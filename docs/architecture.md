@@ -135,6 +135,26 @@ multi-octets avant l'horodatage, indentation, CRLF sans saut final, ligne de
 des espaces au milieu d'une stack trace garde ses espaces, là où l'ancien parseur
 les laissait tomber. Le nouveau comportement est le plus fidèle au fichier.
 
+### Le fichier de référence, et pourquoi sa forme compte
+
+Les mesures ci-dessus valent sur des logs à **lignes courtes**, où le nombre
+d'entrées domine. Le fichier réel qui a motivé le chantier a la forme inverse :
+**222 Mo pour 53 000 lignes**, soit 4,2 Ko par ligne, parce que chaque message
+porte une stack trace complète et un payload. Deux conséquences qui renversent
+les conclusions :
+
+- **le plafond du million d'entrées n'y change rien** : ce fichier passe en
+  entier, ses 24 h comprises. Ce qui coûte, c'est l'octet, pas la ligne ;
+- **le poste dominant est la copie vers l'interface**. Mesuré sur cette forme :
+  214 Mo pour le fichier en mémoire, 50 Mo pour les entrées, et **607 Mo pour la
+  seule copie des entrées du worker vers l'UI**, soit 875 Mo à l'arrivée sur le
+  dashboard. Chaque entrée porte `raw` et `message`, tranches du contenu pendant
+  le parsing, aplaties en chaînes autonomes en traversant le pont.
+
+Donc : **régler un seuil ou juger un gain demande de mesurer les deux formes**,
+lignes courtes et lignes énormes. Une optimisation qui brille sur l'une peut ne
+rien changer à l'autre.
+
 ### Le CSV coûtait huit fois le texte
 
 Le CSV n'est pas le texte, et ça ne se voyait pas : `tokenizeCsv` construisait
