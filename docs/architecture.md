@@ -30,7 +30,8 @@ levels.js          Couleurs par niveau (concern UI)
 parser.worker.js   Point d'entrée du Web Worker
 
 parser/            Parsing (voir plus bas)
-  shared.js          niveaux, alias, détection horodatage/niveau, MAX_LINES
+  shared.js          niveaux, alias, détection horodatage/niveau, MAX_LINES, MAX_BYTES
+  columnar.js        buildIndex + createStore, modèle sans objet par ligne
   text.js            parseLog — parseur texte générique (.log / .txt)
   csv.js             detectCsv + parseCsv (tokenizer RFC 4180, mapping colonnes)
   stats.js           buildStats — agrégats (par niveau, plage, série temporelle)
@@ -86,6 +87,57 @@ Dashboard ─► FileIdentity · Timeline (+ Peaks) · LogTable
 - **`parser/index.js`** est le seul point de dispatch : détection CSV au contenu,
   sinon parseur texte. Les deux rendent le même modèle d'entrée
   `{ i, ts, level, message, raw }`.
+
+## Le modèle colonnaire (chantier en cours)
+
+Le modèle actuel fabrique **un objet par entrée**, ce qui ne passe pas l'échelle.
+Mesuré sur un vrai fichier de 200 Mo couvrant 24 h (1 975 356 lignes) :
+
+| Étape | Coût | Cumul |
+|---|---|---|
+| `file.text()` | 200 Mo | 204 Mo |
+| copie vers le worker | 200 Mo | 404 Mo |
+| `parse()` → `entries[]` | 170 Mo | 574 Mo |
+| **copie des entrées vers l'UI** | **372 Mo** | **946 Mo** |
+
+La dernière ligne est la clé : pendant le parsing, V8 garde des **tranches** de la
+grande chaîne, et le passage du pont les transforme en chaînes autonomes, donc la
+copie coûte plus que l'original. À cela s'ajoutait que `MAX_LINES` coupait à la
+moitié du fichier : chercher un motif présent l'après-midi renvoyait **zéro
+résultat**, ce qui est pire qu'un plantage.
+
+`parser/columnar.js` répond aux deux : les octets restent des octets, l'index
+tient dans **six tableaux typés** (`offset`, `length`, `tsStart`, `tsLen`,
+`level`, `time`), soit **19 octets par entrée** contre 181, et les chaînes ne sont
+fabriquées que pour ce qui est affiché. Une entrée est une **plage d'octets
+contiguë** : les lignes de continuation étendent la plage au lieu de créer une
+entrée, ce qui préserve le rattachement des stack traces.
+
+Mesuré sur le même fichier, **sans plafond de lignes** : 200 Mo d'octets + 37 Mo
+d'index = **241 Mo pour les 1 940 784 entrées**, indexation en 0,70 s (contre
+0,77 s pour la moitié du fichier dans l'ancien modèle), compteurs par niveau en
+5 ms, recherche plein texte sur tout le fichier en 223 ms. Et les tableaux typés
+se **transfèrent** entre threads sans copie, donc les 372 Mo disparaissent.
+
+**Deux accès, et la distinction fait tenir la mémoire.** `level(i)` et `time(i)`
+ne fabriquent rien et suffisent aux statistiques, au graphe et aux zones ;
+`raw(i)`, `message(i)` et `at(i)` fabriquent des chaînes et ne doivent servir
+qu'à l'affichage, à l'export et à la recherche. Personne au-dessus du store ne
+touche aux tableaux typés, sinon le modèle cesserait d'être remplaçable.
+
+État du chantier : **le module existe et son équivalence est prouvée, rien ne
+l'utilise encore.** Un script de comparaison hors navigateur parse le même
+fichier des deux façons et diffe `ts`, `level`, `message` et `raw` entrée par
+entrée, plus les agrégats. Sur les 982 324 entrées du fichier de 200 Mo, et sur
+un jeu de cas tordus (horodatage Apache au milieu de la ligne, syslog, UTF-8
+multi-octets avant l'horodatage, indentation, CRLF sans saut final, ligne de
+5 000 caractères), **une seule différence assumée** : une ligne blanche contenant
+des espaces au milieu d'une stack trace garde ses espaces, là où l'ancien parseur
+les laissait tomber. Le nouveau comportement est le plus fidèle au fichier.
+
+Le CSV **reste sur le modèle actuel** : son tokenizer reconstruit le message à
+partir de colonnes, ce n'est donc pas une tranche du fichier et une plage
+d'octets ne suffit pas à le retrouver.
 
 ## Stockage local
 
