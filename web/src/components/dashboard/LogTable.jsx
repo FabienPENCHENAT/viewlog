@@ -339,19 +339,32 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
     dRange ? `${dRange.from}-${dRange.to}` : "",
   ].join("|");
 
-  const [derived, setDerived] = useState(null); // { key, ids, groups, diff }
+  const [derived, setDerived] = useState(null); // { key, view, diffOn, ids, groups, diff }
   const fresh = derived && derived.key === inputsKey;
   const working = !fresh;
-  const filtered = fresh ? derived.ids : EMPTY_IDS;
-  // L'étiquette se DÉDUIT du calcul en cours, au lieu d'être portée par chaque
-  // bouton : elle ne peut donc pas mentir sur ce qui se passe.
+
+  /* LE PANNEAU AFFICHE LA VUE CALCULÉE, PAS LES FILTRES COURANTS.
+     C'est la règle qui évite que l'écran saute. Vider la liste le temps du
+     calcul faisait s'effondrer le cadre, donc remonter toute la page, puis
+     redescendre : l'effet d'un rechargement, pour un clic.
+
+     L'ancien résultat reste donc à l'écran, estompé et annoncé, jusqu'à ce que le
+     nouveau le remplace. La barre d'outils, elle, suit l'état courant : le bouton
+     cliqué s'enfonce tout de suite, seule la LISTE est en retard. Et comme la vue
+     affichée vient de la dérivation, passer en Motifs garde le journal sous les
+     yeux au lieu d'ouvrir une liste de motifs encore vide. */
+  const shown = derived || { view, diffOn: false, ids: EMPTY_IDS, groups: null, diff: null };
+  const filtered = shown.ids;
+  const groups = shown.groups;
+  const diff = shown.diff;
+
+  // L'étiquette se DÉDUIT de ce qui est en train d'être calculé, au lieu d'être
+  // portée par chaque bouton : elle ne peut donc pas mentir sur ce qui se passe.
   const workingLabel = diffOn
     ? "patterns.comparing"
     : view === "patterns"
       ? "patterns.grouping"
       : "patterns.filtering";
-  const groups = fresh ? derived.groups : null;
-  const diff = fresh ? derived.diff : null;
 
   useEffect(() => {
     // Un tour de boucle pour laisser peindre l'état d'attente, puis le travail.
@@ -402,7 +415,7 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
         );
       }
 
-      setDerived({ key: inputsKey, ids, groups: grouped, diff: comparison });
+      setDerived({ key: inputsKey, view, diffOn, ids, groups: grouped, diff: comparison });
     }, 0);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -411,7 +424,7 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
   // --- Virtualisation du journal : on ne rend que les lignes visibles.
   const scrollRef = useRef(null);
   const rowVirtualizer = useVirtualizer({
-    count: view === "journal" ? filtered.length : 0,
+    count: shown.view === "journal" ? filtered.length : 0,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => 41,
     overscan: 14,
@@ -446,7 +459,9 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
   // page pour passer AVANT le recentrage d'un éventuel saut en attente.
   useLayoutEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
-  }, [view]);
+    // Sur la vue AFFICHÉE : remettre en haut pendant qu'on montre encore l'autre
+    // liste ferait perdre la position de lecture pour rien.
+  }, [shown.view]);
 
   function centerOn(idx) {
     cancelAnimationFrame(settleFrame.current);
@@ -463,7 +478,7 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
   }
 
   useEffect(() => {
-    if (!pendingJump || view !== "journal" || !filtersSettled) return;
+    if (!pendingJump || shown.view !== "journal" || !filtersSettled) return;
     // `filtered` porte les index des lignes retenues, et `at` EST un index de
     // ligne : la position dans la vue se lit donc sans parcourir d'objets.
     const idx = filtered.indexOf(pendingJump.at);
@@ -661,8 +676,8 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
       )}
 
       <div className="logtable-count muted">
-        {t("table.entries", { count: filtered.length.toLocaleString(locale) })}
-        {view === "patterns" &&
+        {derived && t("table.entries", { count: filtered.length.toLocaleString(locale) })}
+        {shown.view === "patterns" &&
           groups &&
           " → " + t("patterns.unique", { count: groups.length.toLocaleString(locale) })}
         {/* Le point d'entrée de la comparaison : une action au bout d'une ligne
@@ -702,9 +717,9 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
         ref={scrollRef}
         aria-busy={working ? true : undefined}
       >
-        {diffOn && diff ? (
+        {shown.diffOn && diff ? (
           <PatternDiff diff={diff} onPick={pickPattern} />
-        ) : view === "patterns" ? (
+        ) : shown.view === "patterns" ? (
           <div className="patterns">
             {/* Tant que le regroupement n'est pas fini, ni liste ni « aucune
                 entrée » : le second serait faux, et l'attente est déjà annoncée
@@ -814,7 +829,7 @@ export default function LogTable({ tabId, store, byLevel, bounds, range, onRange
                   <td colSpan={5} />
                 </tr>
               )}
-              {filtered.length === 0 && (
+              {fresh && filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="muted empty-row">
                     {t("table.empty")}
