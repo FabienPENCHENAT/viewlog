@@ -7,9 +7,7 @@ so each entry is filed under the day it went live.
 ### Added
 - Files over 250 MB are turned away before being read, and the drop zone states the limit up front
 ### Fixed
-- Large CSV logs no longer take eight times the memory of a text log of the same size, so a file that killed the tab now opens
-### Changed
-- Copying a line from a CSV log now gives the real line from the file, quotes and separators included, instead of its fields joined by spaces
+- Large CSV logs now open instead of killing the tab
 
 ## 2026-08-06
 ### Changed
